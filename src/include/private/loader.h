@@ -40,13 +40,17 @@
 	class Block {
 	private:
 		std::shared_ptr<MemCachedDB::File> file;		///< @brief The data file.
-		size_t length;									///< @brief Length of the datablock.
-		size_t offset;									///< @brief The offset of the datablock.
-		size_t hash;									///< @brief Hash of the datablock
+		size_t length = 0;								///< @brief Length of the datablock.
+		size_t offset = 0;								///< @brief The offset of the datablock.
+		size_t hash = 0;								///< @brief Hash of the datablock
+
+	protected:
+
+		virtual bool compare(void *src) const;
 
 	public:
-		Block(std::shared_ptr<MemCachedDB::File> file, void *data, size_t length);
-		bool operator==(const Block &b) const;
+		Block(std::shared_ptr<MemCachedDB::File> file, const void *data, size_t length);
+		virtual bool operator==(const Block &b) const;
 
 		struct HashFunction {
 			size_t operator()(const Block& block) const {
