@@ -25,6 +25,8 @@
  #include <udjat/tools/request.h>
  #include <udjat/tools/response.h>
  #include <stdexcept>
+ #include <vector>
+ #include <udjat/tools/memdb/simpletable.h>
 
 
  using namespace Udjat;
@@ -36,6 +38,9 @@
  Udjat::Module * udjat_module_init() {
 
 	class Module : public Udjat::Module, Udjat::Worker, private Udjat::Factory {
+	private:
+		vector<MemCachedDB::Table> tables;
+
 	public:
 		Module() : Udjat::Module("csv-file",module_info), Udjat::Worker("csv",module_info), Udjat::Factory("csv-file",module_info) {
 		}
@@ -49,8 +54,8 @@
 
 		// Udjat::Factory
 		bool generic(const pugi::xml_node &node) override {
-
-			return false;
+			tables.emplace_back(node);
+			return true;
 		}
 
 	};

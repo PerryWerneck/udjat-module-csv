@@ -34,10 +34,11 @@
 		class UDJAT_API Table {
 		private:
 
-			class Controller;
+			// The table name.
+			const char *name;
 
-			/// @brief The table controller.
-			Controller * controller;
+			// The table controller.
+			// Controller &controller;
 
 		public:
 
