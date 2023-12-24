@@ -18,51 +18,42 @@
  */
 
  /**
-  * @brief Declare table controller.
+  * @brief Declare raw file
   */
 
  #pragma once
- #include <config.h>
  #include <udjat/defs.h>
- #include <udjat/tools/xml.h>
- #include <udjat/tools/memdb/simpletable.h>
- #include <thread>
+ #include <mutex>
 
  namespace Udjat {
 
 	namespace MemCachedDB {
 
-
-		/// @brief The table controller, manage loading and memmapped data.
-		class UDJAT_PRIVATE Table::Controller {
-		public:
-			enum State : uint8_t {
-				Ready,			///< @brief Table is loaded and ready to use.
-				Unavailable,	///< @brief Table is unavailable.
-				Loading,		///< @brief Table is loading.
-				Failed,			///< @brief Table load has failed.
-			} current_state = Unavailable;
-
-			std::shared_ptr<MemCachedDB::File> datafile;
-
-			/// @brief Build and empty controller.
-			Controller() { }
-
-			/// @brief Build csv from XML node.
-			Controller(const XML::Node &node);
-			~Controller();
-
+		class UDJAT_API File {
 		private:
+			int fd = -1;				///< @brief Handle of the real data file.
+			uint8_t * ptr = nullptr;	///< @brief Pointer to memory mapped block.
+		public:
+			File();
+			File(const char *filename);
+			~File();
 
-			/// @brief The file/folder to look for source files.
-			const char *path = nullptr;
+			size_t size();
 
-			/// @brief Load csv files.
-			void reload();
+			/// @brief Append data on file.
+			/// @param data The datablock to write.
+			/// @param length The length of block.
+			/// @return The offset of the data.
+			size_t write(const void *data, size_t length);
+
+			/// @brief Read data from file.
+			/// @param offset Offset of the required data.
+			/// @param data The pointer to store data.
+			/// @param length The length of data.
+			void read(size_t offset, void *data, size_t length);
 
 		};
 
 	}
-
 
  }
