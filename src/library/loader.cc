@@ -30,7 +30,10 @@
 
  #pragma pack(1)
  struct Header {
-	uint8_t dunno;
+	struct {
+		uint8_t major = PACKAGE_MAJOR_VERSION;
+		uint8_t minor = PACKAGE_MINOR_VERSION;
+	} version;
  };
  #pragma pack()
 
@@ -40,10 +43,16 @@
 
 	if(!file->size()) {
 		Header hdr;
-		memset(&hdr,0,sizeof(hdr));
 		file->write(&hdr,sizeof(hdr));
+		file->write(PACKAGE_NAME);
 	}
 
+ }
+
+ Loader::Loader() : Loader{make_shared<MemCachedDB::File>()} {
+ }
+
+ Loader::Loader(const char *dbname) : Loader{make_shared<MemCachedDB::File>(dbname)} {
  }
 
  Loader::~Loader() {
@@ -79,6 +88,7 @@
  }
 
  bool Loader::Block::operator==(const Block &b) const {
+
 	if(b.length != length || b.hash != hash) {
 		return false;
 	}

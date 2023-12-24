@@ -107,6 +107,10 @@
 		return (size_t) offset;
 	}
 
+	size_t MemCachedDB::File::write(const char *data) {
+		return write((void *) data, strlen(data)+1);
+	}
+
 	void MemCachedDB::File::read(size_t offset, void *data, size_t length) {
 
 		if(fd < 0) {

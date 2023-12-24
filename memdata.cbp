@@ -39,6 +39,8 @@
 		<Unit filename="src/include/udjat/tools/memdb/simpletable.h" />
 		<Unit filename="src/library/file.cc" />
 		<Unit filename="src/library/loader.cc" />
+		<Unit filename="src/module/init.cc" />
+		<Unit filename="src/testprogram/testprogram.cc" />
 		<Extensions />
 	</Project>
 </CodeBlocks_project_file>

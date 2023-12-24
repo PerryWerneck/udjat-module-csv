@@ -46,6 +46,11 @@
 			/// @return The offset of the data.
 			size_t write(const void *data, size_t length);
 
+			/// @brief Write string on file.
+			/// @param str the string to write.
+			/// @return The offset of the data.
+			size_t write(const char *data);
+
 			/// @brief Read data from file.
 			/// @param offset Offset of the required data.
 			/// @param data The pointer to store data.

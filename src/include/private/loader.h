@@ -67,6 +67,8 @@
 	size_t insert(void *data, size_t length);
 
  public:
+ 	Loader();
+ 	Loader(const char *dbname);
 	Loader(std::shared_ptr<MemCachedDB::File> f);
 	~Loader();
 
