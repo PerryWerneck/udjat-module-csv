@@ -24,52 +24,74 @@
  #pragma once
  #include <udjat/defs.h>
  #include <udjat/tools/memdb/file.h>
+ #include <udjat/tools/memdb/simpletable.h>
  #include <memory>
  #include <unordered_set>
 
  using namespace Udjat;
 
- /// @brief Load CSV file into MemCache file.
- class UDJAT_PRIVATE Loader {
- private:
+ namespace Udjat {
 
- 	///< @brief The file to store data.
-	std::shared_ptr<MemCachedDB::File> file;
+	namespace MemCachedDB {
 
-	/// @brief Data block
-	class Block {
-	private:
-		std::shared_ptr<MemCachedDB::File> file;		///< @brief The data file.
-		size_t length = 0;								///< @brief Length of the datablock.
-		size_t offset = 0;								///< @brief The offset of the datablock.
-		size_t hash = 0;								///< @brief Hash of the datablock
+		/// @brief Load CSV file into MemCache file.
+		class UDJAT_PRIVATE Table::Loader {
+		private:
 
-	protected:
+			///< @brief The file to store data.
+			std::shared_ptr<MemCachedDB::File> file;
 
-		virtual bool compare(void *src) const;
+			/// @brief Data block
+			class Block {
+			private:
+				std::shared_ptr<MemCachedDB::File> file;		///< @brief The data file.
+				size_t length = 0;								///< @brief Length of the datablock.
+				size_t offset = 0;								///< @brief The offset of the datablock.
+				size_t hash = 0;								///< @brief Hash of the datablock
 
-	public:
-		Block(std::shared_ptr<MemCachedDB::File> file, const void *data, size_t length);
-		virtual bool operator==(const Block &b) const;
+			protected:
 
-		struct HashFunction {
-			size_t operator()(const Block& block) const {
-				return block.hash;
-			}
+				virtual bool compare(void *src) const;
+
+			public:
+				Block(std::shared_ptr<MemCachedDB::File> file, const void *data, size_t length);
+				virtual bool operator==(const Block &b) const;
+
+				struct HashFunction {
+					size_t operator()(const Block& block) const {
+						return block.hash;
+					}
+				};
+
+			};
+
+			template <typename T>
+			class UDJAT_PRIVATE Column {
+			protected:
+				std::string name;
+				T data;
+
+			public:
+				Column(const char *n) : name{n} {
+				}
+
+				inline std::string to_string() const noexcept {
+					return std::to_string(data);
+				}
+			 };
+
+			std::unordered_set<Block, Block::HashFunction> blocks;
+
+			/// @brief Insert data block in file avoiding duplication.
+			/// @return The data offset.
+			size_t insert(void *data, size_t length);
+
+		public:
+			Loader();
+			Loader(const char *dbname);
+			Loader(std::shared_ptr<MemCachedDB::File> f);
+			~Loader();
+
 		};
-
-	};
-
-	std::unordered_set<Block, Block::HashFunction> blocks;
-
-	/// @brief Insert data block in file avoiding duplication.
-	/// @return The data offset.
-	size_t insert(void *data, size_t length);
-
- public:
- 	Loader();
- 	Loader(const char *dbname);
-	Loader(std::shared_ptr<MemCachedDB::File> f);
-	~Loader();
-
- };
+	}
+ }

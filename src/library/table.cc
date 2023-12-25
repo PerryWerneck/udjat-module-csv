@@ -18,41 +18,33 @@
  */
 
  /**
-  * @brief Declare a simple dynamic created and memory mapped table.
+  * @brief Brief description of this source.
   */
 
- #pragma once
+ #include <config.h>
  #include <udjat/defs.h>
- #include <udjat/tools/object.h>
- #include <udjat/tools/xml.h>
- #include <memory>
- #include <udjat/tools/memdb/file.h>
+ #include <udjat/tools/threadpool.h>
+ #include <udjat/tools/quark.h>
+ #include <udjat/tools/memdb/simpletable.h>
+ #include <private/loader.h>
+ #include <stdexcept>
+
+ using namespace std;
 
  namespace Udjat {
 
-	namespace MemCachedDB {
+	MemCachedDB::Table::Table(const XML::Node &definition)
+		: name{Quark{definition,"name","",false}.c_str()}, file{make_shared<MemCachedDB::File>()} {
 
-		class UDJAT_API Table {
-		private:
+		if(!*name) {
+			throw runtime_error("Required attribute 'name' is missing");
+		}
 
-			class Loader;
-			friend class Loader;
-
-			/// @brief The table name.
-			const char *name;
-
-			/// @brief The table file.
-			std::shared_ptr<MemCachedDB::File> file;
-
-		public:
-
-			/// @brief Build table from XML definition.
-			Table(const XML::Node &definition);
-			virtual ~Table();
-
-		};
 
 	}
 
+	MemCachedDB::Table::~Table() {
+	}
 
  }
+

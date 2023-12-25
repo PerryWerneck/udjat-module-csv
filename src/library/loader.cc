@@ -39,67 +39,72 @@
 
  using namespace std;
 
- Loader::Loader(std::shared_ptr<MemCachedDB::File> f) : file{f} {
+ namespace Udjat {
 
-	if(!file->size()) {
-		Header hdr;
-		file->write(&hdr,sizeof(hdr));
-		file->write(PACKAGE_NAME);
-	}
+	MemCachedDB::Table::Loader::Loader(std::shared_ptr<MemCachedDB::File> f) : file{f} {
 
- }
-
- Loader::Loader() : Loader{make_shared<MemCachedDB::File>()} {
- }
-
- Loader::Loader(const char *dbname) : Loader{make_shared<MemCachedDB::File>(dbname)} {
- }
-
- Loader::~Loader() {
-
- }
-
- Loader::Block::Block(std::shared_ptr<MemCachedDB::File> f, const void *data, size_t l) : file{f}, length{l} {
-
-		// computes the hash of a data using a variant
-		// of the Fowler-Noll-Vo hash function
-		{
-			constexpr std::uint64_t prime{0x100000001B3};
-			std::uint64_t result{0xcbf29ce484222325};
-
-			for (size_t i{}; i < length; i++) {
-				result = (result * prime) ^ ((uint8_t *) data)[i];
-			}
-			this->hash = (size_t) result;
+		if(!file->size()) {
+			Header hdr;
+			file->write(&hdr,sizeof(hdr));
+			file->write(PACKAGE_NAME);
 		}
 
- }
-
- bool Loader::Block::compare(void *src) const {
-	if(!offset) {
-		throw logic_error("This block has no data");
 	}
 
-	uint8_t data[length];
-	file->read(offset,data,length);
+	MemCachedDB::Table::Loader::Loader() : Loader{make_shared<MemCachedDB::File>()} {
+	}
 
-	return memcmp(src,data,length) == 0;
+	MemCachedDB::Table::Loader::Loader(const char *dbname) : Loader{make_shared<MemCachedDB::File>(dbname)} {
+	}
+
+	MemCachedDB::Table::Loader::~Loader() {
+
+	}
+
+	MemCachedDB::Table::Loader::Block::Block(std::shared_ptr<MemCachedDB::File> f, const void *data, size_t l) : file{f}, length{l} {
+
+			// computes the hash of a data using a variant
+			// of the Fowler-Noll-Vo hash function
+			{
+				constexpr std::uint64_t prime{0x100000001B3};
+				std::uint64_t result{0xcbf29ce484222325};
+
+				for (size_t i{}; i < length; i++) {
+					result = (result * prime) ^ ((uint8_t *) data)[i];
+				}
+				this->hash = (size_t) result;
+			}
+
+	}
+
+	bool MemCachedDB::Table::Loader::Block::compare(void *src) const {
+		if(!offset) {
+			throw logic_error("This block has no data");
+		}
+
+		uint8_t data[length];
+		file->read(offset,data,length);
+
+		return memcmp(src,data,length) == 0;
+
+	}
+
+	bool MemCachedDB::Table::Loader::Block::operator==(const Block &b) const {
+
+		if(b.length != length || b.hash != hash) {
+			return false;
+		}
+
+		if(!offset) {
+			throw logic_error("This block has no data");
+		}
+
+		uint8_t data[length];
+		file->read(offset,data,length);
+
+		return b.compare(data);
+	}
 
  }
 
- bool Loader::Block::operator==(const Block &b) const {
-
-	if(b.length != length || b.hash != hash) {
-		return false;
-	}
-
-	if(!offset) {
-		throw logic_error("This block has no data");
-	}
-
-	uint8_t data[length];
-	file->read(offset,data,length);
-
-	return b.compare(data);
- }
 
