@@ -39,10 +39,14 @@
 
 			class UDJAT_API Column {
 			protected:
-				const char *name;
+				const char *cname;
 
 			public:
-				Column(const XML::Node &node) : name{Quark{node,"name","unnamed",false}.c_str()} {
+				Column(const XML::Node &node) : cname{Quark{node,"name","unnamed",false}.c_str()} {
+				}
+
+				inline const char * name() const noexcept {
+					return cname;
 				}
 
 				virtual std::string to_string() const noexcept = 0;

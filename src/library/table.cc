@@ -40,12 +40,6 @@
 
  namespace Udjat {
 
-	#pragma pack(1)
-	struct Header {
-		uint16_t sources;	///< @brief Number of import files
-	};
-	#pragma pack()
-
 	MemCachedDB::Table::Table(const XML::Node &definition)
 		: name{Quark{definition,"name","",false}.c_str()},
 			path{Object::getAttribute(definition,"path","")},
@@ -78,86 +72,6 @@
 	}
 
 	MemCachedDB::Table::~Table() {
-	}
-
-	void MemCachedDB::Table::load() {
-
-		debug("-----------------------------------------------------")
-
-		if(state() == Loading) {
-			Logger::String{"Table is already loading, ignoring request"}.warning(name);
-			return;
-		}
-
-		Logger::String("Loading ",path).trace(name);
-		state(Loading);
-
-		debug("filespec=",filespec);
-		auto pattern = std::regex(filespec,std::regex::icase);
-
-		struct InputFile {
-			string name;
-			struct stat st;
-		};
-		std::vector<InputFile> files;
-		Udjat::File::Path{path}.for_each([this,&files,&pattern](const Udjat::File::Path &file){
-
-			if(std::regex_match(file.name(),pattern)) {
-
-				InputFile ifile;
-
-				if(stat(file.c_str(),&ifile.st)) {
-					Logger::String{file.c_str(),": ",strerror(errno)}.error(name);
-				} else {
-					ifile.name = file;
-					files.push_back(ifile);
-				}
-
-			} else if(Logger::enabled(Logger::Trace)) {
-
-				Logger::String{"Ignoring '",file.c_str(),"'"}.trace(name);
-
-			}
-
-			return false;
-		});
-
-		if(files.empty()) {
-			Logger::String{"No files to import"}.warning(name);
-			file.reset();
-			state(Empty);
-			return;
-		}
-
-		Logger::String{files.size()," file(s) to verify"}.info(name);
-
-		// TODO: If tempfile exists, check if it really need an update.
-
-		//
-		// Load files
-		//
-#ifdef DEBUG
-		std::shared_ptr<MemCachedDB::File> file{make_shared<MemCachedDB::File>("/tmp/test.db")};
-#else
-		std::shared_ptr<MemCachedDB::File> file{make_shared<MemCachedDB::File>()};
-#endif // DEBUG
-
-		Header hdr;
-		memset(&hdr,0,sizeof(hdr));
-
-		hdr.sources = (uint16_t) files.size();
-
-		// Write header
-		file->write(&hdr,sizeof(hdr));
-
-		// Write file sources.
-		for(auto &f : files) {
-			file->write(&f.st.st_mtim,sizeof(f.st.st_mtim));
-			file->write(f.name.c_str(),f.name.size()+1);
-		}
-
-		// Do CSV loading.
-
 	}
 
  }
