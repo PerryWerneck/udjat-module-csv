@@ -27,15 +27,57 @@
  #include <udjat/tools/logger.h>
  #include <stdexcept>
  #include <udjat/tools/file.h>
+ #include <udjat/tools/string.h>
  #include <regex>
  #include <sys/types.h>
  #include <sys/stat.h>
  #include <string>
  #include <private/datastore.h>
+ #include <fstream>
 
  using namespace std;
 
  namespace Udjat {
+
+	static void split(const std::string &string, std::vector<String> &columns, const char delimiter = ';') {
+
+		columns.clear();
+		const char *ptr = string.c_str();
+
+		while(*ptr) {
+
+			if(*ptr == '\"') {
+
+				// It's an string delimited by "
+				ptr++;
+				const char *to = strchr(ptr,'\"');
+				if(!to) {
+					throw runtime_error("Bad file, mismatch on '\"' delimiter");
+				}
+				columns.emplace_back(std::string{ptr,(size_t) (to-ptr)});
+				ptr = strchr(to,delimiter);
+				if(!ptr) {
+					return;
+				}
+				ptr++;
+			} else {
+				const char *to = strchr(ptr,';');
+				if(!to) {
+					columns.emplace_back(ptr);
+					return;
+				}
+
+				columns.emplace_back(std::string{ptr,(size_t) (to-ptr)});
+				ptr = to+1;
+
+			}
+
+			while(*ptr && isspace(*ptr)) {
+				ptr++;
+			}
+
+		}
+	}
 
 	void MemCachedDB::Table::load() {
 
@@ -122,7 +164,47 @@
 
 		// Import CSV files
 		for(auto &f : files) {
-			Logger::String{"Loading ",f.name.c_str()}.trace(name);
+			Logger::String{"Loading ",f.name.c_str()}.info(name);
+			size_t lines = 0;
+
+			std::ifstream infile{f.name};
+
+			String line;
+			std::vector<String> headers;
+
+			// Read first line to get field names.
+			{
+				std::getline(infile, line);
+				debug("Header: '",line,"'");
+
+				// TODO: Parse header.
+				split(line.strip(), headers,column_separator);
+
+				debug("Headers:");
+				for(auto &header : headers) {
+					cout << header << endl;
+				}
+
+			}
+
+			// Read data
+			while(std::getline(infile, line)) {
+
+				line.strip();
+				if(line.empty()) {
+					Logger::String{"Stopping on empty line '",lines,"'"}.info(name);
+					break;
+				}
+
+				lines++;
+
+				std::vector<String> cols;
+				split(line.strip(), cols,column_separator);
+
+				// TODO: Parse fields.
+			}
+
+			Logger::String{"Got ",f.name.c_str()," with ", lines, " line(s)"};
 
 		}
 	}

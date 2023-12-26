@@ -106,6 +106,8 @@
 			/// @brief Regex expression to filter path contents.
 			const char *filespec;
 
+			char column_separator = ';';
+
 			/// @brief The table file.
 			std::shared_ptr<MemCachedDB::File> file;
 
