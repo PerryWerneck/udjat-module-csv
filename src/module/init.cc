@@ -24,6 +24,7 @@
  #include <udjat/factory.h>
  #include <udjat/tools/request.h>
  #include <udjat/tools/response.h>
+ #include <udjat/agent.h>
  #include <stdexcept>
  #include <vector>
  #include <udjat/tools/memdb/simpletable.h>
@@ -39,7 +40,32 @@
 
 	class Module : public Udjat::Module, Udjat::Worker, private Udjat::Factory {
 	private:
-		vector<MemCachedDB::Table> tables;
+
+		class Table : public Agent<MemCachedDB::Table::State>, public MemCachedDB::Table {
+		private:
+
+		public:
+			Table(const pugi::xml_node &definition) : Agent<MemCachedDB::Table::State>{definition,MemCachedDB::Table::Undefined}, MemCachedDB::Table{definition} {
+				debug("-----> Building table");
+			}
+
+			void state(const MemCachedDB::Table::State state) noexcept override {
+				super::set(state);
+			}
+
+			MemCachedDB::Table::State state() const noexcept override {
+				return super::get();
+			}
+
+			void start() override {
+				debug("-----> Starting table");
+				load();
+				Abstract::Agent::start();
+			}
+
+		};
+
+		vector<Table> tables;
 
 	public:
 		Module() : Udjat::Module("csv-file",module_info), Udjat::Worker("csv",module_info), Udjat::Factory("csv-file",module_info) {
@@ -53,10 +79,16 @@
 		}
 
 		// Udjat::Factory
+		std::shared_ptr<Abstract::Agent> AgentFactory(const Abstract::Object &, const pugi::xml_node &node) const {
+			return make_shared<Table>(node);
+		}
+
+		/*
 		bool generic(const pugi::xml_node &node) override {
 			tables.emplace_back(node);
 			return true;
 		}
+		*/
 
 	};
 

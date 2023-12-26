@@ -25,6 +25,7 @@
  #include <udjat/defs.h>
  #include <udjat/tools/memdb/file.h>
  #include <udjat/tools/memdb/simpletable.h>
+ #include <udjat/tools/xml.h>
  #include <memory>
  #include <unordered_set>
 
@@ -65,21 +66,6 @@
 
 			};
 
-			template <typename T>
-			class UDJAT_PRIVATE Column {
-			protected:
-				std::string name;
-				T data;
-
-			public:
-				Column(const char *n) : name{n} {
-				}
-
-				inline std::string to_string() const noexcept {
-					return std::to_string(data);
-				}
-			 };
-
 			std::unordered_set<Block, Block::HashFunction> blocks;
 
 			/// @brief Insert data block in file avoiding duplication.
@@ -89,8 +75,12 @@
 		public:
 			Loader();
 			Loader(const char *dbname);
-			Loader(std::shared_ptr<MemCachedDB::File> f);
+			Loader(std::shared_ptr<MemCachedDB::File> file);
 			~Loader();
+
+			/// @brief Load file(s).
+			/// @param path Filename/path for the table definition.
+			void load(const char *path);
 
 		};
 	}

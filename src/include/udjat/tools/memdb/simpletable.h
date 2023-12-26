@@ -33,6 +33,16 @@
 	namespace MemCachedDB {
 
 		class UDJAT_API Table {
+		public:
+
+			enum State : int {
+				Undefined,
+				Loading,
+				Failed,
+				Loaded,
+				Empty
+			};
+
 		private:
 
 			class Loader;
@@ -41,14 +51,44 @@
 			/// @brief The table name.
 			const char *name;
 
+			/// @brief The table path.
+			const char *path;
+
+			/// @brief Regex expression to filter path contents.
+			const char *filespec;
+
 			/// @brief The table file.
 			std::shared_ptr<MemCachedDB::File> file;
+
+		protected:
+
+			virtual void state(const State state) noexcept = 0;
+			virtual State state() const noexcept = 0;
+
+			template <typename T>
+			class UDJAT_API Column {
+			protected:
+				const char *name;
+				T data;
+
+			public:
+				Column(const char *n) : name{n} {
+				}
+
+				inline std::string to_string() const noexcept {
+					return std::to_string(data);
+				}
+
+
+			 };
 
 		public:
 
 			/// @brief Build table from XML definition.
 			Table(const XML::Node &definition);
 			virtual ~Table();
+
+			void load();
 
 		};
 
