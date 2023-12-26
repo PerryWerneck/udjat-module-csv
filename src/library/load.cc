@@ -31,6 +31,7 @@
  #include <sys/types.h>
  #include <sys/stat.h>
  #include <string>
+ #include <private/datastore.h>
 
  using namespace std;
 
@@ -101,16 +102,16 @@
 		// Write header
 		file->write("\0",1);
 
+		// Write column names.
+		for(auto &c : columns) {
+			file->write(c->name());
+		}
+		file->write("\0",1);
+
 		// Write file sources.
 		for(auto &f : files) {
 			file->write(&f.st.st_mtim,sizeof(f.st.st_mtim));
 			file->write(f.name.c_str(),f.name.size()+1);
-		}
-		file->write("\0",1);
-
-		// Write column names.
-		for(auto &c : columns) {
-			file->write(c->name());
 		}
 		file->write("\0",1);
 
@@ -120,7 +121,10 @@
 		// TODO: Create primary index (std::ordered_set)
 
 		// Import CSV files
+		for(auto &f : files) {
+			Logger::String{"Loading ",f.name.c_str()}.trace(name);
 
+		}
 	}
 
  }

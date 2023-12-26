@@ -26,7 +26,6 @@
  #include <udjat/tools/threadpool.h>
  #include <udjat/tools/quark.h>
  #include <udjat/tools/memdb/simpletable.h>
- #include <private/loader.h>
  #include <udjat/tools/logger.h>
  #include <stdexcept>
  #include <udjat/tools/object.h>

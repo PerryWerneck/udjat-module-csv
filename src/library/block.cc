@@ -24,11 +24,13 @@
  #include <config.h>
  #include <udjat/defs.h>
  #include <udjat/tools/memdb/file.h>
- #include <private/loader.h>
+ #include <private/datastore.h>
  #include <cstring>
  #include <stdexcept>
 
- Loader::Block::Block(std::shared_ptr<MemCachedDB::File> f, const void *data, size_t l) : file{f}, length{l} {
+ using namespace std;
+
+ DataStore::Block::Block(std::shared_ptr<MemCachedDB::File> f, const void *data, size_t l) : file{f}, length{l} {
 
 	// computes the hash of a data using a variant
 	// of the Fowler-Noll-Vo hash function
@@ -44,7 +46,8 @@
 
  }
 
- bool Loader::Block::compare(void *src) const {
+ bool DataStore::Block::compare(void *src) const {
+
 	if(!offset) {
 		throw logic_error("This block has no data");
 	}
@@ -56,7 +59,7 @@
 
  }
 
- bool Loader::Block::operator==(const Block &b) const {
+ bool DataStore::Block::operator==(const Block &b) const {
 
 	if(b.length != length || b.hash != hash) {
 		return false;
