@@ -35,6 +35,48 @@
 
 	namespace MemCachedDB {
 
+		namespace Abstract {
+
+			class UDJAT_API Column {
+			protected:
+				const char *name;
+
+			public:
+				Column(const XML::Node &node) : name{Quark{node,"name","unnamed",false}.c_str()} {
+				}
+
+				virtual std::string to_string() const noexcept = 0;
+			};
+
+		}
+
+		template <typename T>
+		class UDJAT_API Column : public Abstract::Column {
+		protected:
+			T data;
+
+		public:
+			Column(const XML::Node &node) : Abstract::Column{node} {
+			}
+
+			std::string to_string() const noexcept override {
+				return std::to_string(data);
+			}
+
+		};
+
+		template <>
+		class UDJAT_API Column<std::string> : public Abstract::Column, public std::string {
+		public:
+			Column(const XML::Node &node) : Abstract::Column{node} {
+			}
+
+			std::string to_string() const noexcept override {
+				return std::string{*this};
+			}
+
+		};
+
 		class UDJAT_API Table {
 		public:
 
@@ -68,33 +110,7 @@
 			virtual void state(const State state) noexcept = 0;
 			virtual State state() const noexcept = 0;
 
-			class UDJAT_API AbstractColumn {
-			protected:
-				const char *name;
-
-			public:
-				AbstractColumn(const XML::Node &node) : name{Quark{node,"name","unnamed",false}.c_str()} {
-				}
-
-				virtual std::string to_string() const noexcept = 0;
-			};
-
-			std::vector<std::shared_ptr<AbstractColumn>> columns;
-
-			template <typename T>
-			class UDJAT_API Column : public AbstractColumn {
-			protected:
-				T data;
-
-			public:
-				Column(const XML::Node &node) : AbstractColumn{node} {
-				}
-
-				std::string to_string() const noexcept override {
-					return std::to_string(data);
-				}
-
-			 };
+			std::vector<std::shared_ptr<Abstract::Column>> columns;
 
 		public:
 

@@ -67,6 +67,8 @@
 				columns.emplace_back(make_shared<Column<int>>(child));
 			} else if(!strcasecmp(type,"uint")) {
 				columns.emplace_back(make_shared<Column<unsigned int>>(child));
+			} else if(!strcasecmp(type,"string")) {
+				columns.emplace_back(make_shared<Column<std::string>>(child));
 			} else {
 				throw runtime_error(Logger::String{"Unexpected column type: ",type});
 			}
