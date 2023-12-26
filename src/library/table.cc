@@ -39,6 +39,12 @@
 
  namespace Udjat {
 
+	#pragma pack(1)
+	struct Header {
+		uint16_t sources;	///< @brief Number of import files
+	};
+	#pragma pack()
+
 	MemCachedDB::Table::Table(const XML::Node &definition)
 		: name{Quark{definition,"name","",false}.c_str()},
 			path{Object::getAttribute(definition,"path","")},
@@ -113,6 +119,25 @@
 		//
 		// Load files
 		//
+#ifdef DEBUG
+		std::shared_ptr<MemCachedDB::File> file{make_shared<MemCachedDB::File>("/tmp/test.db")};
+#else
+		std::shared_ptr<MemCachedDB::File> file{make_shared<MemCachedDB::File>()};
+#endif // DEBUG
+
+		Header hdr;
+		memset(&hdr,0,sizeof(hdr));
+
+		hdr.sources = (uint16_t) files.size();
+
+		// Write header
+		file->write(&hdr,sizeof(hdr));
+
+		// Write file sources.
+		for(auto &f : files) {
+			file->write(&f.st.st_mtim,sizeof(f.st.st_mtim));
+			file->write(f.name.c_str(),f.name.size()+1);
+		}
 
 
 	}
