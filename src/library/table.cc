@@ -34,6 +34,7 @@
  #include <regex>
  #include <sys/types.h>
  #include <sys/stat.h>
+ #include <string>
 
  using namespace std;
 
@@ -56,6 +57,20 @@
 
 		if(!*path) {
 			throw runtime_error("Required attribute 'path' is missing");
+		}
+
+		for(XML::Node child = definition.child("column"); child; child = child.next_sibling("column")) {
+
+			const char *type = child.attribute("type").as_string("string");
+
+			if(!strcasecmp(type,"int")) {
+				columns.emplace_back(make_shared<Column<int>>(child));
+			} else if(!strcasecmp(type,"uint")) {
+				columns.emplace_back(make_shared<Column<unsigned int>>(child));
+			} else {
+				throw runtime_error(Logger::String{"Unexpected column type: ",type});
+			}
+
 		}
 
 	}
@@ -139,6 +154,7 @@
 			file->write(f.name.c_str(),f.name.size()+1);
 		}
 
+		// Do CSV loading.
 
 	}
 

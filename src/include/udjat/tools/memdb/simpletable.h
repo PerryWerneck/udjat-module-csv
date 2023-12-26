@@ -25,8 +25,11 @@
  #include <udjat/defs.h>
  #include <udjat/tools/object.h>
  #include <udjat/tools/xml.h>
+ #include <udjat/tools/quark.h>
  #include <memory>
  #include <udjat/tools/memdb/file.h>
+ #include <vector>
+ #include <string>
 
  namespace Udjat {
 
@@ -65,20 +68,31 @@
 			virtual void state(const State state) noexcept = 0;
 			virtual State state() const noexcept = 0;
 
-			template <typename T>
-			class UDJAT_API Column {
+			class UDJAT_API AbstractColumn {
 			protected:
 				const char *name;
+
+			public:
+				AbstractColumn(const XML::Node &node) : name{Quark{node,"name","unnamed",false}.c_str()} {
+				}
+
+				virtual std::string to_string() const noexcept = 0;
+			};
+
+			std::vector<std::shared_ptr<AbstractColumn>> columns;
+
+			template <typename T>
+			class UDJAT_API Column : public AbstractColumn {
+			protected:
 				T data;
 
 			public:
-				Column(const char *n) : name{n} {
+				Column(const XML::Node &node) : AbstractColumn{node} {
 				}
 
-				inline std::string to_string() const noexcept {
+				std::string to_string() const noexcept override {
 					return std::to_string(data);
 				}
-
 
 			 };
 
