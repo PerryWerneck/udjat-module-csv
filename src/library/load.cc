@@ -237,28 +237,16 @@
 					memset(record,0,sizeof(size_t)*columns.size());
 					for(const auto &item : map) {
 						auto column{columns[item.db]};
-						// column->store(???, cols[item.csv].strip().c_str());
-						// record[item.db] = column->store(*file);
-						// debug("Mapping (",column->name(),"): '",cols[item.csv].c_str(),"' '",column->to_string().c_str(),"'");
+						record[item.db] = column->store(datastore, cols[item.csv].strip().c_str());
 					}
 
 					// Write record.
 
-					break;
 				}
 
 				Logger::String{"Got ",f.name.c_str()," with ", lines, " line(s)"};
 
 			}
-
-			debug("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-			debug(file->write("teste1"));
-			debug(file->write("teste2"));
-			debug(file->write("teste3"));
-
-			debug(file->write("teste1"));
-			debug(file->write("teste2"));
-			debug(file->write("teste3"));
 
 		} catch(...) {
 

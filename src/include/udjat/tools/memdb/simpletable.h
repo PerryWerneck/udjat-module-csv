@@ -58,11 +58,11 @@
 
 				/// @brief Get the size of data-block for this column.
 				/// @retval 0 The data-block length has variable size.
-				// virtual size_t length() const noexcept = 0;
+				virtual size_t length() const noexcept = 0;
 
 				/// @brief Convert data from string to object format and store it.
 				/// @return Offset of the stored data.
-				// virtual size_t store(DataStore &store, const char *text) const = 0;
+				virtual size_t store(DataStore &store, const char *text) const = 0;
 
 			};
 
@@ -74,7 +74,6 @@
 			Column(const XML::Node &node) : Abstract::Column{node} {
 			}
 
-			/*
 			size_t length() const noexcept override {
 				return sizeof(T);
 			};
@@ -83,7 +82,6 @@
 				T value{Udjat::from_string<T>(text)};
 				return store.insert(&value,sizeof(value));
 			}
-			*/
 
 		};
 
@@ -93,15 +91,13 @@
 			Column(const XML::Node &node) : Abstract::Column{node} {
 			}
 
-			/*
 			size_t length() const noexcept override {
 				return 0;
 			};
 
 			size_t store(Udjat::DataStore &store, const char *text) const override {
-				return store.insert(text,strlen(text));
+				return store.insert(text,strlen(text)+1);
 			}
-			*/
 
 		};
 

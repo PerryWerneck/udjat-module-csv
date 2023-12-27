@@ -24,6 +24,7 @@
  #include <config.h>
  #include <udjat/defs.h>
  #include <udjat/tools/memdb/datastore.h>
+ #include <udjat/tools/logger.h>
  #include <stdexcept>
 
  using namespace std;

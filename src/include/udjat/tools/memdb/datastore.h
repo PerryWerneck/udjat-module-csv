@@ -24,11 +24,10 @@
  #pragma once
  #include <udjat/defs.h>
  #include <udjat/tools/memdb/file.h>
- #include <udjat/tools/memdb/simpletable.h>
- #include <udjat/tools/xml.h>
  #include <memory>
  #include <unordered_set>
  #include <mutex>
+ #include <cstring>
 
  namespace Udjat {
 

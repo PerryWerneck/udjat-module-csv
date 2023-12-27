@@ -35,7 +35,6 @@
 	Logger::redirect();
 	Logger::console(true);
 
-	/*
 	udjat_module_init();
 
 	auto rc = Application{}.run(argc,argv,"./test.xml");
@@ -43,19 +42,5 @@
 	debug("Application exits with rc=",rc);
 
 	return rc;
-	*/
 
-	debug("Starting test");
-	std::shared_ptr<MemCachedDB::File> file{make_shared<MemCachedDB::File>("/tmp/datastore.db")};
-	DataStore db{file};
-
-	file->write("\0",1);
-
-	cout << db.insert("teste1") << endl;
-	cout << db.insert("teste2") << endl;
-	cout << db.insert("teste3") << endl;
-
-	cout << db.insert("teste1") << endl;
-	cout << db.insert("teste2") << endl;
-	cout << db.insert("teste3") << endl;
-}
+ }
