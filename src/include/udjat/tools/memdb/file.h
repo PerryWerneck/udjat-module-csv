@@ -40,6 +40,12 @@
 
 			size_t size();
 
+			/// @brief Write data to file.
+			/// @param offset for start.
+			/// @param data The datablock to write.
+			/// @param length The length of block.
+			void write(size_t offset, const void *data, size_t length);
+
 			/// @brief Append data on file.
 			/// @param data The datablock to write.
 			/// @param length The length of block.

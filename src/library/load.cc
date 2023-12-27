@@ -39,6 +39,10 @@
 
  namespace Udjat {
 
+	MemCachedDB::Abstract::Column::Column(const XML::Node &node)
+		: pkey{node.attribute("primary-key").as_bool(false)}, cname{Quark{node,"name","unnamed",false}.c_str()} {
+	}
+
 	static void split(const std::string &string, std::vector<String> &columns, const char delimiter = ';') {
 
 		columns.clear();
@@ -197,7 +201,6 @@
 				struct Map {
 					size_t db;
 					size_t csv;
-
 					constexpr Map(size_t d, size_t c) : db{d}, csv{c} {
 					}
 				};
@@ -209,7 +212,6 @@
 
 					for(size_t f = 0; f < headers.size(); f++) {
 						if(!strcasecmp(columns[db]->name(),headers[f].c_str())) {
-//							debug("Mapping (",columns[db]->name(),"): ",f,"->",db);
 							map.emplace_back(db, f);
 							break;
 						}
@@ -231,7 +233,7 @@
 					std::vector<String> cols;
 					split(line.strip(), cols,column_separator);
 
-					// Todo, search for record.
+					// Todo, search if the data already exists on primary index
 
 					// Parse fields.
 					memset(record,0,sizeof(size_t)*columns.size());

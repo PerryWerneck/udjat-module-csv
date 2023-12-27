@@ -41,12 +41,15 @@
 
 			/// @brief Descritor de coluna.
 			class UDJAT_API Column {
+			private:
+
+				bool pkey = false;
+
 			protected:
 				const char *cname;
 
 			public:
-				Column(const XML::Node &node) : cname{Quark{node,"name","unnamed",false}.c_str()} {
-				}
+				Column(const XML::Node &node);
 
 				bool operator==(const char *n) const {
 					return strcasecmp(cname,n) == 0;
@@ -54,6 +57,11 @@
 
 				inline const char * name() const noexcept {
 					return cname;
+				}
+
+				/// @brief Is this column part of the primary index?
+				inline const bool key() const noexcept {
+					return pkey;
 				}
 
 				/// @brief Get the size of data-block for this column.

@@ -107,6 +107,29 @@
 		return (size_t) offset;
 	}
 
+	void MemCachedDB::File::write(size_t offset, const void *data, size_t length) {
+
+		if(fd < 0) {
+			throw std::logic_error("Unable to write data on closed file");
+		}
+
+		if(ptr) {
+			throw std::logic_error("The data file is already mapped and read-only");
+		}
+
+		size_t bytes = length;
+		while(bytes > 0) {
+			ssize_t w = ::pwrite(fd, data, bytes, offset);
+			if(w < 0) {
+				throw std::system_error(errno,std::system_category(),"Error writing to DB file");
+			}
+			bytes -= w;
+			offset += w;
+			data = (void *) ( ((uint8_t *) data) + w );
+		}
+
+	}
+
 	size_t MemCachedDB::File::write(const char *data) {
 		return write((void *) data, strlen(data)+1);
 	}
