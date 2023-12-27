@@ -24,7 +24,7 @@
  #include <udjat/tools/logger.h>
  #include <udjat/tools/memdb/simpletable.h>
 
- #include <private/datastore.h>
+ #include <udjat/tools/memdb/datastore.h>
 
  using namespace std;
  using namespace Udjat;
@@ -33,6 +33,7 @@
 
 	Logger::verbosity(9);
 	Logger::redirect();
+	Logger::console(true);
 
 	/*
 	udjat_module_init();
@@ -44,9 +45,17 @@
 	return rc;
 	*/
 
-	DataStore db{make_shared<MemCachedDB::File>("/tmp/datastore.db")};
+	debug("Starting test");
+	std::shared_ptr<MemCachedDB::File> file{make_shared<MemCachedDB::File>("/tmp/datastore.db")};
+	DataStore db{file};
+
+	file->write("\0",1);
 
 	cout << db.insert("teste1") << endl;
-	cout << db.insert("teste1") << endl;
+	cout << db.insert("teste2") << endl;
+	cout << db.insert("teste3") << endl;
 
+	cout << db.insert("teste1") << endl;
+	cout << db.insert("teste2") << endl;
+	cout << db.insert("teste3") << endl;
 }

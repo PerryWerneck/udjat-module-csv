@@ -32,7 +32,7 @@
  #include <sys/types.h>
  #include <sys/stat.h>
  #include <string>
- #include <private/datastore.h>
+ #include <udjat/tools/memdb/datastore.h>
  #include <fstream>
 
  using namespace std;
@@ -237,9 +237,9 @@
 					memset(record,0,sizeof(size_t)*columns.size());
 					for(const auto &item : map) {
 						auto column{columns[item.db]};
-						column->assign(cols[item.csv].strip().c_str());
-						record[item.db] = column->store(*file);
-						debug("Mapping (",column->name(),"): '",cols[item.csv].c_str(),"' '",column->to_string().c_str(),"'");
+						// column->store(???, cols[item.csv].strip().c_str());
+						// record[item.db] = column->store(*file);
+						// debug("Mapping (",column->name(),"): '",cols[item.csv].c_str(),"' '",column->to_string().c_str(),"'");
 					}
 
 					// Write record.

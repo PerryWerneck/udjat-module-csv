@@ -23,39 +23,59 @@
 
  #include <config.h>
  #include <udjat/defs.h>
- #include <private/datastore.h>
+ #include <udjat/tools/memdb/datastore.h>
  #include <stdexcept>
 
  using namespace std;
 
- size_t DataStore::insert(const void *data, size_t length) {
+ namespace Udjat {
 
-	class InnerStore : public Block {
-	private:
-		const void *ptr;
+	 size_t DataStore::insert(const void *data, size_t length) {
 
-	public:
-		InnerStore(std::shared_ptr<MemCachedDB::File> file, const void *data, size_t length) : Block{file,data,length}, ptr{data} {
-		}
+		class InnerStore : public Block {
+		private:
+			const void *ptr;
 
-		bool compare(const void *src) const {
-			return memcmp(ptr,src,length) == 0;
-		}
-
-		bool operator==(const Block &b) const override {
-
-			if(b.length != length || b.hash != hash) {
-				return false;
+		public:
+			InnerStore(std::shared_ptr<MemCachedDB::File> file, const void *data, size_t length) : Block{file,data,length}, ptr{data} {
 			}
 
-			return b.compare(ptr);
+			bool compare(const void *src) const {
+				return memcmp(ptr,src,length) == 0;
+			}
 
-		 }
+			bool operator==(const Block &b) const override {
 
-	};
+				if(b.length != length || b.hash != hash) {
+					return false;
+				}
 
-	InnerStore record{file,data,length};
+				return b.compare(ptr);
 
+			 }
 
-	throw runtime_error("Incomplete");
+		};
+
+		InnerStore record{file,data,length};
+
+		std::lock_guard<std::mutex> lock(guard);
+
+		debug("block count is ",blocks.size());
+
+		auto block = blocks.find(record);
+		if(block != blocks.end()) {
+			debug("Got block, using it")
+			return block->offset;
+		}
+
+		// Adding a new block.
+		debug("adding block");
+		record.offset = record.file->write(data,length);
+		debug("offset=",record.offset);
+
+		blocks.insert(record);
+
+		return record.offset;
+	 }
+
  }

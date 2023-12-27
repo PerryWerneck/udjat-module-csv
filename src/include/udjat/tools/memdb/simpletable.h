@@ -29,6 +29,7 @@
  #include <udjat/tools/converters.h>
  #include <memory>
  #include <udjat/tools/memdb/file.h>
+ #include <udjat/tools/memdb/datastore.h>
  #include <vector>
  #include <string>
 
@@ -38,6 +39,7 @@
 
 		namespace Abstract {
 
+			/// @brief Descritor de coluna.
 			class UDJAT_API Column {
 			protected:
 				const char *cname;
@@ -54,11 +56,13 @@
 					return cname;
 				}
 
-				virtual std::string to_string() const noexcept = 0;
-				virtual void assign(const char *str) = 0;
+				/// @brief Get the size of data-block for this column.
+				/// @retval 0 The data-block length has variable size.
+				// virtual size_t length() const noexcept = 0;
 
-				virtual size_t store(File &file) const = 0;
-				virtual void restore(File &file, size_t id) = 0;
+				/// @brief Convert data from string to object format and store it.
+				/// @return Offset of the stored data.
+				// virtual size_t store(DataStore &store, const char *text) const = 0;
 
 			};
 
@@ -66,53 +70,39 @@
 
 		template <typename T>
 		class UDJAT_API Column : public Abstract::Column {
-		protected:
-			T data;
-
 		public:
 			Column(const XML::Node &node) : Abstract::Column{node} {
 			}
 
-			std::string to_string() const noexcept override {
-				return std::to_string(data);
-			}
+			/*
+			size_t length() const noexcept override {
+				return sizeof(T);
+			};
 
-			void assign(const char *str) override {
-				data = to_value(str,data);
+			size_t store(Udjat::DataStore &store, const char *text) const override {
+				T value{Udjat::from_string<T>(text)};
+				return store.insert(&value,sizeof(value));
 			}
-
-			size_t store(File &file) const override {
-				return file.write(&data,sizeof(data));
-			}
-
-			void restore(File &file, size_t offset) override {
-				file.read(offset, &data, sizeof(data));
-			}
-
+			*/
 
 		};
 
 		template <>
-		class UDJAT_API Column<std::string> : public Abstract::Column, public std::string {
+		class UDJAT_API Column<std::string> : public Abstract::Column {
 		public:
 			Column(const XML::Node &node) : Abstract::Column{node} {
 			}
 
-			std::string to_string() const noexcept override {
-				return std::string{*this};
-			}
+			/*
+			size_t length() const noexcept override {
+				return 0;
+			};
 
-			void assign(const char *str) override {
-				std::string::assign(str);
+			size_t store(Udjat::DataStore &store, const char *text) const override {
+				return store.insert(text,strlen(text));
 			}
+			*/
 
-			size_t store(File &file) const override {
-				return file.write(c_str());
-			}
-
-			void restore(File &file, size_t offset) override {
-				file.read(offset, (std::string &) *this);
-			}
 		};
 
 		class UDJAT_API Table {

@@ -24,56 +24,57 @@
  #include <config.h>
  #include <udjat/defs.h>
  #include <udjat/tools/memdb/file.h>
- #include <private/datastore.h>
+ #include <udjat/tools/memdb/datastore.h>
  #include <cstring>
  #include <stdexcept>
 
  using namespace std;
 
- DataStore::Block::Block(std::shared_ptr<MemCachedDB::File> f, const void *data, size_t l) : file{f}, length{l} {
+ namespace Udjat {
 
-	// computes the hash of a data using a variant
-	// of the Fowler-Noll-Vo hash function
-	{
-		constexpr std::uint64_t prime{0x100000001B3};
-		std::uint64_t result{0xcbf29ce484222325};
+	 DataStore::Block::Block(std::shared_ptr<MemCachedDB::File> f, const void *data, size_t l) : file{f}, length{l} {
 
-		for (size_t i{}; i < length; i++) {
-			result = (result * prime) ^ ((uint8_t *) data)[i];
+		// computes the hash of a data using a variant
+		// of the Fowler-Noll-Vo hash function
+		{
+			constexpr std::uint64_t prime{0x100000001B3};
+			std::uint64_t result{0xcbf29ce484222325};
+
+			for (size_t i{}; i < length; i++) {
+				result = (result * prime) ^ ((uint8_t *) data)[i];
+			}
+			this->hash = (size_t) result;
 		}
-		this->hash = (size_t) result;
-	}
+
+	 }
+
+	 bool DataStore::Block::compare(const void *src) const {
+
+		if(!offset) {
+			throw logic_error("This block has no data");
+		}
+
+		uint8_t data[length];
+		file->read(offset,data,length);
+
+		return memcmp(src,data,length) == 0;
+
+	 }
+
+	 bool DataStore::Block::operator==(const Block &b) const {
+
+		if(b.length != length || b.hash != hash) {
+			return false;
+		}
+
+		if(!offset) {
+			throw logic_error("This block has no data");
+		}
+
+		uint8_t data[length];
+		file->read(offset,data,length);
+
+		return b.compare(data);
+	 }
 
  }
-
- bool DataStore::Block::compare(const void *src) const {
-
-	if(!offset) {
-		throw logic_error("This block has no data");
-	}
-
-	uint8_t data[length];
-	file->read(offset,data,length);
-
-	return memcmp(src,data,length) == 0;
-
- }
-
- bool DataStore::Block::operator==(const Block &b) const {
-
-	if(b.length != length || b.hash != hash) {
-		return false;
-	}
-
-	if(!offset) {
-		throw logic_error("This block has no data");
-	}
-
-	uint8_t data[length];
-	file->read(offset,data,length);
-
-	return b.compare(data);
- }
-
-
-
