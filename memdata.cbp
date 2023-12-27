@@ -40,6 +40,7 @@
 		<Unit filename="src/include/udjat/tools/memdb/file.h" />
 		<Unit filename="src/include/udjat/tools/memdb/simpletable.h" />
 		<Unit filename="src/library/block.cc" />
+		<Unit filename="src/library/datastore.cc" />
 		<Unit filename="src/library/file.cc" />
 		<Unit filename="src/library/load.cc" />
 		<Unit filename="src/library/table.cc" />

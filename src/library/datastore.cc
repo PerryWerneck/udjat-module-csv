@@ -17,36 +17,45 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
- #include <config.h>
- #include <udjat/tools/application.h>
- #include <udjat/module.h>
- #include <unistd.h>
- #include <udjat/tools/logger.h>
- #include <udjat/tools/memdb/simpletable.h>
+ /**
+  * @brief Brief description of this source.
+  */
 
+ #include <config.h>
+ #include <udjat/defs.h>
  #include <private/datastore.h>
+ #include <stdexcept>
 
  using namespace std;
- using namespace Udjat;
 
- int main(int argc, char **argv) {
+ size_t DataStore::insert(const void *data, size_t length) {
 
-	Logger::verbosity(9);
-	Logger::redirect();
+	class InnerStore : public Block {
+	private:
+		const void *ptr;
 
-	/*
-	udjat_module_init();
+	public:
+		InnerStore(std::shared_ptr<MemCachedDB::File> file, const void *data, size_t length) : Block{file,data,length}, ptr{data} {
+		}
 
-	auto rc = Application{}.run(argc,argv,"./test.xml");
+		bool compare(const void *src) const {
+			return memcmp(ptr,src,length) == 0;
+		}
 
-	debug("Application exits with rc=",rc);
+		bool operator==(const Block &b) const override {
 
-	return rc;
-	*/
+			if(b.length != length || b.hash != hash) {
+				return false;
+			}
 
-	DataStore db{make_shared<MemCachedDB::File>("/tmp/datastore.db")};
+			return b.compare(ptr);
 
-	cout << db.insert("teste1") << endl;
-	cout << db.insert("teste1") << endl;
+		 }
 
-}
+	};
+
+	InnerStore record{file,data,length};
+
+
+	throw runtime_error("Incomplete");
+ }

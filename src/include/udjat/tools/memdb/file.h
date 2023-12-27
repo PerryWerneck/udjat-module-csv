@@ -57,6 +57,7 @@
 			/// @param length The length of data.
 			void read(size_t offset, void *data, size_t length);
 
+			void read(size_t offset, std::string &string);
 		};
 
 	}

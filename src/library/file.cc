@@ -111,6 +111,16 @@
 		return write((void *) data, strlen(data)+1);
 	}
 
+	void MemCachedDB::File::read(size_t offset, std::string &text) {
+
+		text.clear();
+
+		// TODO: Find a better way
+
+		throw runtime_error("incomplete");
+
+	}
+
 	void MemCachedDB::File::read(size_t offset, void *data, size_t length) {
 
 		if(fd < 0) {

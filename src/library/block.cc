@@ -46,7 +46,7 @@
 
  }
 
- bool DataStore::Block::compare(void *src) const {
+ bool DataStore::Block::compare(const void *src) const {
 
 	if(!offset) {
 		throw logic_error("This block has no data");

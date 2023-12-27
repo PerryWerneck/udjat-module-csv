@@ -54,7 +54,7 @@
 				if(!to) {
 					throw runtime_error("Bad file, mismatch on '\"' delimiter");
 				}
-				columns.emplace_back(std::string{ptr,(size_t) (to-ptr)});
+				columns.push_back(std::string{ptr,(size_t) (to-ptr)});
 				ptr = strchr(to,delimiter);
 				if(!ptr) {
 					return;
@@ -67,7 +67,7 @@
 					return;
 				}
 
-				columns.emplace_back(std::string{ptr,(size_t) (to-ptr)});
+				columns.push_back(std::string{ptr,(size_t) (to-ptr)});
 				ptr = to+1;
 
 			}
@@ -163,50 +163,112 @@
 		// TODO: Create primary index (std::ordered_set)
 
 		// Import CSV files
-		for(auto &f : files) {
-			Logger::String{"Loading ",f.name.c_str()}.info(name);
-			size_t lines = 0;
+		size_t *record = new size_t[columns.size()];
 
-			std::ifstream infile{f.name};
+		try {
 
-			String line;
-			std::vector<String> headers;
+			for(auto &f : files) {
 
-			// Read first line to get field names.
-			{
-				std::getline(infile, line);
-				debug("Header: '",line,"'");
+				Logger::String{"Loading ",f.name.c_str()}.info(name);
+				size_t lines = 0;
 
-				// TODO: Parse header.
-				split(line.strip(), headers,column_separator);
+				std::ifstream infile{f.name};
 
-				debug("Headers:");
-				for(auto &header : headers) {
-					cout << header << endl;
+				String line;
+				std::vector<String> headers;
+
+
+				// Read first line to get field names.
+				{
+					std::getline(infile, line);
+					debug("Header: '",line,"'");
+
+					// TODO: Parse header.
+					split(line.strip(), headers,column_separator);
+
+					//debug("Headers:");
+					//for(auto &header : headers) {
+					//	cout << header << endl;
+					//}
+
 				}
 
-			}
+				// Map DB columns to CSV columns
+				struct Map {
+					size_t db;
+					size_t csv;
 
-			// Read data
-			while(std::getline(infile, line)) {
+					constexpr Map(size_t d, size_t c) : db{d}, csv{c} {
+					}
+				};
+				std::vector<Map> map;
 
-				line.strip();
-				if(line.empty()) {
-					Logger::String{"Stopping on empty line '",lines,"'"}.info(name);
+				for(size_t db = 0; db < columns.size(); db++) {
+
+					debug("Searching for column '",columns[db]->name(),"'");
+
+					for(size_t f = 0; f < headers.size(); f++) {
+						if(!strcasecmp(columns[db]->name(),headers[f].c_str())) {
+//							debug("Mapping (",columns[db]->name(),"): ",f,"->",db);
+							map.emplace_back(db, f);
+							break;
+						}
+					}
+
+				}
+
+				// Read data
+				while(std::getline(infile, line)) {
+
+					line.strip();
+					if(line.empty()) {
+						Logger::String{"Stopping on empty line '",lines,"'"}.info(name);
+						break;
+					}
+
+					lines++;
+
+					std::vector<String> cols;
+					split(line.strip(), cols,column_separator);
+
+					// Todo, search for record.
+
+					// Parse fields.
+					memset(record,0,sizeof(size_t)*columns.size());
+					for(const auto &item : map) {
+						auto column{columns[item.db]};
+						column->assign(cols[item.csv].strip().c_str());
+						record[item.db] = column->store(*file);
+						debug("Mapping (",column->name(),"): '",cols[item.csv].c_str(),"' '",column->to_string().c_str(),"'");
+					}
+
+					// Write record.
+
 					break;
 				}
 
-				lines++;
+				Logger::String{"Got ",f.name.c_str()," with ", lines, " line(s)"};
 
-				std::vector<String> cols;
-				split(line.strip(), cols,column_separator);
-
-				// TODO: Parse fields.
 			}
 
-			Logger::String{"Got ",f.name.c_str()," with ", lines, " line(s)"};
+			debug("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+			debug(file->write("teste1"));
+			debug(file->write("teste2"));
+			debug(file->write("teste3"));
+
+			debug(file->write("teste1"));
+			debug(file->write("teste2"));
+			debug(file->write("teste3"));
+
+		} catch(...) {
+
+			delete[] record;
+			throw;
 
 		}
+
+		delete[] record;
+
 	}
 
  }

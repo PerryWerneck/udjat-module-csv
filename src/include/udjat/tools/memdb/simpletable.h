@@ -26,6 +26,7 @@
  #include <udjat/tools/object.h>
  #include <udjat/tools/xml.h>
  #include <udjat/tools/quark.h>
+ #include <udjat/tools/converters.h>
  #include <memory>
  #include <udjat/tools/memdb/file.h>
  #include <vector>
@@ -45,11 +46,20 @@
 				Column(const XML::Node &node) : cname{Quark{node,"name","unnamed",false}.c_str()} {
 				}
 
+				bool operator==(const char *n) const {
+					return strcasecmp(cname,n) == 0;
+				}
+
 				inline const char * name() const noexcept {
 					return cname;
 				}
 
 				virtual std::string to_string() const noexcept = 0;
+				virtual void assign(const char *str) = 0;
+
+				virtual size_t store(File &file) const = 0;
+				virtual void restore(File &file, size_t id) = 0;
+
 			};
 
 		}
@@ -67,6 +77,19 @@
 				return std::to_string(data);
 			}
 
+			void assign(const char *str) override {
+				data = to_value(str,data);
+			}
+
+			size_t store(File &file) const override {
+				return file.write(&data,sizeof(data));
+			}
+
+			void restore(File &file, size_t offset) override {
+				file.read(offset, &data, sizeof(data));
+			}
+
+
 		};
 
 		template <>
@@ -79,6 +102,17 @@
 				return std::string{*this};
 			}
 
+			void assign(const char *str) override {
+				std::string::assign(str);
+			}
+
+			size_t store(File &file) const override {
+				return file.write(c_str());
+			}
+
+			void restore(File &file, size_t offset) override {
+				file.read(offset, (std::string &) *this);
+			}
 		};
 
 		class UDJAT_API Table {
