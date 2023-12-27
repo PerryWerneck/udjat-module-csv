@@ -163,23 +163,22 @@
 		// https://stackoverflow.com/questions/14896032/c11-stdset-lambda-comparison-function
 		class IndexEntry {
 		public:
-			size_t offset;
+			size_t *data;
 
-			constexpr IndexEntry(size_t o = 0) : offset{o} {
+			IndexEntry(const MemCachedDB::Table &table) : data{new size_t[table.columns.size()]} {
+				for(size_t ix = 0; ix < table.columns.size(); ix++) {
+					data[ix] = 0;
+				}
 			}
 
-			virtual ~IndexEntry() {
-			}
-
-			/// @brief Get offset for column.
-			virtual size_t offset(size_t index) const {
-				return offset + (index * sizeof(size_t));
+			~IndexEntry() {
+				delete[] data;
 			}
 
 		};
 
 		// https://stackoverflow.com/questions/14896032/c11-stdset-lambda-comparison-function
-		auto comp = [this,file](shared_ptr<IndexEntry> l, shared_ptr<IndexEntry> h){
+		auto comp = [this,file](const IndexEntry &l, const IndexEntry &h){
 
 			// TODO: Compare index columns to check if 'l < h'
 
@@ -187,116 +186,89 @@
 			return false;
 		};
 
-		/// @brief Ordered set with the indexes.
-		auto primary_index = std::set<shared_ptr<IndexEntry>,decltype(comp)>( comp );
+		/// @brief Ordered set with the records.
+		auto index = std::set<IndexEntry,decltype(comp)>( comp );
 
 		// Import CSV files
-		size_t *record = new size_t[columns.size()];
+		for(auto &f : files) {
 
-		try {
+			Logger::String{"Loading ",f.name.c_str()}.info(name);
+			size_t lines = 0;
 
-			for(auto &f : files) {
+			std::ifstream infile{f.name};
 
-				Logger::String{"Loading ",f.name.c_str()}.info(name);
-				size_t lines = 0;
-
-				std::ifstream infile{f.name};
-
-				String line;
-				std::vector<String> headers;
+			String line;
+			std::vector<String> headers;
 
 
-				// Read first line to get field names.
-				{
-					std::getline(infile, line);
-					debug("Header: '",line,"'");
+			// Read first line to get field names.
+			{
+				std::getline(infile, line);
+				debug("Header: '",line,"'");
 
-					// TODO: Parse header.
-					split(line.strip(), headers,column_separator);
+				// TODO: Parse header.
+				split(line.strip(), headers,column_separator);
 
-					//debug("Headers:");
-					//for(auto &header : headers) {
-					//	cout << header << endl;
-					//}
-
-				}
-
-				// Map DB columns to CSV columns
-				struct Map {
-					size_t db;
-					size_t csv;
-					constexpr Map(size_t d, size_t c) : db{d}, csv{c} {
-					}
-				};
-				std::vector<Map> map;
-
-				for(size_t db = 0; db < columns.size(); db++) {
-
-					debug("Searching for column '",columns[db]->name(),"'");
-
-					for(size_t f = 0; f < headers.size(); f++) {
-						if(!strcasecmp(columns[db]->name(),headers[f].c_str())) {
-							map.emplace_back(db, f);
-							break;
-						}
-					}
-
-				}
-
-				// Read data
-				while(std::getline(infile, line)) {
-
-					line.strip();
-					if(line.empty()) {
-						Logger::String{"Stopping on empty line '",lines,"'"}.info(name);
-						break;
-					}
-
-					lines++;
-
-					std::vector<String> cols;
-					split(line.strip(), cols,column_separator);
-
-					// Clear input record
-					memset(record,0,sizeof(size_t)*columns.size());
-
-					// Parse fields
-					for(const auto &item : map) {
-						auto column{columns[item.db]};
-						record[item.db] = column->store(datastore, cols[item.csv].strip().c_str());
-					}
-
-					// Search
-					class TempEntry : public IndexEntry {
-					public:
-						size_t *record;
-
-						constexpr TempEntry(size_t *r) : record{r} {
-						}
-
-						virtual size_t offset(size_t index) const {
-							return record[index];
-						}
-					}
-
-					// Temporary entry (for searching).
-					TempEntry entry{record};
-
-
-				}
-
-				Logger::String{"Got ",f.name.c_str()," with ", lines, " line(s)"};
+				//debug("Headers:");
+				//for(auto &header : headers) {
+				//	cout << header << endl;
+				//}
 
 			}
 
-		} catch(...) {
+			// Map DB columns to CSV columns
+			struct Map {
+				size_t db;
+				size_t csv;
+				constexpr Map(size_t d, size_t c) : db{d}, csv{c} {
+				}
+			};
+			std::vector<Map> map;
 
-			delete[] record;
-			throw;
+			for(size_t db = 0; db < columns.size(); db++) {
+
+				debug("Searching for column '",columns[db]->name(),"'");
+
+				for(size_t f = 0; f < headers.size(); f++) {
+					if(!strcasecmp(columns[db]->name(),headers[f].c_str())) {
+						map.emplace_back(db, f);
+						break;
+					}
+				}
+
+			}
+
+			// Read data
+			while(std::getline(infile, line)) {
+
+				line.strip();
+				if(line.empty()) {
+					Logger::String{"Stopping on empty line '",lines,"'"}.info(name);
+					break;
+				}
+
+				lines++;
+
+				std::vector<String> cols;
+				split(line.strip(), cols,column_separator);
+
+				// Clear input record
+				IndexEntry record{*this};
+
+				// Parse fields
+				for(const auto &item : map) {
+					auto column{columns[item.db]};
+					record.data[item.db] = column->store(datastore, cols[item.csv].strip().c_str());
+				}
+
+				// Search
+
+
+			}
+
+			Logger::String{"Got ",f.name.c_str()," with ", lines, " line(s)"};
 
 		}
-
-		delete[] record;
 
 	}
 
