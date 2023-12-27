@@ -60,7 +60,7 @@
 				}
 
 				/// @brief Is this column part of the primary index?
-				inline const bool key() const noexcept {
+				inline bool key() const noexcept {
 					return pkey;
 				}
 

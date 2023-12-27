@@ -70,6 +70,10 @@
 
 	}
 
+	MemCachedDB::Abstract::Column::Column(const XML::Node &node)
+		: pkey{node.attribute("primary-key").as_bool(false)}, cname{Quark{node,"name","unnamed",false}.c_str()} {
+	}
+
 	MemCachedDB::Table::~Table() {
 	}
 

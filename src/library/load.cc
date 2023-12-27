@@ -34,14 +34,11 @@
  #include <string>
  #include <udjat/tools/memdb/datastore.h>
  #include <fstream>
+ #include <set>
 
  using namespace std;
 
  namespace Udjat {
-
-	MemCachedDB::Abstract::Column::Column(const XML::Node &node)
-		: pkey{node.attribute("primary-key").as_bool(false)}, cname{Quark{node,"name","unnamed",false}.c_str()} {
-	}
 
 	static void split(const std::string &string, std::vector<String> &columns, const char delimiter = ';') {
 
@@ -85,8 +82,6 @@
 
 	void MemCachedDB::Table::load() {
 
-		debug("-----------------------------------------------------")
-
 		if(state() == Loading) {
 			Logger::String{"Table is already loading, ignoring request"}.warning(name);
 			return;
@@ -95,14 +90,14 @@
 		Logger::String("Loading ",path).trace(name);
 		state(Loading);
 
-		debug("filespec=",filespec);
-		auto pattern = std::regex(filespec,std::regex::icase);
-
+		// Load input files.
 		struct InputFile {
 			string name;
 			struct stat st;
 		};
 		std::vector<InputFile> files;
+
+		auto pattern = std::regex(filespec,std::regex::icase);
 		Udjat::File::Path{path}.for_each([this,&files,&pattern](const Udjat::File::Path &file){
 
 			if(std::regex_match(file.name(),pattern)) {
@@ -164,7 +159,36 @@
 		// Create datastore to avoid string duplication.
 		DataStore datastore{file};
 
-		// TODO: Create primary index (std::ordered_set)
+		// Create primary index
+		// https://stackoverflow.com/questions/14896032/c11-stdset-lambda-comparison-function
+		class IndexEntry {
+		public:
+			size_t offset;
+
+			constexpr IndexEntry(size_t o = 0) : offset{o} {
+			}
+
+			virtual ~IndexEntry() {
+			}
+
+			/// @brief Get offset for column.
+			virtual size_t offset(size_t index) const {
+				return offset + (index * sizeof(size_t));
+			}
+
+		};
+
+		// https://stackoverflow.com/questions/14896032/c11-stdset-lambda-comparison-function
+		auto comp = [this,file](shared_ptr<IndexEntry> l, shared_ptr<IndexEntry> h){
+
+			// TODO: Compare index columns to check if 'l < h'
+
+
+			return false;
+		};
+
+		/// @brief Ordered set with the indexes.
+		auto primary_index = std::set<shared_ptr<IndexEntry>,decltype(comp)>( comp );
 
 		// Import CSV files
 		size_t *record = new size_t[columns.size()];
@@ -233,16 +257,31 @@
 					std::vector<String> cols;
 					split(line.strip(), cols,column_separator);
 
-					// Todo, search if the data already exists on primary index
-
-					// Parse fields.
+					// Clear input record
 					memset(record,0,sizeof(size_t)*columns.size());
+
+					// Parse fields
 					for(const auto &item : map) {
 						auto column{columns[item.db]};
 						record[item.db] = column->store(datastore, cols[item.csv].strip().c_str());
 					}
 
-					// Write record.
+					// Search
+					class TempEntry : public IndexEntry {
+					public:
+						size_t *record;
+
+						constexpr TempEntry(size_t *r) : record{r} {
+						}
+
+						virtual size_t offset(size_t index) const {
+							return record[index];
+						}
+					}
+
+					// Temporary entry (for searching).
+					TempEntry entry{record};
+
 
 				}
 
