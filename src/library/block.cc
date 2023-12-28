@@ -32,7 +32,7 @@
 
  namespace Udjat {
 
-	 Deduplicator::Block::Block(std::shared_ptr<MemCachedDB::File> f, const void *data, size_t l) : file{f}, length{l} {
+	 DataStore::Deduplicator::Block::Block(std::shared_ptr<DataStore::File> f, const void *data, size_t l) : file{f}, length{l} {
 
 		// computes the hash of a data using a variant
 		// of the Fowler-Noll-Vo hash function
@@ -48,7 +48,7 @@
 
 	 }
 
-	 bool Deduplicator::Block::compare(const void *src) const {
+	 bool DataStore::Deduplicator::Block::compare(const void *src) const {
 
 		if(!offset) {
 			throw logic_error("This block has no data");
@@ -61,7 +61,7 @@
 
 	 }
 
-	 bool Deduplicator::Block::operator==(const Block &b) const {
+	 bool DataStore::Deduplicator::Block::operator==(const Block &b) const {
 
 		if(b.length != length || b.hash != hash) {
 			return false;

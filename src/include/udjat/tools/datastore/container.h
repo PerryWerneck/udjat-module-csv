@@ -25,26 +25,37 @@
  #include <udjat/defs.h>
  #include <udjat/tools/datastore/column.h>
  #include <udjat/tools/xml.h>
+ #include <vector>
 
  namespace Udjat {
 
 	namespace DataStore {
 
+		class Loader;
+
 		/// @brief A data store container.
 		class UDJAT_API Container {
 		private:
+
+			friend class Loader;
 
 			/// @brief The current file holding the real data.
 			std::shared_ptr<File> active_file;
 
 			/// @brief The data columns.
-			std::vector<std::shared_ptr<Abstract::Column>> columns;
+			std::vector<std::shared_ptr<Abstract::Column>> cols;
 
 		public:
 
 			/// @brief Build container from XML node.
 			Container(const XML::Node &node);
 			~Container();
+
+			/// @brief Number of columns in the container.
+			inline const std::vector<std::shared_ptr<Abstract::Column>> & columns() const noexcept {
+				return cols;
+			}
+
 		};
 
 

@@ -37,6 +37,7 @@
 		<Unit filename="src/include/private/controller.h" />
 		<Unit filename="src/include/private/datastore.h" />
 		<Unit filename="src/include/private/loader.h" />
+		<Unit filename="src/include/private/structs.h" />
 		<Unit filename="src/include/private/table.h" />
 		<Unit filename="src/include/udjat/agent/datastore.h" />
 		<Unit filename="src/include/udjat/tools/datastore/column.h" />

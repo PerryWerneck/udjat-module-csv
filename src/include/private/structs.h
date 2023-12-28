@@ -26,10 +26,10 @@
 
  namespace Udjat {
 
-	namespace MemCachedDB {
+	namespace DataStore {
 
 		#pragma pack(1)
-		struct TableHeader {
+		struct Header {
 			size_t primary_offset;	///< @brief Offset of the beginning of the primary index.
 			size_t indexes;			///< @brief Offset of the index lists.
 		};

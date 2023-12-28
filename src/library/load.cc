@@ -18,12 +18,169 @@
  */
 
  /**
-  * @brief Brief description of this source.
+  * @brief Implements datastore loader.
   */
-
-  /*
  #include <config.h>
  #include <udjat/defs.h>
+ #include <udjat/tools/datastore/loader.h>
+ #include <udjat/tools/file.h>
+ #include <udjat/tools/logger.h>
+ #include <private/structs.h>
+ #include <regex>
+ #include <set>
+
+ using namespace std;
+
+ namespace Udjat {
+
+	DataStore::Abstract::Loader::Loader(const DataStore::Container &c, const char *path, const char *filespec) : container{c} {
+
+		//
+		// Get list of files to import.
+		//
+		auto pattern = std::regex(filespec,std::regex::icase);
+		Udjat::File::Path{path}.for_each([this,&pattern](const Udjat::File::Path &file){
+
+			if(std::regex_match(file.name(),pattern)) {
+
+				InputFile ifile;
+
+				if(stat(file.c_str(),&ifile.st)) {
+					Logger::String{file.c_str(),": ",strerror(errno)}.error("DataStore");
+				} else {
+					ifile.name = file;
+					files.push_back(ifile);
+				}
+
+			} else if(Logger::enabled(Logger::Trace)) {
+
+				Logger::String{"Ignoring '",file.c_str(),"'"}.trace("DataStore");
+
+			}
+
+			return false;
+		});
+
+		if(files.empty()) {
+			return;
+		}
+
+
+	}
+
+	void DataStore::Abstract::Loader::load() {
+
+#ifdef DEBUG
+		shared_ptr<File> file{make_shared<File>("/tmp/test.db")};
+#else
+		shared_ptr<File> file{make_shared<File>()};
+#endif // DEBUG
+
+		// Write empty header.
+		DataStore::Header header;
+		memset(&header,0,sizeof(header));
+		file->write(&header,sizeof(header));
+
+		// TODO: Write column names.
+		file->write("\0",1);
+
+		// Write file sources.
+		for(auto &f : files) {
+			file->write(&f.st.st_mtim,sizeof(f.st.st_mtim));
+			file->write(f.name.c_str(),f.name.size()+1);
+		}
+		file->write("\0",1);
+
+		// Create primary index
+		// https://stackoverflow.com/questions/14896032/c11-stdset-lambda-comparison-function
+		class IndexEntry {
+		public:
+			size_t length = 0;
+			size_t *data = nullptr;
+
+			// Copy constructor.
+			IndexEntry(const IndexEntry &src) : length{src.length}, data{new size_t[length]} {
+				for(size_t ix = 0; ix < length; ix++) {
+					data[ix] = src.data[ix];
+				}
+			}
+
+			// Copy constructor from pointer.
+			IndexEntry(const IndexEntry *src) : length{src->length}, data{new size_t[length]} {
+				for(size_t ix = 0; ix < length; ix++) {
+					data[ix] = src->data[ix];
+				}
+			}
+
+			// Standard constructor.
+			IndexEntry(size_t columns) : length{columns}, data{new size_t[length]} {
+				for(size_t ix = 0; ix < length; ix++) {
+					data[ix] = 0;
+				}
+			}
+
+			~IndexEntry() {
+				delete[] data;
+				data = nullptr;
+			}
+
+		};
+
+		// https://stackoverflow.com/questions/14896032/c11-stdset-lambda-comparison-function
+		auto comp = [this,file](const IndexEntry &l, const IndexEntry &h){
+
+			// Compare index columns to check if 'l < h'
+			for(size_t col = 0; col < container.columns().size(); col++) {
+
+				if(container.columns()[col]->key() && l.data[col] != h.data[col]) {
+
+					// Not the same vale, compare.
+					size_t length = container.columns()[col]->length();
+					if(length) {
+
+						// Load real data from file.
+						uint8_t lval[length];
+						uint8_t hval[length];
+
+						file->read(l.data[col],lval,length);
+						file->read(h.data[col],hval,length);
+
+						return container.columns()[col]->comp(lval,hval);
+
+					} else {
+
+						// TODO: Test string.
+						return false;
+					}
+
+				}
+
+			}
+
+			return false;
+		};
+
+		/// @brief Ordered set with the records.
+		auto index = std::set<IndexEntry,decltype(comp)>( comp );
+
+		// Load files.
+		Deduplicator dedup{file};
+		for(auto &f : files) {
+
+			Logger::String{"Loading ",f.name.c_str()}.info("datastore");
+			Context context{dedup};
+
+			load(context,f.name.c_str());
+
+
+		}
+
+	}
+
+
+ }
+
+  /*
  #include <udjat/tools/memdb/simpletable.h>
  #include <udjat/tools/logger.h>
  #include <stdexcept>

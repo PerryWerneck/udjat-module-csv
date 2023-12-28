@@ -25,6 +25,7 @@
  #include <udjat/defs.h>
  #include <udjat/tools/converters.h>
  #include <udjat/tools/datastore/column.h>
+ #include <udjat/tools/string.h>
 
  namespace Udjat {
 

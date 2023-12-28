@@ -24,6 +24,7 @@
  #pragma once
  #include <udjat/defs.h>
  #include <udjat/tools/converters.h>
+ #include <udjat/tools/datastore/deduplicator.h>
 
  namespace Udjat {
 
@@ -73,8 +74,10 @@
 				virtual size_t length() const noexcept = 0;
 
 				/// @brief Convert data from string to object format and store it.
+				/// @param destination The deduplicator used to store the data.
+				/// @param text The string to store.
 				/// @return Offset of the stored data.
-				virtual size_t store(DataStore &store, const char *text) const = 0;
+				virtual size_t store(Deduplicator &destination, const char *text) const = 0;
 
 				/// @brief Compare two values.
 				/// @see std::less
@@ -105,7 +108,7 @@
 				return sizeof(T);
 			};
 
-			size_t store(Udjat::DataStore &store, const char *text) const override {
+			size_t store(Deduplicator &store, const char *text) const override {
 				T value{Udjat::from_string<T>(text)};
 				return store.insert(&value,sizeof(value));
 			}
@@ -130,7 +133,7 @@
 				return 0;
 			};
 
-			size_t store(Udjat::DataStore &store, const char *text) const override {
+			size_t store(Deduplicator &store, const char *text) const override {
 				return store.insert(text,strlen(text)+1);
 			}
 

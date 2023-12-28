@@ -18,40 +18,62 @@
  */
 
  /**
-  * @brief Declare an udjat agent to manage a datastore.
+  * @brief Declare classes to load a datastore from sources.
   */
 
  #pragma once
+
  #include <udjat/defs.h>
- #include <udjat/agent.h>
- #include <udjat/tools/xml.h>
+ #include <memory>
+ #include <udjat/tools/datastore/deduplicator.h>
+ #include <udjat/tools/datastore/file.h>
  #include <udjat/tools/datastore/container.h>
+ #include <string>
+ #include <sys/types.h>
+ #include <sys/stat.h>
 
  namespace Udjat {
 
 	namespace DataStore {
 
-		enum State : int {
-			Undefined,		///< @brief Data store is in undefined state.
-			Updating,		///< @brief Updating from data source.
-			Failed,			///< @brief Update failed.
-			Ready,			///< @brief Data was loaded from source.
-			Empty			///< @brief Empty data.
-		};
+		namespace Abstract {
 
-		/// @brief Data store default agent.
-		class UDJAT_API Agent : public Udjat::Agent<DataStore::State>, private Udjat::DataStore::Container {
-		public:
-			Agent(const XML::Node &definition);
-			virtual ~Agent();
+			class UDJAT_API Loader {
+			protected:
 
-			void start() override;
+				const Container &container;
 
-			std::string to_string() const noexcept override;
+				struct InputFile {
+					std::string name;
+					struct stat st;
+				};
+				std::vector<InputFile> files;
 
-			std::shared_ptr<Udjat::Abstract::State> StateFactory(const XML::Node &node) override;
+				/// @brief Loading Context
+				class Context {
+				private:
+					Deduplicator &deduplicator;
 
-		};
+				public:
+					Context(Deduplicator &d) : deduplicator{d} {
+					}
+
+
+				};
+
+			public:
+
+				Loader(const DataStore::Container &container, const char *path, const char *filespec);
+
+				inline bool empty() const noexcept {
+					return files.empty();
+				}
+
+				void load();
+
+			};
+
+		}
 
 	}
 

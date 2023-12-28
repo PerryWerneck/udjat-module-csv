@@ -22,7 +22,11 @@
   */
 
  #include <config.h>
+ #include <udjat/tools/intl.h>
  #include <udjat/agent/datastore.h>
+ #include <memory>
+
+ using namespace std;
 
  namespace Udjat {
 
@@ -34,7 +38,8 @@
 		"Empty"
 	};
 
-	DataStore::Agent::Agent(const XML::Node &definition) {
+	DataStore::Agent::Agent(const XML::Node &definition)
+		: Udjat::Agent<DataStore::State>(definition,DataStore::Undefined), Udjat::DataStore::Container{definition} {
 	}
 
 	DataStore::Agent::~Agent() {
@@ -42,13 +47,11 @@
 
 	void DataStore::Agent::start() {
 
-		// Load table contents in background thread to avoid 'hangs' while starting application.
-		set(Updating);
-		push([](std::shared_ptr<Abstract::Agent> me) {
-			((DataStore::Agent *)me.get())->load();
-		});
+		//push([](std::shared_ptr<Udjat::Abstract::Agent> me) {
+		//	((DataStore::Agent *)me.get())->load();
+		//});
 
-		super::start();
+		Udjat::Agent<DataStore::State>::start(Updating);
 
 	}
 
@@ -71,7 +74,7 @@
 			for(size_t ix = 0; ix < (sizeof(state_names)/sizeof(state_names[0])); ix++) {
 				if(!strcasecmp(name,state_names[ix])) {
 					debug("Creating state '",state_names[ix],"'");
-					auto state = make_shared<Udjat::State<MemCachedDB::Table::State>>(node,(MemCachedDB::Table::State) ix);
+					auto state = make_shared<Udjat::State<DataStore::State>>(node,(DataStore::State) ix);
 					states.push_back(state);
 					return state;
 				}
