@@ -366,7 +366,7 @@
 							file->read(*cptr,buffer,column->length());
 							cout << column->to_string(buffer);
 						} else {
-							cout << "?";
+							cout << file->read(*cptr);
 						}
 						cout << " ";
 						cptr++;

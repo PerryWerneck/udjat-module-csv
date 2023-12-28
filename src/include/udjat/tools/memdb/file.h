@@ -63,7 +63,10 @@
 			/// @param length The length of data.
 			void read(size_t offset, void *data, size_t length);
 
-			void read(size_t offset, std::string &string);
+			/// @brief Read string from file.
+			/// @param offset Offset of the required text.
+			/// @return The string at offset.
+			std::string read(size_t offset);
 		};
 
 	}

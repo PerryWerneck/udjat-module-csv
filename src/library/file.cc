@@ -134,20 +134,62 @@
 		return write((void *) data, strlen(data)+1);
 	}
 
-	void MemCachedDB::File::read(size_t offset, std::string &text) {
+	std::string MemCachedDB::File::read(size_t offset) {
 
-		text.clear();
+		if(ptr) {
+			return string{(char *) (ptr+offset)};
+		}
 
-		// TODO: Find a better way
+		// Not mapped, read from file.
+		if(fd < 0) {
+			throw std::logic_error("Unable to read from closed file");
+		}
 
-		throw runtime_error("incomplete");
+		string text;
 
+		while(1) {
+
+			char buffer[128];
+
+#ifdef _WIN32
+			if(lseek(fd,offset,SEEK_SET) == offset) {
+				throw std::system_error(errno,std::system_category(),"Cant setup DB file position");
+			}
+			ssize_t r = read(fd,buffer,128);
+#else
+			ssize_t r = pread(fd,buffer,128,offset);
+#endif // _WIN32
+
+			if(r < 0) {
+				throw std::system_error(errno,std::system_category(),"Error reading from DB file");
+			} else if(r == 0) {
+				throw std::logic_error("Unexpected EOF reading from DB file");
+			}
+
+			if(memchr(buffer,0,128)) {
+				text.append(buffer);
+				break;
+			} else {
+				text.append(buffer,128);
+			}
+
+			offset += r;
+		}
+
+		return text;
 	}
 
 	void MemCachedDB::File::read(size_t offset, void *data, size_t length) {
 
+		if(ptr) {
+			memcpy(data,ptr+offset,length);
+			return;
+		}
+
+		// Not mapped, read from file.
+
 		if(fd < 0) {
-			throw std::logic_error("Unable to write data on closed file");
+			throw std::logic_error("Unable to read from closed file");
 		}
 
 		size_t bytes = length;
