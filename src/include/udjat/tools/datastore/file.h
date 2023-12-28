@@ -27,8 +27,9 @@
 
  namespace Udjat {
 
-	namespace MemCachedDB {
+	namespace DataStore {
 
+		/// @brief Handle a datastore file.
 		class UDJAT_API File {
 		private:
 			int fd = -1;				///< @brief Handle of the real data file.

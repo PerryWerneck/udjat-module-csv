@@ -23,7 +23,7 @@
 
  #pragma once
  #include <udjat/defs.h>
- #include <udjat/tools/memdb/file.h>
+ #include <udjat/tools/datastore/file.h>
  #include <memory>
  #include <unordered_set>
  #include <mutex>
@@ -31,52 +31,61 @@
 
  namespace Udjat {
 
-	 /// @brief Helper for csv loading, prevent string duplication.
-	 class UDJAT_API DataStore {
-	 private:
+	namespace DataStore {
 
-		///< @brief Serialization
-		std::mutex guard;
+		/// @brief Loader tool. Store data on file without duplication.
+		class UDJAT_API Deduplicator {
+		private:
 
-		///< @brief The file to store data.
-		std::shared_ptr<MemCachedDB::File> file;
+			///< @brief Serialization
+			std::mutex guard;
 
-		/// @brief Data block
-		class Block {
-		public:
-			std::shared_ptr<MemCachedDB::File> file;		///< @brief The data file.
-			size_t length = 0;								///< @brief Length of the datablock.
-			size_t offset = 0;								///< @brief The offset of the datablock.
-			size_t hash = 0;								///< @brief Hash of the datablock
+			///< @brief The file to store data.
+			std::shared_ptr<File> file;
 
-			virtual bool compare(const void *src) const;
+			/// @brief Data block
+			class Block {
+			public:
+				std::shared_ptr<DataStore::File> file;		///< @brief The data file.
+				size_t length = 0;							///< @brief Length of the datablock.
+				size_t offset = 0;							///< @brief The offset of the datablock.
+				size_t hash = 0;							///< @brief Hash of the datablock
 
-			Block(std::shared_ptr<MemCachedDB::File> file, const void *data, size_t length);
-			virtual bool operator==(const Block &b) const;
+				virtual bool compare(const void *src) const;
 
-			struct HashFunction {
-				size_t operator()(const Block& block) const {
-					return block.hash;
-				}
+				Block(std::shared_ptr<DataStore::File> file, const void *data, size_t length);
+				virtual bool operator==(const Block &b) const;
+
+				struct HashFunction {
+					size_t operator()(const Block& block) const {
+						return block.hash;
+					}
+				};
+
 			};
+
+			std::unordered_set<Block, Block::HashFunction> blocks;
+
+		public:
+
+			/// @brief Construct a data storage to file.
+			/// @param f The file to storage data.
+			Deduplicator(std::shared_ptr<File> f) : file{f} {
+			}
+
+			/// @brief Insert data block in file avoiding duplication.
+			/// @return The data offset.
+			size_t insert(const void *data, size_t length);
+
+			/// @brief Insert an string in file avoiding duplication.
+			/// @return The data offset.
+			inline size_t insert(const char *str) {
+				return insert(str,strlen(str)+1);
+			}
 
 		};
 
-		std::unordered_set<Block, Block::HashFunction> blocks;
-
-	 public:
-		DataStore(std::shared_ptr<MemCachedDB::File> f) : file{f} {
-		}
-
-		/// @brief Insert data block in file avoiding duplication.
-		/// @return The data offset.
-		size_t insert(const void *data, size_t length);
-
-		inline size_t insert(const char *str) {
-			return insert(str,strlen(str)+1);
-		}
-
-	 };
+	}
 
  }
 

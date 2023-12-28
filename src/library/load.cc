@@ -21,6 +21,7 @@
   * @brief Brief description of this source.
   */
 
+  /*
  #include <config.h>
  #include <udjat/defs.h>
  #include <udjat/tools/memdb/simpletable.h>
@@ -392,3 +393,4 @@
 
  }
 
+ */

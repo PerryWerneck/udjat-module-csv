@@ -23,7 +23,7 @@
 
  #include <config.h>
  #include <udjat/defs.h>
- #include <udjat/tools/memdb/file.h>
+ #include <udjat/tools/datastore/file.h>
  #include <udjat/tools/logger.h>
  #include <sys/types.h>
  #include <sys/stat.h>
@@ -42,14 +42,14 @@
 
  namespace Udjat {
 
-	MemCachedDB::File::File() : fd{open("/tmp",O_RDWR|O_CREAT|O_TRUNC|O_TMPFILE,0600)} {
+	DataStore::File::File() : fd{open("/tmp",O_RDWR|O_CREAT|O_TRUNC|O_TMPFILE,0600)} {
 		debug("Creating temporary file");
 		if(fd < 0) {
 			throw std::system_error(errno,std::system_category(),"Unable to create temporary file");
 		}
 	}
 
-	MemCachedDB::File::File(const char *filename) : fd{::open(filename,O_RDWR|O_CREAT,0640)} {
+	DataStore::File::File(const char *filename) : fd{::open(filename,O_RDWR|O_CREAT,0640)} {
 
 		debug("Creating DB at '",filename,"'");
 
@@ -58,7 +58,7 @@
 		}
 	}
 
-	MemCachedDB::File::~File() {
+	DataStore::File::~File() {
 
 		unmap();
 
@@ -69,7 +69,7 @@
 		}
 	}
 
-	size_t MemCachedDB::File::size() {
+	size_t DataStore::File::size() {
 		off_t length = lseek(fd,0L,SEEK_END);
 		if(length == (off_t) -1) {
 			throw std::system_error(errno,std::system_category(),"Cant get DB file length");
@@ -77,7 +77,7 @@
 		return (size_t) length;
 	}
 
-	void MemCachedDB::File::map() {
+	void DataStore::File::map() {
 
 		std::lock_guard<std::mutex> lock(guard);
 
@@ -93,7 +93,7 @@
 
 	}
 
-	void MemCachedDB::File::unmap() {
+	void DataStore::File::unmap() {
 
 		std::lock_guard<std::mutex> lock(guard);
 
@@ -105,7 +105,7 @@
 		}
 	}
 
-	size_t MemCachedDB::File::write(const void *data, size_t length) {
+	size_t DataStore::File::write(const void *data, size_t length) {
 
 		std::lock_guard<std::mutex> lock(guard);
 
@@ -135,7 +135,7 @@
 		return (size_t) offset;
 	}
 
-	void MemCachedDB::File::write(size_t offset, const void *data, size_t length) {
+	void DataStore::File::write(size_t offset, const void *data, size_t length) {
 
 		std::lock_guard<std::mutex> lock(guard);
 
@@ -160,11 +160,11 @@
 
 	}
 
-	size_t MemCachedDB::File::write(const char *data) {
+	size_t DataStore::File::write(const char *data) {
 		return write((void *) data, strlen(data)+1);
 	}
 
-	std::string MemCachedDB::File::read(size_t offset) {
+	std::string DataStore::File::read(size_t offset) {
 
 		if(ptr) {
 			return string{(char *) (ptr+offset)};
@@ -211,7 +211,7 @@
 		return text;
 	}
 
-	void MemCachedDB::File::read(size_t offset, void *data, size_t length) {
+	void DataStore::File::read(size_t offset, void *data, size_t length) {
 
 		if(ptr) {
 			memcpy(data,ptr+offset,length);

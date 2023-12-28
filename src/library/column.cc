@@ -17,27 +17,40 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+ /**
+  * @brief Implement datastore columns.
+  */
+
  #include <config.h>
- #include <udjat/tools/application.h>
- #include <udjat/module.h>
- #include <unistd.h>
- #include <udjat/tools/logger.h>
+ #include <udjat/defs.h>
+ #include <udjat/tools/converters.h>
+ #include <udjat/tools/datastore/column.h>
 
- using namespace std;
- using namespace Udjat;
+ namespace Udjat {
 
- int main(int argc, char **argv) {
+	const std::string & DataStore::Abstract::Column::apply_layout(std::string &str) const {
 
-	Logger::verbosity(9);
-	Logger::redirect();
-	Logger::console(true);
+		if(str.size() == format.length) {
+			return str;
+		}
 
-	udjat_module_init();
+		if(str.size() < format.length) {
+			std::string rc;
+			rc.resize((format.length - str.size()),format.leftchar);
+			rc.append(str);
+			str = rc;
+		}
 
-	auto rc = Application{}.run(argc,argv,"./test.xml");
+		return str;
+	}
 
-	debug("Application exits with rc=",rc);
-
-	return rc;
+	std::string DataStore::Abstract::Column::to_string(const void *datablock) const {
+		String str{convert(datablock)};
+		if(format.length) {
+			apply_layout(str);
+		}
+		return str;
+	}
 
  }
+

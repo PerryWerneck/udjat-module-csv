@@ -39,6 +39,7 @@
 
  namespace Udjat {
 
+	/*
 	MemCachedDB::Table::Table(const XML::Node &definition)
 		: name{Quark{definition,"name","",false}.c_str()},
 			path{Object::getAttribute(definition,"path","")},
@@ -91,29 +92,7 @@
 	MemCachedDB::Table::~Table() {
 	}
 
-	const std::string & MemCachedDB::Abstract::Column::apply_layout(std::string &str) const {
-
-		if(str.size() == format.length) {
-			return str;
-		}
-
-		if(str.size() < format.length) {
-			std::string rc;
-			rc.resize((format.length - str.size()),format.leftchar);
-			rc.append(str);
-			str = rc;
-		}
-
-		return str;
-	}
-
-	std::string MemCachedDB::Abstract::Column::to_string(const void *datablock) const {
-		String str{convert(datablock)};
-		if(format.length) {
-			apply_layout(str);
-		}
-		return str;
-	}
+	*/
 
  }
 
