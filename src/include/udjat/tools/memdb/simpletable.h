@@ -41,9 +41,16 @@
 
 			/// @brief Descritor de coluna.
 			class UDJAT_API Column {
+			public:
+				enum Type {
+					Value,		///< @brief It's a simple field.
+					Primary,	///< @brief It's a primary key.
+					Index,		///< @brief It's an index.
+				};
+
 			private:
 
-				bool pkey = false;
+				Type type = Value;
 
 				struct {
 					uint8_t length = 0;		///< @brief Length of the output string.
@@ -66,7 +73,7 @@
 
 				/// @brief Is this column part of the primary index?
 				inline bool key() const noexcept {
-					return pkey;
+					return type == Primary;
 				}
 
 				/// @brief Get the size of data-block for this column.
