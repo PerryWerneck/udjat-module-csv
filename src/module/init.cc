@@ -28,7 +28,7 @@
  #include <stdexcept>
  #include <vector>
  #include <udjat/tools/memdb/simpletable.h>
-
+ #include <udjat/tools/threadpool.h>
 
  using namespace Udjat;
  using namespace std;
@@ -58,8 +58,10 @@
 			}
 
 			void start() override {
-				debug("-----> Starting table");
-				load();
+				auto ptr = to_shared_ptr();
+				ThreadPool::getInstance().push([ptr](){
+					((Table *)ptr.get())->load();
+				});
 				Abstract::Agent::start();
 			}
 

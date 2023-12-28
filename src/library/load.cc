@@ -82,6 +82,14 @@
 
 	void MemCachedDB::Table::load() {
 
+		#pragma pack(1)
+		struct Header {
+			size_t primary;	///< @brief Offset of the beginning of the primary index.
+		} header;
+		#pragma pack()
+
+		memset(&header,0,sizeof(header));
+
 		if(state() == Loading) {
 			Logger::String{"Table is already loading, ignoring request"}.warning(name);
 			return;
@@ -140,8 +148,12 @@
 		std::shared_ptr<MemCachedDB::File> file{make_shared<MemCachedDB::File>()};
 #endif // DEBUG
 
+		if(file->size()) {
+			throw logic_error("Temporary file is not empty");
+		}
+
 		// Write header
-		file->write("\0",1);
+		file->write(&header,sizeof(header));
 
 		// Write column names.
 		for(auto &c : columns) {
@@ -334,6 +346,13 @@
 
 		}
 
+		// Write primary index.
+		debug("Table length=",index.size());
+
+		// Write updated header
+		file->write((size_t) 0, &header,sizeof(header));
+
+		state(Loaded);
 	}
 
  }

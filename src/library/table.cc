@@ -75,7 +75,7 @@
 
 		format.length = (uint8_t) node.attribute("length").as_uint(format.length);
 
-		if(node.attribute('zero-fill').as_bool(false)) {
+		if(node.attribute("zero-fill").as_bool(false)) {
 			format.leftchar = '0';
 		}
 	}
