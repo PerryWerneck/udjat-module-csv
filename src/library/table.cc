@@ -72,6 +72,12 @@
 
 	MemCachedDB::Abstract::Column::Column(const XML::Node &node)
 		: pkey{node.attribute("primary-key").as_bool(false)}, cname{Quark{node,"name","unnamed",false}.c_str()} {
+
+		format.length = (uint8_t) node.attribute("length").as_uint(format.length);
+
+		if(node.attribute('zero-fill').as_bool(false)) {
+			format.leftchar = '0';
+		}
 	}
 
 	MemCachedDB::Table::~Table() {

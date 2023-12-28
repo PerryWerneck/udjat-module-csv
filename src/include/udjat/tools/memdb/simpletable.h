@@ -45,6 +45,11 @@
 
 				bool pkey = false;
 
+				struct {
+					uint8_t length = 0;		///< @brief Length of the output string.
+					char	leftchar = ' ';	///< @brief Char to fill.
+				} format;
+
 			protected:
 				const char *cname;
 
@@ -176,6 +181,7 @@
 			Table(const XML::Node &definition);
 			virtual ~Table();
 
+			/// @brief Load data from CSVs to an empty MemCachedDB::File.
 			void load();
 
 		};
