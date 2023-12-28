@@ -86,7 +86,7 @@
 		}
 
 		if(ptr) {
-			throw std::logic_error("The data file is already mapped and read-only");
+			throw std::logic_error("Unable to write data on mapped file");
 		}
 
 		off_t offset = lseek(fd,0L,SEEK_END);
@@ -114,7 +114,7 @@
 		}
 
 		if(ptr) {
-			throw std::logic_error("The data file is already mapped and read-only");
+			throw std::logic_error("Unable to write data on mapped file");
 		}
 
 		size_t bytes = length;
