@@ -61,18 +61,18 @@
 
 		std::lock_guard<std::mutex> lock(guard);
 
-		debug("block count is ",blocks.size());
+//		debug("block count is ",blocks.size());
 
 		auto block = blocks.find(record);
 		if(block != blocks.end()) {
-			debug("Got block, using it")
+//			debug("Got block, using it")
 			return block->offset;
 		}
 
 		// Adding a new block.
-		debug("adding block");
+//		debug("adding block");
 		record.offset = record.file->write(data,length);
-		debug("offset=",record.offset);
+//		debug("offset=",record.offset);
 
 		blocks.insert(record);
 

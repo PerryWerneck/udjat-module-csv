@@ -72,6 +72,11 @@
 				/// @return Offset of the stored data.
 				virtual size_t store(DataStore &store, const char *text) const = 0;
 
+				/// @brief Compare two values.
+				/// @see std::less
+				/// @return True if *lhs < *rhs
+				virtual bool comp(const void *lhs, const void *rhs) const = 0;
+
 			};
 
 		}
@@ -91,6 +96,10 @@
 				return store.insert(&value,sizeof(value));
 			}
 
+			bool comp(const void *lhs, const void *rhs) const override {
+				return *((T *) lhs) < *((T *) rhs);
+			}
+
 		};
 
 		template <>
@@ -105,6 +114,10 @@
 
 			size_t store(Udjat::DataStore &store, const char *text) const override {
 				return store.insert(text,strlen(text)+1);
+			}
+
+			bool comp(const void *lhs, const void *rhs) const override {
+				return strcasecmp((const char *) lhs, (const char *) rhs) < 0;
 			}
 
 		};

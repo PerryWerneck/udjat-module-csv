@@ -163,16 +163,33 @@
 		// https://stackoverflow.com/questions/14896032/c11-stdset-lambda-comparison-function
 		class IndexEntry {
 		public:
-			size_t *data;
+			size_t length = 0;
+			size_t *data = nullptr;
 
-			IndexEntry(const MemCachedDB::Table &table) : data{new size_t[table.columns.size()]} {
-				for(size_t ix = 0; ix < table.columns.size(); ix++) {
+			// Copy constructor.
+			IndexEntry(const IndexEntry &src) : length{src.length}, data{new size_t[length]} {
+				for(size_t ix = 0; ix < length; ix++) {
+					data[ix] = src.data[ix];
+				}
+			}
+
+			// Copy constructor from pointer.
+			IndexEntry(const IndexEntry *src) : length{src->length}, data{new size_t[length]} {
+				for(size_t ix = 0; ix < length; ix++) {
+					data[ix] = src->data[ix];
+				}
+			}
+
+			// Standard constructor.
+			IndexEntry(const MemCachedDB::Table &table) : length{table.columns.size()}, data{new size_t[length]} {
+				for(size_t ix = 0; ix < length; ix++) {
 					data[ix] = 0;
 				}
 			}
 
 			~IndexEntry() {
 				delete[] data;
+				data = nullptr;
 			}
 
 		};
@@ -181,7 +198,32 @@
 		auto comp = [this,file](const IndexEntry &l, const IndexEntry &h){
 
 			// TODO: Compare index columns to check if 'l < h'
+			for(size_t col = 0; col < columns.size(); col++) {
 
+				if(columns[col]->key() && l.data[col] != h.data[col]) {
+
+					// Not the same vale, compare.
+					size_t length = columns[col]->length();
+					if(length) {
+
+						// Load real data from file.
+						uint8_t lval[length];
+						uint8_t hval[length];
+
+						file->read(l.data[col],lval,length);
+						file->read(h.data[col],hval,length);
+
+						return columns[col]->comp(lval,hval);
+
+					} else {
+
+						// TODO: Test string.
+						return false;
+					}
+
+				}
+
+			}
 
 			return false;
 		};
@@ -262,7 +304,24 @@
 				}
 
 				// Search
+				auto idata = index.find(record);
+				if(idata == index.end()) {
 
+					// New record, insert it
+					index.insert(record);
+
+				} else {
+
+					// Already exist, update id
+					debug("Record already exist, updating")
+					for(const auto &item : map) {
+						auto column{columns[item.db]};
+						if(!column->key()) {
+							idata->data[item.db] = record.data[item.db];
+						}
+					}
+
+				}
 
 			}
 
