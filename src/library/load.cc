@@ -130,7 +130,7 @@
 
 		if(files.empty()) {
 			Logger::String{"No files to import"}.warning(name);
-			file.reset();
+			this->data.reset();
 			state(Empty);
 			return;
 		}
@@ -381,6 +381,10 @@
 
 		// Write updated header
 		file->write((size_t) 0, &header,sizeof(header));
+		file->map();
+
+		// Activate new data file.
+		this->data = file;
 
 		state(Loaded);
 

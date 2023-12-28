@@ -173,7 +173,7 @@
 			char column_separator = ';';
 
 			/// @brief The table file.
-			std::shared_ptr<MemCachedDB::File> file;
+			std::shared_ptr<MemCachedDB::File> data;
 
 		protected:
 

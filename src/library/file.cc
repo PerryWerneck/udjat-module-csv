@@ -60,11 +60,9 @@
 
 	MemCachedDB::File::~File() {
 
-		if(ptr) {
-			munmap((void *) ptr,size());
-			ptr = nullptr;
-		}
+		unmap();
 
+		std::lock_guard<std::mutex> lock(guard);
 		if(fd >= 0) {
 			::close(fd);
 			fd = -1;
@@ -79,7 +77,37 @@
 		return (size_t) length;
 	}
 
+	void MemCachedDB::File::map() {
+
+		std::lock_guard<std::mutex> lock(guard);
+
+		if(fd < 0) {
+			throw std::logic_error("Unable to map closed file");
+		}
+
+		ptr = (uint8_t *) mmap(NULL, size(), PROT_READ, MAP_SHARED, fd, 0);
+		if(ptr == MAP_FAILED) {
+			ptr = nullptr;
+			throw std::system_error(errno,std::system_category(),"Unable to map data file");
+		}
+
+	}
+
+	void MemCachedDB::File::unmap() {
+
+		std::lock_guard<std::mutex> lock(guard);
+
+		if(ptr) {
+			if(munmap((void *) ptr,size())) {
+				throw std::system_error(errno,std::system_category(),"Unable to unmap data file");
+			}
+			ptr = nullptr;
+		}
+	}
+
 	size_t MemCachedDB::File::write(const void *data, size_t length) {
+
+		std::lock_guard<std::mutex> lock(guard);
 
 		if(fd < 0) {
 			throw std::logic_error("Unable to write data on closed file");
@@ -108,6 +136,8 @@
 	}
 
 	void MemCachedDB::File::write(size_t offset, const void *data, size_t length) {
+
+		std::lock_guard<std::mutex> lock(guard);
 
 		if(fd < 0) {
 			throw std::logic_error("Unable to write data on closed file");
@@ -141,6 +171,8 @@
 		}
 
 		// Not mapped, read from file.
+		std::lock_guard<std::mutex> lock(guard);
+
 		if(fd < 0) {
 			throw std::logic_error("Unable to read from closed file");
 		}
@@ -187,6 +219,7 @@
 		}
 
 		// Not mapped, read from file.
+		std::lock_guard<std::mutex> lock(guard);
 
 		if(fd < 0) {
 			throw std::logic_error("Unable to read from closed file");

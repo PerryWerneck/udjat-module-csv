@@ -33,12 +33,23 @@
 		private:
 			int fd = -1;				///< @brief Handle of the real data file.
 			uint8_t * ptr = nullptr;	///< @brief Pointer to memory mapped block.
+			std::mutex guard;
+
 		public:
 			File();
 			File(const char *filename);
 			~File();
 
 			size_t size();
+
+			void map();
+			void unmap();
+
+			/// @brief Is the file mapped?
+			/// @return true if the file is mapped.
+			bool mapped() const noexcept {
+				return (bool) ptr;
+			}
 
 			/// @brief Write data to file.
 			/// @param offset for start.
