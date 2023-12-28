@@ -35,6 +35,7 @@
  #include <udjat/tools/memdb/datastore.h>
  #include <fstream>
  #include <set>
+ #include <private/table.h>
 
  using namespace std;
 
@@ -82,11 +83,7 @@
 
 	void MemCachedDB::Table::load() {
 
-		#pragma pack(1)
-		struct Header {
-			size_t primary_offset;	///< @brief Offset of the beginning of the primary index.
-		} header;
-		#pragma pack()
+		TableHeader header;
 
 		memset(&header,0,sizeof(header));
 
@@ -384,6 +381,7 @@
 		file->map();
 
 		// Activate new data file.
+		Logger::String{"The table data was updated"}.trace(name);
 		this->data = file;
 
 		state(Loaded);
