@@ -84,7 +84,7 @@
 
 		#pragma pack(1)
 		struct Header {
-			size_t primary;	///< @brief Offset of the beginning of the primary index.
+			size_t primary_offset;	///< @brief Offset of the beginning of the primary index.
 		} header;
 		#pragma pack()
 
@@ -347,12 +347,24 @@
 		}
 
 		// Write primary index.
-		debug("Table length=",index.size());
+		{
+			size_t qtdrec = index.size();
+			Logger::String{"Got ",qtdrec," records"}.info(name);
+			header.primary_offset = file->write(&qtdrec,sizeof(qtdrec));
+
+			for(const auto &it : index) {
+				file->write(it.data,it.length * sizeof(it.data[0]));
+			}
+
+		}
 
 		// Write updated header
 		file->write((size_t) 0, &header,sizeof(header));
 
 		state(Loaded);
+
+		debug(__FUNCTION__," ends");
+
 	}
 
  }

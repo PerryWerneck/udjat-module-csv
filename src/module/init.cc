@@ -58,10 +58,14 @@
 			}
 
 			void start() override {
-				auto ptr = to_shared_ptr();
-				ThreadPool::getInstance().push([ptr](){
-					((Table *)ptr.get())->load();
+
+				// TODO: Load default states.
+
+				// Load table contents in background thread to avoid 'hangs' while starting application.
+				push([](std::shared_ptr<Abstract::Agent> me){
+					((Table *)me.get())->load();
 				});
+
 				Abstract::Agent::start();
 			}
 
