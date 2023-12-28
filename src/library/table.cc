@@ -83,6 +83,24 @@
 	MemCachedDB::Table::~Table() {
 	}
 
+	const std::string & MemCachedDB::Abstract::Column::apply_layout(std::string &str) const {
+
+		if(str.size() == format.length) {
+			return str;
+		}
+
+		if(str.size() < format.length) {
+			str = std::string{format.length - str.size(), format.leftchar}.append(str);
+		}
+
+		return str;
+	}
+
+	std::string MemCachedDB::Abstract::Column::to_string(const void *datablock) const {
+		String str{convert(datablock)};
+		apply_layout(str);
+		return str;
+	}
 
  }
 

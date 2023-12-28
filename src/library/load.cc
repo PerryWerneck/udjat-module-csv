@@ -354,6 +354,27 @@
 
 			for(const auto &it : index) {
 				file->write(it.data,it.length * sizeof(it.data[0]));
+#ifdef DEBUG
+				{
+					cout << name << "\t";
+					const size_t *cptr = it.data;
+					for(const auto &column : columns) {
+						if(!*cptr) {
+							cout << "null";
+						} else if(column->length()) {
+							uint8_t buffer[column->length()];
+							file->read(*cptr,buffer,column->length());
+							cout << column->to_string(buffer);
+						} else {
+							cout << "?";
+						}
+						cout << " ";
+						cptr++;
+					}
+					cout << endl;
+				}
+#endif // DEBUG
+
 			}
 
 		}

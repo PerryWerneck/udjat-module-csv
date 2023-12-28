@@ -83,7 +83,14 @@
 				virtual bool comp(const void *lhs, const void *rhs) const = 0;
 
 				/// @brief Convert datablock to string.
-				virtual std::string to_string(const void *datablock) const = 0;
+				virtual std::string convert(const void *datablock) const = 0;
+
+				/// @brief Format string.
+				/// @param str String to format.
+				/// @return str
+				const std::string & apply_layout(std::string &str) const;
+
+				std::string to_string(const void *datablock) const;
 
 			};
 
@@ -108,7 +115,7 @@
 				return *((T *) lhs) < *((T *) rhs);
 			}
 
-			std::string to_string(const void *datablock) const override {
+			std::string convert(const void *datablock) const override {
 				return std::to_string(*((T *) datablock));
 			}
 
@@ -132,7 +139,7 @@
 				return strcasecmp((const char *) lhs, (const char *) rhs) < 0;
 			}
 
-			std::string to_string(const void *datablock) const override {
+			std::string convert(const void *datablock) const override {
 				return std::string{datablock ? (const char *) datablock : ""};
 			}
 
