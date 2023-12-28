@@ -92,13 +92,15 @@
 
 			std::shared_ptr<Abstract::State> StateFactory(const pugi::xml_node &node) {
 
-				debug("---[ Creating states ]---");
+				debug("---[ Creating states (",states.size(),") ]---");
 				const char *name = node.attribute("value").as_string(node.attribute("name").as_string(""));
 				if(name && *name) {
 					for(size_t ix = 0; ix < (sizeof(state_names)/sizeof(state_names[0])); ix++) {
 						if(!strcasecmp(name,state_names[ix])) {
 							debug("Creating state '",state_names[ix],"'");
-							return make_shared<Udjat::State<MemCachedDB::Table::State>>(node,(MemCachedDB::Table::State) ix);
+							auto state = make_shared<Udjat::State<MemCachedDB::Table::State>>(node,(MemCachedDB::Table::State) ix);
+							states.push_back(state);
+							return state;
 						}
 					}
 				}
