@@ -41,6 +41,8 @@
 
 		/// @brief Data store default agent.
 		class UDJAT_API Agent : public Udjat::Agent<DataStore::State>, private Udjat::DataStore::Container {
+		protected:
+
 		public:
 			Agent(const XML::Node &definition);
 			virtual ~Agent();

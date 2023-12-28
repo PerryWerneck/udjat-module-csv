@@ -47,11 +47,11 @@
 
 	void DataStore::Agent::start() {
 
-		//push([](std::shared_ptr<Udjat::Abstract::Agent> me) {
-		//	((DataStore::Agent *)me.get())->load();
-		//});
+		Udjat::Agent<DataStore::State>::start(Undefined);
 
-		Udjat::Agent<DataStore::State>::start(Updating);
+		push([](std::shared_ptr<Udjat::Abstract::Agent> me) {
+			((DataStore::Agent *)me.get())->load();
+		});
 
 	}
 

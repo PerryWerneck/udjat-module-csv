@@ -49,6 +49,7 @@
 		<Unit filename="src/library/agent.cc" />
 		<Unit filename="src/library/block.cc" />
 		<Unit filename="src/library/column.cc" />
+		<Unit filename="src/library/container.cc" />
 		<Unit filename="src/library/datastore.cc" />
 		<Unit filename="src/library/deduplicator.cc" />
 		<Unit filename="src/library/file.cc" />

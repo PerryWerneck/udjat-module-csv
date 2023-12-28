@@ -37,9 +37,9 @@
 
 	namespace DataStore {
 
-		namespace Abstract {
+		namespace Loader {
 
-			class UDJAT_API Loader {
+			class UDJAT_API Abstract {
 			protected:
 
 				const Container &container;
@@ -67,17 +67,29 @@
 
 				};
 
-				virtual void load(Context &context, const char *filename) = 0;
+				virtual void load_file(Context &context, const char *filename) = 0;
 
 			public:
 
-				Loader(const DataStore::Container &container, const char *path, const char *filespec);
+				Abstract(const DataStore::Container &container, const char *path, const char *filespec);
 
 				inline bool empty() const noexcept {
 					return files.empty();
 				}
 
 				void load();
+
+			};
+
+			/// @brief Load CSV files into datastore.
+			class UDJAT_API CSV : public Loader::Abstract {
+			protected:
+
+				void load_file(Context &context, const char *filename) override;
+
+			public:
+				CSV(const DataStore::Container &container, const char *path, const char *filespec) : Abstract{container,path,filespec} {
+				}
 
 			};
 

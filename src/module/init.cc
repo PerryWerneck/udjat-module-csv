@@ -23,6 +23,7 @@
  #include <udjat/worker.h>
  #include <udjat/factory.h>
  #include <udjat/tools/intl.h>
+ #include <udjat/agent/datastore.h>
  #include <stdexcept>
 
  using namespace Udjat;
@@ -48,9 +49,9 @@
 		}
 
 		// Udjat::Factory
-		// std::shared_ptr<Abstract::Agent> AgentFactory(const Abstract::Object &, const pugi::xml_node &node) const {
-		//	return make_shared<CSVData>(node);
-		// }
+		std::shared_ptr<Abstract::Agent> AgentFactory(const Abstract::Object &, const pugi::xml_node &node) const {
+			return make_shared<DataStore::Agent>(node);
+		}
 
 	};
 

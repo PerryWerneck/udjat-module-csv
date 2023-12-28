@@ -31,13 +31,13 @@
 
 	namespace DataStore {
 
-		class Loader;
-
 		/// @brief A data store container.
 		class UDJAT_API Container {
 		private:
 
-			friend class Loader;
+			const char *name;
+			const char *path;
+			const char *filespec;
 
 			/// @brief The current file holding the real data.
 			std::shared_ptr<File> active_file;
@@ -55,6 +55,9 @@
 			inline const std::vector<std::shared_ptr<Abstract::Column>> & columns() const noexcept {
 				return cols;
 			}
+
+			/// @brief Load source files, rebuild work file.
+			void load();
 
 		};
 
