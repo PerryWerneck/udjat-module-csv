@@ -24,6 +24,7 @@
  #include <udjat/factory.h>
  #include <udjat/tools/request.h>
  #include <udjat/tools/response.h>
+ #include <udjat/tools/intl.h>
  #include <udjat/agent.h>
  #include <stdexcept>
  #include <vector>
@@ -38,6 +39,14 @@
  /// @brief Register udjat module.
  Udjat::Module * udjat_module_init() {
 
+	static const char *state_names[] = {
+		"Undefined",
+		"Loading",
+		"Failed",
+		"Loaded",
+		"Empty"
+	};
+
 	class Module : public Udjat::Module, Udjat::Worker, private Udjat::Factory {
 	private:
 
@@ -50,7 +59,8 @@
 			}
 
 			void state(const MemCachedDB::Table::State state) noexcept override {
-				super::set(state);
+				debug("-------------------> STATE SET TO ",state);
+				Agent<MemCachedDB::Table::State>::set(state);
 			}
 
 			MemCachedDB::Table::State state() const noexcept override {
@@ -67,6 +77,33 @@
 				});
 
 				Abstract::Agent::start();
+			}
+
+			std::string to_string() const noexcept override {
+				int value = (int) get();
+
+				if(value >= 0 && value < (int) ((sizeof(state_names)/sizeof(state_names[0])))) {
+					return state_names[value];
+				}
+
+				return Logger::Message{_("Unexpected value '{}'"),value};
+
+			}
+
+			std::shared_ptr<Abstract::State> StateFactory(const pugi::xml_node &node) {
+
+				debug("---[ Creating states ]---");
+				const char *name = node.attribute("value").as_string(node.attribute("name").as_string(""));
+				if(name && *name) {
+					for(size_t ix = 0; ix < (sizeof(state_names)/sizeof(state_names[0])); ix++) {
+						if(!strcasecmp(name,state_names[ix])) {
+							debug("Creating state '",state_names[ix],"'");
+							return make_shared<Udjat::State<MemCachedDB::Table::State>>(node,(MemCachedDB::Table::State) ix);
+						}
+					}
+				}
+
+				return super::StateFactory(node);
 			}
 
 		};
