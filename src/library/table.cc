@@ -90,7 +90,10 @@
 		}
 
 		if(str.size() < format.length) {
-			str = std::string{format.length - str.size(), format.leftchar}.append(str);
+			std::string rc;
+			rc.resize((format.length - str.size()),format.leftchar);
+			rc.append(str);
+			str = rc;
 		}
 
 		return str;
@@ -98,7 +101,9 @@
 
 	std::string MemCachedDB::Abstract::Column::to_string(const void *datablock) const {
 		String str{convert(datablock)};
-		apply_layout(str);
+		if(format.length) {
+			apply_layout(str);
+		}
 		return str;
 	}
 
