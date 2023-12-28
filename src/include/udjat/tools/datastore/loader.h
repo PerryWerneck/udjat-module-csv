@@ -29,6 +29,7 @@
  #include <udjat/tools/datastore/file.h>
  #include <udjat/tools/datastore/container.h>
  #include <string>
+ #include <vector>
  #include <sys/types.h>
  #include <sys/stat.h>
 
@@ -51,15 +52,22 @@
 
 				/// @brief Loading Context
 				class Context {
-				private:
-					Deduplicator &deduplicator;
+				protected:
 
 				public:
-					Context(Deduplicator &d) : deduplicator{d} {
-					}
+					Context() {}
 
+					/// @brief Open context.
+					/// @param names The columns names.
+					virtual void open(const std::vector<String> &names) = 0;
+
+					/// @brief Append row.
+					/// @param values The column values.
+					virtual void append(const std::vector<String> &values) = 0;
 
 				};
+
+				virtual void load(Context &context, const char *filename) = 0;
 
 			public:
 

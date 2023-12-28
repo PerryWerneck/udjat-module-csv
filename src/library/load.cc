@@ -163,15 +163,31 @@
 		/// @brief Ordered set with the records.
 		auto index = std::set<IndexEntry,decltype(comp)>( comp );
 
+		/// @brief Loader context.
+		class Context : public DataStore::Abstract::Loader::Context {
+		private:
+			std::set<IndexEntry,decltype(comp)> &index;
+			Deduplicator &deduplicator;
+
+		public:
+			Context(std::set<IndexEntry,decltype(comp)> &i, Deduplicator &d) : index{i}, deduplicator{d} {
+			}
+
+			void open(const std::vector<String> &names) override {
+			}
+
+			void append(const std::vector<String> &values) override {
+			}
+
+		};
+
 		// Load files.
 		Deduplicator dedup{file};
 		for(auto &f : files) {
 
 			Logger::String{"Loading ",f.name.c_str()}.info("datastore");
-			Context context{dedup};
-
+			Context context{index, dedup};
 			load(context,f.name.c_str());
-
 
 		}
 
