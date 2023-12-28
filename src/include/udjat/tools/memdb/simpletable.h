@@ -77,6 +77,9 @@
 				/// @return True if *lhs < *rhs
 				virtual bool comp(const void *lhs, const void *rhs) const = 0;
 
+				/// @brief Convert datablock to string.
+				virtual std::string to_string(const void *datablock) const = 0;
+
 			};
 
 		}
@@ -100,6 +103,10 @@
 				return *((T *) lhs) < *((T *) rhs);
 			}
 
+			std::string to_string(const void *datablock) const override {
+				return std::to_string(*((T *) datablock));
+			}
+
 		};
 
 		template <>
@@ -118,6 +125,10 @@
 
 			bool comp(const void *lhs, const void *rhs) const override {
 				return strcasecmp((const char *) lhs, (const char *) rhs) < 0;
+			}
+
+			std::string to_string(const void *datablock) const override {
+				return std::string{datablock ? (const char *) datablock : ""};
 			}
 
 		};

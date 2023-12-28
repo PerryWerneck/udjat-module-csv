@@ -319,6 +319,11 @@
 						if(!column->key()) {
 							idata->data[item.db] = record.data[item.db];
 						}
+#ifdef DEBUG
+						else {
+							debug(column->name());
+						}
+#endif // DEBUG
 					}
 
 				}
