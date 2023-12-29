@@ -118,6 +118,10 @@
 		shared_ptr<File> file{make_shared<File>()};
 #endif // DEBUG
 
+		if(file->size()) {
+			throw runtime_error("Datastore is not empty");
+		}
+
 		// Write empty header.
 		DataStore::Header header;
 		memset(&header,0,sizeof(header));
