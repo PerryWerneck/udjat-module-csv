@@ -52,8 +52,10 @@
 		<Unit filename="src/library/container.cc" />
 		<Unit filename="src/library/deduplicator.cc" />
 		<Unit filename="src/library/file.cc" />
+		<Unit filename="src/library/iterator.cc" />
 		<Unit filename="src/library/load.cc" />
 		<Unit filename="src/library/resource.cc" />
+		<Unit filename="src/library/search.cc" />
 		<Unit filename="src/module/init.cc" />
 		<Unit filename="src/testprogram/testprogram.cc" />
 		<Extensions />

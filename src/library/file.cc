@@ -78,9 +78,11 @@
 	}
 
 	const void * DataStore::File::get_void_ptr(size_t offset) const {
-		if(ptr) {
+
+		if(ptr != nullptr) {
 			return (ptr+offset);
 		}
+
 		throw logic_error("File is not mapped");
 	}
 

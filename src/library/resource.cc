@@ -35,6 +35,10 @@
 	DataStore::Container::Resource::Resource(std::shared_ptr<File> f, const std::vector<std::shared_ptr<Abstract::Column>> &c, size_t i)
 		: file{f}, cols{c}, index{i} {
 
+		if(!file) {
+			throw std::system_error(ENODATA,std::system_category(),"Empty data store");
+		}
+
 		const Header &header{file->get<Header>(0)};
 
 		if(!header.primary_offset) {
@@ -54,10 +58,38 @@
 
 	DataStore::Container::Resource & DataStore::Container::Resource::set(size_t id) {
 		if(id > ixptr[0]) {
-			throw out_of_range("Beyond storage limit");
+			id = ixptr[0];
 		}
 		index = id;
 		return *this;
+	}
+
+	DataStore::Container::Resource& DataStore::Container::Resource::operator+=(size_t off) {
+		set(index+off);
+		return *this;
+	}
+
+	DataStore::Container::Resource DataStore::Container::Resource::operator+(size_t off) const {
+		Resource rc = *this;
+		rc.set(index+off);
+		return rc;
+	}
+
+	DataStore::Container::Resource& DataStore::Container::Resource::operator-=(size_t off) {
+		if(off > index) {
+			throw out_of_range("Invalid offset");
+		}
+		set(index+off);
+		return *this;
+	}
+
+	DataStore::Container::Resource DataStore::Container::Resource::operator-(size_t off) const {
+		if(off > index) {
+			throw out_of_range("Invalid offset");
+		}
+		Resource rc = *this;
+		rc.set(index-off);
+		return rc;
 	}
 
 	DataStore::Container::Resource::operator bool() const {
@@ -98,53 +130,28 @@
 		return rc;
 	}
 
-	bool DataStore::Container::Resource::operator== (const DataStore::Container::Resource& b) {
+	bool DataStore::Container::Resource::operator== (const DataStore::Container::Resource& b) const {
 		return index == b.index && ixptr == b.ixptr;
 	}
 
-	bool DataStore::Container::Resource::operator!= (const DataStore::Container::Resource& b) {
+	bool DataStore::Container::Resource::operator!= (const DataStore::Container::Resource& b) const {
 		return !operator==(b);
 	}
 
-	bool DataStore::Container::Resource::operator== (const char *key) const {
+	bool DataStore::Container::Resource::operator< (const Resource& b) const {
+		return index < b.index && ixptr == b.ixptr;
+	}
 
-		const size_t *ptr = recptr();
+	bool DataStore::Container::Resource::operator<= (const Resource& b) const{
+		return index <= b.index && ixptr == b.ixptr;
+	}
 
-		for(auto col : cols) {
+	bool DataStore::Container::Resource::operator> (const Resource& b) const{
+		return index > b.index && ixptr == b.ixptr;
+	}
 
-			if(col->key()) {
-
-				// It's a primary column, test it.
-
-				string value{col->to_string(file,*ptr)};
-				size_t keylen = strlen(key);
-
-				if(keylen < value.size()) {
-
-					// The query string is smaller than the column, do a partial test.
-					return strncasecmp(value.c_str(),key,keylen) == 0;
-
-				} else {
-
-					// The query string is equal or larger than the column, do a full test.
-					if(strncasecmp(value.c_str(),key,value.size())) {
-						return false;
-					}
-
-				}
-
-				// Get next block.
-				key += value.size();
-				if(!*key) {
-					// Key is complete, found it.
-					return true;
-				}
-
-			}
-			ptr++;
-		}
-
-		return false;
+	bool DataStore::Container::Resource::operator>= (const Resource& b) const{
+		return index >= b.index && ixptr == b.ixptr;
 	}
 
 	const size_t * DataStore::Container::Resource::recptr() const {

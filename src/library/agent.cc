@@ -133,11 +133,22 @@
 			// It's an id
 			DataStore::Container::get((size_t) atoi(path+3)-1, value);
 
-		} else if(!strchr(path,'/')) {
-
-			debug("Searching for primary key '",path,"'");
+//		} else if(!strchr(path,'/')) {
+//			debug("Searching for primary key '",path,"'");
 
 		} else {
+
+			debug("Doing a sequencial search from '",path,"'");
+
+			for(Resource res = DataStore::Container::begin(); res; res++) {
+				debug(res["pref"]," ",res["sb"]);
+
+				if(!res.compare(path)) {
+					res.get(value);
+					return true;
+				}
+
+			}
 
 			return false;
 

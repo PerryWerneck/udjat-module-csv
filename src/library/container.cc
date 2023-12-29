@@ -111,8 +111,6 @@
 		// References:
 		// https://stackoverflow.com/questions/4753977/what-is-the-fastest-search-method-for-a-sorted-array
 
-		// TODO
-
 
 		throw std::system_error(ENOTSUP,std::system_category(),"Key search is not implemented");
 	}

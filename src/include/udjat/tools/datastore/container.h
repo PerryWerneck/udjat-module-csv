@@ -70,54 +70,84 @@
 
 				Resource(std::shared_ptr<File> file, const std::vector<std::shared_ptr<Abstract::Column>> &cols, size_t id);
 
-				const size_t * recptr() const;
+				/// @brief Get pointer to row.
+				virtual const size_t * recptr() const;
 
 			public:
 				~Resource();
 
 				size_t count() const;
+
 				Resource& set(size_t id = 0);
+
+				inline Resource & operator=(size_t id) {
+					return set(id);
+				}
 
 				operator bool() const;
 
 				std::string operator[](const char *column) const;
 
+				Udjat::Value & get(Udjat::Value &value) const;
+
+				// Search
+				/// @brief Is the resource 'similar' to key?
+				inline bool operator== (const char *key) const {
+					return compare(key) == 0;
+				}
+
+				/// @brief Compare resource with 'key'
+				/// @param key the string to compare.
+				/// @return result of the casecmp test.
+				virtual int compare(const char *key) const;
+
+				Resource& search(const char *key);
+
+				// Increment / Decrement
 				Resource& operator++();
 				Resource& operator--();
 
 				Resource operator++(int);
 				Resource operator--(int);
 
-				/// @brief Is the resource 'similar' to key?
-				bool operator== (const char *key) const;
+				// Arithmetic
+				Resource& operator+=(size_t off);
+				Resource operator+(size_t off) const;
 
-				bool operator== (const Resource& b);
-				bool operator!= (const Resource& b);
+				Resource& operator-=(size_t off);
+				Resource operator-(size_t off) const;
 
-				Udjat::Value & get(Udjat::Value &value) const;
+				// Comparison operators
+				bool operator== (const Resource& b) const;
+				bool operator!= (const Resource& b) const;
+				bool operator<  (const Resource& b) const;
+				bool operator<= (const Resource& b) const;
+				bool operator>  (const Resource& b) const;
+				bool operator>= (const Resource& b) const;
 
 			};
 
-			/*
-			class Iterator {
+			class Iterator : public Resource {
 			private:
-				Resource resource;
-				Iterator(size_t recno = 0);
-				~Iterator();
+				friend class Container;
+				Iterator(std::shared_ptr<File> file, const std::vector<std::shared_ptr<Abstract::Column>> &cols, size_t id);
 
 			public:
-				using iterator_category = std::forward_iterator_tag;
+				using iterator_category = std::random_access_iterator_tag;
 				using difference_type   = size_t;
 				using value_type        = Resource;
 				using pointer           = Resource *;  // or also value_type*
 				using reference         = Resource &;  // or also value_type&
 
-				reference operator*() const { return resource; }
-				pointer operator->() { return &resource; }
+				constexpr reference operator*() const noexcept { return (Resource &) *this; }
+				constexpr pointer operator->() const noexcept { return (Resource *) this; }
 
+				~Iterator();
 
 			};
-			*/
+
+			Iterator begin() const;
+			Iterator end() const;
 
 			/// @brief Build container from XML node.
 			Container(const XML::Node &node);
