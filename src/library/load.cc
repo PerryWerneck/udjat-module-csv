@@ -284,6 +284,42 @@
 
 		}
 
+		/////
+		// Write primary index.
+		{
+			size_t qtdrec = index.size();
+			Logger::String{"Got ",qtdrec," records"}.info("DataStore");
+			header.primary_offset = file->write(&qtdrec,sizeof(qtdrec));
+
+			for(const auto &it : index) {
+				file->write(it.data,it.length * sizeof(it.data[0]));
+#ifdef DEBUG
+				{
+					const size_t *cptr = it.data;
+					for(const auto &column : container.columns()) {
+						if(!*cptr) {
+							cout << "null";
+						} else if(column->length()) {
+							uint8_t buffer[column->length()];
+							file->read(*cptr,buffer,column->length());
+							cout << column->to_string(buffer);
+						} else {
+							cout << file->read(*cptr);
+						}
+						cout << " ";
+						cptr++;
+					}
+					cout << endl;
+				}
+#endif // DEBUG
+
+			}
+
+		}
+
+		// Write updated header
+		file->write((size_t) 0, &header,sizeof(header));
+
 	}
 
 	void DataStore::Loader::CSV::load_file(Context &context, const char *filename) {
