@@ -30,6 +30,24 @@
 
  namespace Udjat {
 
+	DataStore::Abstract::Column::Column(const XML::Node &node)
+		: cname{Quark{node,"name","unnamed",false}.c_str()} {
+
+		if(node.attribute("primary-key").as_bool(false) || node.attribute("primary").as_bool(false)) {
+			type = Primary;
+		} else if(node.attribute("index").as_bool(false)) {
+			type = Index;
+		} else {
+			type = Value;
+		}
+
+		format.length = (uint8_t) node.attribute("length").as_uint(format.length);
+
+		if(node.attribute("zero-fill").as_bool(false)) {
+			format.leftchar = '0';
+		}
+	}
+
 	const std::string & DataStore::Abstract::Column::apply_layout(std::string &str) const {
 
 		if(str.size() == format.length) {

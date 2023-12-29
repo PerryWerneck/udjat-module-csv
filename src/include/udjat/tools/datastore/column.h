@@ -69,6 +69,11 @@
 					return type == Primary;
 				}
 
+				/// @brief Is this column indexed?
+				inline bool indexed() const noexcept {
+					return type == Index;
+				}
+
 				/// @brief Is this column formatted?
 				inline bool formatted() const noexcept {
 					return format.length != 0 && format.leftchar != 0;

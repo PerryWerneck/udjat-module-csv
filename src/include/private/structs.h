@@ -40,7 +40,7 @@
 		#pragma pack(1)
 		/// @brief Index list item.
 		struct Index {
-			size_t column;			///< @brief Column id for the index.
+			uint16_t column;		///< @brief Column id for the index.
 			size_t offset;			///< @brief Offset for index elements.
 		};
 		#pragma pack()

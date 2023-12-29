@@ -100,8 +100,8 @@
 		// https://stackoverflow.com/questions/14896032/c11-stdset-lambda-comparison-function
 		class IndexEntry {
 		public:
-			size_t length = 0;
-			size_t *data = nullptr;
+			size_t length	= 0;
+			size_t *data 	= nullptr;
 
 			// Copy constructor.
 			IndexEntry(const IndexEntry &src) : length{src.length}, data{new size_t[length]} {
@@ -243,39 +243,46 @@
 		}
 
 		// Write primary index.
+		vector<size_t> records;	///< @brief The offset of the data records (for secondary indexes).
 		{
 			size_t qtdrec = index.size();
 			header.primary_offset = file->write(qtdrec);
 
-			for(const auto &it : index) {
-				file->write(it.data,it.length * sizeof(it.data[0]));
-//#ifdef DEBUG
-//				{
-//					const size_t *cptr = it.data;
-//					for(const auto &column : container.columns()) {
-//						if(!*cptr) {
-//							cout << "null";
-//						} else if(column->length()) {
-//							uint8_t buffer[column->length()];
-//							file->read(*cptr,buffer,column->length());
-//							cout << column->to_string(buffer);
-//						} else {
-//							cout << file->read(*cptr);
-//						}
-//						cout << " ";
-//						cptr++;
-//					}
-//					cout << endl;
-//				}
-//#endif // DEBUG
-
+			for(auto &it : index) {
+				records.push_back(file->write(it.data,it.length * sizeof(it.data[0])));
 			}
 
 		}
 
-		// Build & write extended indexes.
+		// Build & write column indexes.
 		{
+			std::vector<struct Index> indexes;
 
+			for(uint16_t ix = 0; ix < container.columns().size(); ix++) {
+
+				if(container.columns()[ix]->indexed()) {
+
+					debug("Column '",container.columns()[ix]->name(),"' is indexed");
+
+					struct Index idx;
+					memset(&idx,0,sizeof(idx));
+					idx.column = ix;
+
+					// Sort entries
+
+					// Just testing.
+					cout << "------------------------" << endl;
+					file->map();
+					for(size_t record : records) {
+						size_t block[container.columns().size()];
+						file->read(record,block,container.columns().size() * sizeof(size_t));
+						cout << "    " << container.columns()[ix]->to_string(file,block[ix]) << endl;
+					}
+					file->unmap();
+
+				}
+
+			}
 		}
 
 		// Write updated header
