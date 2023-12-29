@@ -21,6 +21,7 @@
   * @brief Declare table controller.
   */
 
+  /*
  #pragma once
  #include <config.h>
  #include <udjat/defs.h>
@@ -66,3 +67,5 @@
 
 
  }
+
+ */

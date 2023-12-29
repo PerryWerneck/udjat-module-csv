@@ -42,7 +42,7 @@
 			class UDJAT_API Abstract {
 			protected:
 
-				const Container &container;
+				Container &container;
 
 				struct InputFile {
 					std::string name;
@@ -71,13 +71,14 @@
 
 			public:
 
-				Abstract(const DataStore::Container &container, const char *path, const char *filespec);
+				Abstract(DataStore::Container &container, const char *path, const char *filespec);
 
 				inline bool empty() const noexcept {
 					return files.empty();
 				}
 
-				void load();
+				/// @brief Load sources, return an updated storage.
+				std::shared_ptr<DataStore::File> load();
 
 			};
 
@@ -88,7 +89,7 @@
 				void load_file(Context &context, const char *filename) override;
 
 			public:
-				CSV(const DataStore::Container &container, const char *path, const char *filespec) : Abstract{container,path,filespec} {
+				CSV(DataStore::Container &container, const char *path, const char *filespec) : Abstract{container,path,filespec} {
 				}
 
 			};

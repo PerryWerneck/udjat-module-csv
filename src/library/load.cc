@@ -34,7 +34,9 @@
 
  namespace Udjat {
 
-	DataStore::Loader::Abstract::Abstract(const DataStore::Container &c, const char *path, const char *filespec) : container{c} {
+	DataStore::Loader::Abstract::Abstract(DataStore::Container &c, const char *path, const char *filespec) : container{c} {
+
+		container.state(Updating);
 
 		//
 		// Get list of files to import.
@@ -62,14 +64,9 @@
 			return false;
 		});
 
-		if(files.empty()) {
-			return;
-		}
-
-
 	}
 
-	void DataStore::Loader::Abstract::load() {
+	shared_ptr<DataStore::File> DataStore::Loader::Abstract::load() {
 
 #ifdef DEBUG
 		shared_ptr<File> file{make_shared<File>("/tmp/test.db")};
@@ -238,13 +235,13 @@
 		};
 
 		// Load files.
-		Deduplicator dedup{file};
-		for(auto &f : files) {
-
-			Logger::String{"Loading ",f.name.c_str()}.info("datastore");
-			Context context{container, index, dedup};
-			load_file(context,f.name.c_str());
-
+		{
+			Deduplicator dedup{file};
+			for(auto &f : files) {
+				Logger::String{"Loading ",f.name.c_str()}.info("datastore");
+				Context context{container, index, dedup};
+				load_file(context,f.name.c_str());
+			}
 		}
 
 		// Write primary index.
@@ -279,8 +276,17 @@
 
 		}
 
+		// Build extended indexes.
+		{
+
+		}
+
 		// Write updated header
 		file->write((size_t) 0, &header,sizeof(header));
+
+		// Return new data storage.
+		debug("Records: ",index.size());
+		return file;
 
 	}
 

@@ -77,6 +77,13 @@
 		return (size_t) length;
 	}
 
+	const void * DataStore::File::get_void_ptr(size_t offset) const {
+		if(ptr) {
+			return (ptr+offset);
+		}
+		throw logic_error("File is not mapped");
+	}
+
 	void DataStore::File::map() {
 
 		std::lock_guard<std::mutex> lock(guard);

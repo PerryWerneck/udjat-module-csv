@@ -26,7 +26,9 @@
  #include <udjat/tools/logger.h>
  #include <udjat/tools/datastore/container.h>
  #include <udjat/tools/datastore/loader.h>
+ #include <udjat/tools/datastore/file.h>
  #include <udjat/tools/object.h>
+ #include <private/structs.h>
 
  using namespace std;
 
@@ -66,8 +68,18 @@
 	DataStore::Container::~Container() {
 	}
 
+	void DataStore::Container::state(const State) {
+	}
+
 	void DataStore::Container::load() {
-		Loader::CSV{*this,path,filespec}.load();
+		auto file = Loader::CSV{*this,path,filespec}.load();
+		file->map();
+
+		size_t records = *file->get<size_t>(file->get<Header>(0)->primary_offset);
+
+		debug("Got ",records," records");
+		state(records ? Ready : Empty);
+
 	}
 
 	DataStore::Abstract::Column::Column(const XML::Node &node)

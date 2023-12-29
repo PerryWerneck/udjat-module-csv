@@ -31,14 +31,6 @@
 
 	namespace DataStore {
 
-		enum State : int {
-			Undefined,		///< @brief Data store is in undefined state.
-			Updating,		///< @brief Updating from data source.
-			Failed,			///< @brief Update failed.
-			Ready,			///< @brief Data was loaded from source.
-			Empty			///< @brief Empty data.
-		};
-
 		/// @brief Data store default agent.
 		class UDJAT_API Agent : public Udjat::Agent<DataStore::State>, private Udjat::DataStore::Container {
 		protected:
@@ -46,6 +38,8 @@
 		public:
 			Agent(const XML::Node &definition);
 			virtual ~Agent();
+
+			void state(const DataStore::State state) override;
 
 			void start() override;
 

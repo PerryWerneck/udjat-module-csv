@@ -31,6 +31,14 @@
 
 	namespace DataStore {
 
+		enum State : int {
+			Undefined,		///< @brief Data store is in undefined state.
+			Updating,		///< @brief Updating from data source.
+			Failed,			///< @brief Update failed.
+			Ready,			///< @brief Data was loaded from source.
+			Empty			///< @brief Empty data.
+		};
+
 		/// @brief A data store container.
 		class UDJAT_API Container {
 		private:
@@ -51,6 +59,8 @@
 			Container(const XML::Node &node);
 			~Container();
 
+			virtual void state(const State state);
+
 			/// @brief Number of columns in the container.
 			inline const std::vector<std::shared_ptr<Abstract::Column>> & columns() const noexcept {
 				return cols;
@@ -60,38 +70,6 @@
 			void load();
 
 		};
-
-
-		/*
-		namespace Source {
-
-			/// @brief Abstract data source.
-			class UDJAT_API Abstract {
-			protected:
-
-				/// @brief The source columns.
-				std::vector<std::shared_ptr<Abstract::Column>> columns;
-
-			public:
-				/// @brief Build data source from XML definitions.
-				Source(const XML::Node &definition);
-				virtual ~Source();
-
-				/// @brief Load from data source.
-				// virtual void load() = 0;
-
-			};
-
-			/// @brief Source from CSV files.
-			class UDJAT_API CSV : public Abstract {
-			private:
-				CSV(const XML::Node &definition);
-				virtual ~CSV();
-
-			};
-
-		}
-		*/
 
 	}
 

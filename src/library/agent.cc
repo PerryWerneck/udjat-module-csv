@@ -45,6 +45,10 @@
 	DataStore::Agent::~Agent() {
 	}
 
+	void DataStore::Agent::state(const DataStore::State state) {
+		Udjat::Agent<DataStore::State>::set(state);
+	}
+
 	void DataStore::Agent::start() {
 
 		Udjat::Agent<DataStore::State>::start(Undefined);

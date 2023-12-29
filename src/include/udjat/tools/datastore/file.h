@@ -46,6 +46,13 @@
 			void map();
 			void unmap();
 
+			const void * get_void_ptr(size_t offset) const;
+
+			template <typename T>
+			inline const T * get(size_t offset) const {
+				return (T *) get_void_ptr(offset);
+			}
+
 			/// @brief Is the file mapped?
 			/// @return true if the file is mapped.
 			bool mapped() const noexcept {
