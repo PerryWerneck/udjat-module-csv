@@ -109,52 +109,42 @@
 	bool DataStore::Container::Resource::operator== (const char *key) const {
 
 		const size_t *ptr = recptr();
-		size_t keylen = strlen(key);
 
 		for(auto col : cols) {
 
 			if(col->key()) {
 
+				// It's a primary column, test it.
+
 				string value{col->to_string(file,*ptr)};
-				size_t length = col->length();
+				size_t keylen = strlen(key);
 
-				if(length) {
+				if(keylen < value.size()) {
 
-					// Compare using length.
-
-					if(keylen < length) {
-
-						// The query string is smaller than the column, do a partial test.
-						return strncasecmp(value.c_str(),key,keylen) == 0;
-
-					} else {
-
-						// The query string is equal or larger than the column, do a full test.
-						if(strncasecmp(value.c_str(),key,length)) {
-							return false;
-						}
-
-					}
-
-					// Get next block.
-					key += length;
-					if(!*key) {
-						// Got all key, found it!
-						return true;
-					}
+					// The query string is smaller than the column, do a partial test.
+					return strncasecmp(value.c_str(),key,keylen) == 0;
 
 				} else {
 
-					// It's an string, does it contains the key?
-					return strcasestr(value.c_str(),key) != NULL;
+					// The query string is equal or larger than the column, do a full test.
+					if(strncasecmp(value.c_str(),key,value.size())) {
+						return false;
+					}
 
+				}
+
+				// Get next block.
+				key += value.size();
+				if(!*key) {
+					// Key is complete, found it.
+					return true;
 				}
 
 			}
 			ptr++;
 		}
 
-		return true;
+		return false;
 	}
 
 	const size_t * DataStore::Container::Resource::recptr() const {
