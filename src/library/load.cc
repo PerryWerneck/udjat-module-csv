@@ -222,7 +222,7 @@
 				} else {
 
 					// Already exist, update id
-					debug("Record already exist, updating")
+//					debug("Record already exist, updating")
 					for(const auto &item : map) {
 						if(!tocols[item.to]->key()) {
 							// It's not a primary key, copy it.
@@ -247,30 +247,30 @@
 		// Write primary index.
 		{
 			size_t qtdrec = index.size();
-			Logger::String{"Got ",qtdrec," records"}.info("DataStore");
+//			Logger::String{"Got ",qtdrec," records"}.info("DataStore");
 			header.primary_offset = file->write(&qtdrec,sizeof(qtdrec));
 
 			for(const auto &it : index) {
 				file->write(it.data,it.length * sizeof(it.data[0]));
-#ifdef DEBUG
-				{
-					const size_t *cptr = it.data;
-					for(const auto &column : container.columns()) {
-						if(!*cptr) {
-							cout << "null";
-						} else if(column->length()) {
-							uint8_t buffer[column->length()];
-							file->read(*cptr,buffer,column->length());
-							cout << column->to_string(buffer);
-						} else {
-							cout << file->read(*cptr);
-						}
-						cout << " ";
-						cptr++;
-					}
-					cout << endl;
-				}
-#endif // DEBUG
+//#ifdef DEBUG
+//				{
+//					const size_t *cptr = it.data;
+//					for(const auto &column : container.columns()) {
+//						if(!*cptr) {
+//							cout << "null";
+//						} else if(column->length()) {
+//							uint8_t buffer[column->length()];
+//							file->read(*cptr,buffer,column->length());
+//							cout << column->to_string(buffer);
+//						} else {
+//							cout << file->read(*cptr);
+//						}
+//						cout << " ";
+//						cptr++;
+//					}
+//					cout << endl;
+//				}
+//#endif // DEBUG
 
 			}
 

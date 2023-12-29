@@ -72,17 +72,15 @@
 	}
 
 	size_t DataStore::Container::size() const {
-		return *active_file->get<size_t>(active_file->get<Header>(0)->primary_offset);
+		return active_file->get<size_t>(active_file->get<Header>(0).primary_offset);
 	}
 
 	void DataStore::Container::load() {
 		auto file = Loader::CSV{*this,path,filespec}.load();
 		file->map(); // Map file in memory.
 		active_file = file;
-
-		debug("Got ",size()," records");
+		Logger::String{"New storage with ",size()," record(s) is active"}.trace(name);
 		state(size() ? Ready : Empty);
-
 	}
 
 	DataStore::Abstract::Column::Column(const XML::Node &node)
