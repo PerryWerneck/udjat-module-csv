@@ -247,7 +247,6 @@
 
 		}
 
-		/////
 		// Write primary index.
 		{
 			size_t qtdrec = index.size();

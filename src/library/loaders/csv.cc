@@ -23,7 +23,11 @@
  #include <config.h>
  #include <udjat/defs.h>
  #include <udjat/tools/datastore/loader.h>
+ #include <udjat/tools/string.h>
  #include <fstream>
+ #include <vector>
+ #include <string>
+ #include <udjat/tools/logger.h>
 
  using namespace std;
 

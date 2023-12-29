@@ -17,27 +17,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
- #include <config.h>
- #include <udjat/tools/application.h>
- #include <udjat/module.h>
- #include <unistd.h>
- #include <udjat/tools/logger.h>
+ /**
+  * @brief Brief description of this source.
+  */
 
- using namespace std;
- using namespace Udjat;
+ #pragma once
+ #include <udjat/defs.h>
 
- int main(int argc, char **argv) {
+ namespace Udjat {
 
-	Logger::verbosity(9);
-	Logger::redirect();
-	Logger::console(true);
+	namespace DataStore {
 
-	udjat_module_init();
+		#pragma pack(1)
+		struct Header {
+			size_t primary_offset;	///< @brief Offset of the beginning of the primary index.
+			size_t indexes;			///< @brief Offset of the index lists.
+		};
+		#pragma pack()
 
-	auto rc = Application{}.run(argc,argv,"./test.xml");
-
-	debug("Application exits with rc=",rc);
-
-	return rc;
+	}
 
  }

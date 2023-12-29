@@ -23,23 +23,16 @@
 
  #include <config.h>
  #include <udjat/defs.h>
- #include <udjat/tools/threadpool.h>
- #include <udjat/tools/quark.h>
- #include <udjat/tools/memdb/simpletable.h>
  #include <udjat/tools/logger.h>
- #include <stdexcept>
+ #include <udjat/tools/datastore/container.h>
+ #include <udjat/tools/datastore/loader.h>
  #include <udjat/tools/object.h>
- #include <udjat/tools/file.h>
- #include <regex>
- #include <sys/types.h>
- #include <sys/stat.h>
- #include <string>
 
  using namespace std;
 
  namespace Udjat {
 
-	MemCachedDB::Table::Table(const XML::Node &definition)
+	DataStore::Container::Container(const XML::Node &definition)
 		: name{Quark{definition,"name","",false}.c_str()},
 			path{Object::getAttribute(definition,"path","")},
 			filespec{Object::getAttribute(definition,"filespec",".*")} {
@@ -57,11 +50,11 @@
 			const char *type = child.attribute("type").as_string("string");
 
 			if(!strcasecmp(type,"int")) {
-				columns.emplace_back(make_shared<Column<int>>(child));
+				cols.emplace_back(make_shared<Column<int>>(child));
 			} else if(!strcasecmp(type,"uint")) {
-				columns.emplace_back(make_shared<Column<unsigned int>>(child));
+				cols.emplace_back(make_shared<Column<unsigned int>>(child));
 			} else if(!strcasecmp(type,"string")) {
-				columns.emplace_back(make_shared<Column<std::string>>(child));
+				cols.emplace_back(make_shared<Column<std::string>>(child));
 			} else {
 				throw runtime_error(Logger::String{"Unexpected column type: ",type});
 			}
@@ -70,7 +63,14 @@
 
 	}
 
-	MemCachedDB::Abstract::Column::Column(const XML::Node &node)
+	DataStore::Container::~Container() {
+	}
+
+	void DataStore::Container::load() {
+		Loader::CSV{*this,path,filespec}.load();
+	}
+
+	DataStore::Abstract::Column::Column(const XML::Node &node)
 		: cname{Quark{node,"name","unnamed",false}.c_str()} {
 
 		if(node.attribute("primary-key").as_bool(false) || node.attribute("primary").as_bool(false)) {
@@ -86,33 +86,6 @@
 		if(node.attribute("zero-fill").as_bool(false)) {
 			format.leftchar = '0';
 		}
-	}
-
-	MemCachedDB::Table::~Table() {
-	}
-
-	const std::string & MemCachedDB::Abstract::Column::apply_layout(std::string &str) const {
-
-		if(str.size() == format.length) {
-			return str;
-		}
-
-		if(str.size() < format.length) {
-			std::string rc;
-			rc.resize((format.length - str.size()),format.leftchar);
-			rc.append(str);
-			str = rc;
-		}
-
-		return str;
-	}
-
-	std::string MemCachedDB::Abstract::Column::to_string(const void *datablock) const {
-		String str{convert(datablock)};
-		if(format.length) {
-			apply_layout(str);
-		}
-		return str;
 	}
 
  }

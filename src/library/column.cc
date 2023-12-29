@@ -18,23 +18,40 @@
  */
 
  /**
-  * @brief Brief description of this source.
+  * @brief Implement datastore columns.
   */
 
- #pragma once
+ #include <config.h>
  #include <udjat/defs.h>
+ #include <udjat/tools/converters.h>
+ #include <udjat/tools/datastore/column.h>
+ #include <udjat/tools/string.h>
 
  namespace Udjat {
 
-	namespace MemCachedDB {
+	const std::string & DataStore::Abstract::Column::apply_layout(std::string &str) const {
 
-		#pragma pack(1)
-		struct TableHeader {
-			size_t primary_offset;	///< @brief Offset of the beginning of the primary index.
-			size_t indexes;			///< @brief Offset of the index lists.
-		};
-		#pragma pack()
+		if(str.size() == format.length) {
+			return str;
+		}
 
+		if(str.size() < format.length) {
+			std::string rc;
+			rc.resize((format.length - str.size()),format.leftchar);
+			rc.append(str);
+			str = rc;
+		}
+
+		return str;
+	}
+
+	std::string DataStore::Abstract::Column::to_string(const void *datablock) const {
+		String str{convert(datablock)};
+		if(format.length) {
+			apply_layout(str);
+		}
+		return str;
 	}
 
  }
+

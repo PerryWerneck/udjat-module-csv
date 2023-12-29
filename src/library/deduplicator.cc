@@ -23,7 +23,7 @@
 
  #include <config.h>
  #include <udjat/defs.h>
- #include <udjat/tools/memdb/datastore.h>
+ #include <udjat/tools/datastore/deduplicator.h>
  #include <udjat/tools/logger.h>
  #include <stdexcept>
 
@@ -31,14 +31,14 @@
 
  namespace Udjat {
 
-	 size_t DataStore::insert(const void *data, size_t length) {
+	 size_t DataStore::Deduplicator::insert(const void *data, size_t length) {
 
 		class InnerStore : public Block {
 		private:
 			const void *ptr;
 
 		public:
-			InnerStore(std::shared_ptr<MemCachedDB::File> file, const void *data, size_t length) : Block{file,data,length}, ptr{data} {
+			InnerStore(std::shared_ptr<DataStore::File> file, const void *data, size_t length) : Block{file,data,length}, ptr{data} {
 			}
 
 			bool compare(const void *src) const {
