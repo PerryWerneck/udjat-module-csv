@@ -69,6 +69,11 @@
 					return type == Primary;
 				}
 
+				/// @brief Is this column formatted?
+				inline bool formatted() const noexcept {
+					return format.length != 0 && format.leftchar != 0;
+				}
+
 				/// @brief Get the size of data-block for this column.
 				/// @retval 0 The data-block is a string.
 				virtual size_t length() const noexcept = 0;

@@ -39,6 +39,7 @@
 		<Unit filename="src/include/private/loader.h" />
 		<Unit filename="src/include/private/structs.h" />
 		<Unit filename="src/include/private/table.h" />
+		<Unit filename="src/include/private/value.h" />
 		<Unit filename="src/include/udjat/agent/datastore.h" />
 		<Unit filename="src/include/udjat/tools/datastore/column.h" />
 		<Unit filename="src/include/udjat/tools/datastore/container.h" />
@@ -56,6 +57,7 @@
 		<Unit filename="src/library/load.cc" />
 		<Unit filename="src/library/resource.cc" />
 		<Unit filename="src/library/search.cc" />
+		<Unit filename="src/library/value.cc" />
 		<Unit filename="src/module/init.cc" />
 		<Unit filename="src/testprogram/testprogram.cc" />
 		<Extensions />
