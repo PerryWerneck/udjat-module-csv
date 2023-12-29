@@ -213,22 +213,63 @@
 			Deduplicator &deduplicator;
 			vector<shared_ptr<DataStore::Abstract::Column>> columns;
 
+			struct Map {
+				size_t from;
+				size_t to;
+				constexpr Map(size_t f, size_t t) : from{f}, to{t} {
+				}
+			};
+			std::vector<Map> map;
+
 		public:
 			Context(const Container &c, std::set<IndexEntry,decltype(comp)> &i, Deduplicator &d) : container{c}, index{i}, deduplicator{d} {
 			}
 
-			void open(const std::vector<String> &names) override {
+			void open(const std::vector<String> &fromcols) override {
+
+				auto &tocols{container.columns()};
 
 				columns.clear();
 				debug("Headers:");
-				for(auto &name : names) {
-
-					cout << "  " << name << endl;
+				for(size_t from = 0; from < fromcols.size(); from++) {
+					for(size_t to = 0; to < tocols.size(); to++) {
+						if(!strcasecmp(fromcols[from].c_str(),tocols[to]->name())) {
+							debug("   ",fromcols[from].c_str(),": ",from,"->",to);
+							map.emplace_back(from,to);
+						}
+					}
 				}
 
 			}
 
-			void append(const std::vector<String> &values) override {
+			void append(std::vector<String> &values) override {
+
+				auto &tocols{container.columns()};
+				IndexEntry record{tocols.size()};
+
+				// Parse fields
+				for(const auto &item : map) {
+					record.data[item.to] = tocols[item.to]->store(deduplicator, values[item.from].strip().c_str());
+				}
+
+				// Search
+				auto idata = index.find(record);
+				if(idata == index.end()) {
+
+					// New record, insert it
+					index.insert(record);
+
+				} else {
+
+					// Already exist, update id
+					debug("Record already exist, updating")
+					for(const auto &item : map) {
+						if(!tocols[item.to]->key()) {
+							// It's not a primary key, copy it.
+							idata->data[item.to] = record.data[item.to];
+						}
+					}
+				}
 			}
 
 		};
@@ -254,21 +295,25 @@
 		// Read first line to get field names.
 		{
 			std::getline(infile, line);
-
-			// Parse header.
 			std::vector<String> headers;
 			split(line.strip(), headers,';');
-
 			context.open(headers);
-
-			//debug("Headers:");
-			//for(auto &header : headers) {
-			//	cout << header << endl;
-			//}
-
 		}
 
+		// Read csv contents.
+		while(std::getline(infile, line)) {
 
+			line.strip();
+			if(line.empty()) {
+				Logger::String{"Stopping on empty line"}.info("csvloader");
+				break;
+			}
+
+			std::vector<String> cols;
+			split(line.strip(), cols,';');
+			context.append(cols);
+
+		}
 
 	}
 

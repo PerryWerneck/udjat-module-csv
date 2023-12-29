@@ -63,7 +63,7 @@
 
 					/// @brief Append row.
 					/// @param values The column values.
-					virtual void append(const std::vector<String> &values) = 0;
+					virtual void append(std::vector<String> &values) = 0;
 
 				};
 
