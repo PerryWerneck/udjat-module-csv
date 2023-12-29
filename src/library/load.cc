@@ -18,24 +18,18 @@
  */
 
  /**
-  * @brief Brief description of this source.
+  * @brief Implements datastore loader.
   */
-
  #include <config.h>
  #include <udjat/defs.h>
- #include <udjat/tools/memdb/simpletable.h>
- #include <udjat/tools/logger.h>
- #include <stdexcept>
+ #include <udjat/tools/datastore/loader.h>
  #include <udjat/tools/file.h>
- #include <udjat/tools/string.h>
+ #include <udjat/tools/logger.h>
+ #include <private/structs.h>
  #include <regex>
- #include <sys/types.h>
- #include <sys/stat.h>
- #include <string>
- #include <udjat/tools/memdb/datastore.h>
- #include <fstream>
  #include <set>
- #include <private/table.h>
+ #include <fstream>
+ #include <udjat/tools/datastore/column.h>
 
  using namespace std;
 
@@ -81,36 +75,20 @@
 		}
 	}
 
-	void MemCachedDB::Table::load() {
+	DataStore::Loader::Abstract::Abstract(const DataStore::Container &c, const char *path, const char *filespec) : container{c} {
 
-		TableHeader header;
-
-		memset(&header,0,sizeof(header));
-
-		if(state() == Loading) {
-			Logger::String{"Table is already loading, ignoring request"}.warning(name);
-			return;
-		}
-
-		Logger::String("Loading ",path).trace(name);
-		state(Loading);
-
-		// Load input files.
-		struct InputFile {
-			string name;
-			struct stat st;
-		};
-		std::vector<InputFile> files;
-
+		//
+		// Get list of files to import.
+		//
 		auto pattern = std::regex(filespec,std::regex::icase);
-		Udjat::File::Path{path}.for_each([this,&files,&pattern](const Udjat::File::Path &file){
+		Udjat::File::Path{path}.for_each([this,&pattern](const Udjat::File::Path &file){
 
 			if(std::regex_match(file.name(),pattern)) {
 
 				InputFile ifile;
 
 				if(stat(file.c_str(),&ifile.st)) {
-					Logger::String{file.c_str(),": ",strerror(errno)}.error(name);
+					Logger::String{file.c_str(),": ",strerror(errno)}.error("DataStore");
 				} else {
 					ifile.name = file;
 					files.push_back(ifile);
@@ -118,7 +96,7 @@
 
 			} else if(Logger::enabled(Logger::Trace)) {
 
-				Logger::String{"Ignoring '",file.c_str(),"'"}.trace(name);
+				Logger::String{"Ignoring '",file.c_str(),"'"}.trace("DataStore");
 
 			}
 
@@ -126,36 +104,30 @@
 		});
 
 		if(files.empty()) {
-			Logger::String{"No files to import"}.warning(name);
-			this->data.reset();
-			state(Empty);
 			return;
 		}
 
-		Logger::String{files.size()," file(s) to verify"}.info(name);
 
-		// TODO: If tempfile exists, check if it really need an update.
+	}
 
-		//
-		// Load files
-		//
+	void DataStore::Loader::Abstract::load() {
+
 #ifdef DEBUG
-		std::shared_ptr<MemCachedDB::File> file{make_shared<MemCachedDB::File>("/tmp/test.db")};
+		shared_ptr<File> file{make_shared<File>("/tmp/test.db")};
 #else
-		std::shared_ptr<MemCachedDB::File> file{make_shared<MemCachedDB::File>()};
+		shared_ptr<File> file{make_shared<File>()};
 #endif // DEBUG
 
 		if(file->size()) {
-			throw logic_error("Temporary file is not empty");
+			throw runtime_error("Datastore is not empty");
 		}
 
-		// Write header
+		// Write empty header.
+		DataStore::Header header;
+		memset(&header,0,sizeof(header));
 		file->write(&header,sizeof(header));
 
-		// Write column names.
-		for(auto &c : columns) {
-			file->write(c->name());
-		}
+		// TODO: Write column names.
 		file->write("\0",1);
 
 		// Write file sources.
@@ -164,9 +136,6 @@
 			file->write(f.name.c_str(),f.name.size()+1);
 		}
 		file->write("\0",1);
-
-		// Create datastore to avoid string duplication.
-		DataStore datastore{file};
 
 		// Create primary index
 		// https://stackoverflow.com/questions/14896032/c11-stdset-lambda-comparison-function
@@ -190,7 +159,7 @@
 			}
 
 			// Standard constructor.
-			IndexEntry(const MemCachedDB::Table &table) : length{table.columns.size()}, data{new size_t[length]} {
+			IndexEntry(size_t columns) : length{columns}, data{new size_t[length]} {
 				for(size_t ix = 0; ix < length; ix++) {
 					data[ix] = 0;
 				}
@@ -206,13 +175,13 @@
 		// https://stackoverflow.com/questions/14896032/c11-stdset-lambda-comparison-function
 		auto comp = [this,file](const IndexEntry &l, const IndexEntry &h){
 
-			// TODO: Compare index columns to check if 'l < h'
-			for(size_t col = 0; col < columns.size(); col++) {
+			// Compare index columns to check if 'l < h'
+			for(size_t col = 0; col < container.columns().size(); col++) {
 
-				if(columns[col]->key() && l.data[col] != h.data[col]) {
+				if(container.columns()[col]->key() && l.data[col] != h.data[col]) {
 
 					// Not the same vale, compare.
-					size_t length = columns[col]->length();
+					size_t length = container.columns()[col]->length();
 					if(length) {
 
 						// Load real data from file.
@@ -222,7 +191,7 @@
 						file->read(l.data[col],lval,length);
 						file->read(h.data[col],hval,length);
 
-						return columns[col]->comp(lval,hval);
+						return container.columns()[col]->comp(lval,hval);
 
 					} else {
 
@@ -240,76 +209,51 @@
 		/// @brief Ordered set with the records.
 		auto index = std::set<IndexEntry,decltype(comp)>( comp );
 
-		// Import CSV files
-		for(auto &f : files) {
+		/// @brief Loader context.
+		class Context : public DataStore::Loader::Abstract::Context {
+		private:
+			const Container &container;
+			set<IndexEntry,decltype(comp)> &index;
+			Deduplicator &deduplicator;
+			vector<shared_ptr<DataStore::Abstract::Column>> columns;
 
-			Logger::String{"Loading ",f.name.c_str()}.info(name);
-			size_t lines = 0;
-
-			std::ifstream infile{f.name};
-
-			String line;
-			std::vector<String> headers;
-
-
-			// Read first line to get field names.
-			{
-				std::getline(infile, line);
-				debug("Header: '",line,"'");
-
-				// TODO: Parse header.
-				split(line.strip(), headers,column_separator);
-
-				//debug("Headers:");
-				//for(auto &header : headers) {
-				//	cout << header << endl;
-				//}
-
-			}
-
-			// Map DB columns to CSV columns
 			struct Map {
-				size_t db;
-				size_t csv;
-				constexpr Map(size_t d, size_t c) : db{d}, csv{c} {
+				size_t from;
+				size_t to;
+				constexpr Map(size_t f, size_t t) : from{f}, to{t} {
 				}
 			};
 			std::vector<Map> map;
 
-			for(size_t db = 0; db < columns.size(); db++) {
+		public:
+			Context(const Container &c, std::set<IndexEntry,decltype(comp)> &i, Deduplicator &d) : container{c}, index{i}, deduplicator{d} {
+			}
 
-				debug("Searching for column '",columns[db]->name(),"'");
+			void open(const std::vector<String> &fromcols) override {
 
-				for(size_t f = 0; f < headers.size(); f++) {
-					if(!strcasecmp(columns[db]->name(),headers[f].c_str())) {
-						map.emplace_back(db, f);
-						break;
+				auto &tocols{container.columns()};
+
+				columns.clear();
+				debug("Headers:");
+				for(size_t from = 0; from < fromcols.size(); from++) {
+					for(size_t to = 0; to < tocols.size(); to++) {
+						if(!strcasecmp(fromcols[from].c_str(),tocols[to]->name())) {
+							debug("   ",fromcols[from].c_str(),": ",from,"->",to);
+							map.emplace_back(from,to);
+						}
 					}
 				}
 
 			}
 
-			// Read data
-			while(std::getline(infile, line)) {
+			void append(std::vector<String> &values) override {
 
-				line.strip();
-				if(line.empty()) {
-					Logger::String{"Stopping on empty line '",lines,"'"}.info(name);
-					break;
-				}
-
-				lines++;
-
-				std::vector<String> cols;
-				split(line.strip(), cols,column_separator);
-
-				// Clear input record
-				IndexEntry record{*this};
+				auto &tocols{container.columns()};
+				IndexEntry record{tocols.size()};
 
 				// Parse fields
 				for(const auto &item : map) {
-					auto column{columns[item.db]};
-					record.data[item.db] = column->store(datastore, cols[item.csv].strip().c_str());
+					record.data[item.to] = tocols[item.to]->store(deduplicator, values[item.from].strip().c_str());
 				}
 
 				// Search
@@ -324,38 +268,39 @@
 					// Already exist, update id
 					debug("Record already exist, updating")
 					for(const auto &item : map) {
-						auto column{columns[item.db]};
-						if(!column->key()) {
-							idata->data[item.db] = record.data[item.db];
+						if(!tocols[item.to]->key()) {
+							// It's not a primary key, copy it.
+							idata->data[item.to] = record.data[item.to];
 						}
-#ifdef DEBUG
-						else {
-							debug(column->name());
-						}
-#endif // DEBUG
 					}
-
 				}
-
 			}
 
-			Logger::String{"Got ",f.name.c_str()," with ", lines, " line(s)"};
+		};
+
+		// Load files.
+		Deduplicator dedup{file};
+		for(auto &f : files) {
+
+			Logger::String{"Loading ",f.name.c_str()}.info("datastore");
+			Context context{container, index, dedup};
+			load_file(context,f.name.c_str());
 
 		}
 
+		/////
 		// Write primary index.
 		{
 			size_t qtdrec = index.size();
-			Logger::String{"Got ",qtdrec," records"}.info(name);
+			Logger::String{"Got ",qtdrec," records"}.info("DataStore");
 			header.primary_offset = file->write(&qtdrec,sizeof(qtdrec));
 
 			for(const auto &it : index) {
 				file->write(it.data,it.length * sizeof(it.data[0]));
 #ifdef DEBUG
 				{
-					cout << name << "\t";
 					const size_t *cptr = it.data;
-					for(const auto &column : columns) {
+					for(const auto &column : container.columns()) {
 						if(!*cptr) {
 							cout << "null";
 						} else if(column->length()) {
@@ -378,15 +323,37 @@
 
 		// Write updated header
 		file->write((size_t) 0, &header,sizeof(header));
-		file->map();
 
-		// Activate new data file.
-		Logger::String{"The table data was updated"}.trace(name);
-		this->data = file;
+	}
 
-		state(Loaded);
+	void DataStore::Loader::CSV::load_file(Context &context, const char *filename) {
 
-		debug(__FUNCTION__," ends");
+		std::ifstream infile{filename};
+
+		String line;
+
+		// Read first line to get field names.
+		{
+			std::getline(infile, line);
+			std::vector<String> headers;
+			split(line.strip(), headers,';');
+			context.open(headers);
+		}
+
+		// Read csv contents.
+		while(std::getline(infile, line)) {
+
+			line.strip();
+			if(line.empty()) {
+				Logger::String{"Stopping on empty line"}.info("csvloader");
+				break;
+			}
+
+			std::vector<String> cols;
+			split(line.strip(), cols,';');
+			context.append(cols);
+
+		}
 
 	}
 
