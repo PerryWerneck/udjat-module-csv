@@ -24,6 +24,7 @@
  #include <config.h>
  #include <config.h>
  #include <udjat/tools/datastore/container.h>
+ #include <udjat/tools/logger.h>
  #include <stdexcept>
 
  using namespace std;
@@ -73,11 +74,10 @@
 
 	DataStore::Container::Resource & DataStore::Container::Resource::search(const char *key) {
 
-		/*
 		size_t from = 0;
 		size_t to = ixptr[0];
 
-		debug("Searching for '",key,"'");
+		debug("------------------------------Searching for '",key,"'");
 
 		while( (to - from) > 1 ) {
 
@@ -85,16 +85,42 @@
 			debug("Center rec=",index);
 
 			if(*this == key) {
-				debug("Found ",key," at index ",index);
+
+				debug("Found ",key," at index ",index, " pref=",(*this)["pref"]," ",(*this)["sb"]);
+
 				// FIXME: Find first line.
+
 				return *this;
+
+			} else {
+
+				int comp{compare(key)};
+
+				debug("comp=",comp, " pref=",(*this)["pref"]," ",(*this)["sb"]);
+
+				if(comp < 0) {
+
+					// Current is lower, get highest values
+					from = index;
+
+				} else if(comp > 0) {
+
+					// Current is bigger, get lower values
+					to = index;
+
+				} else {
+
+					throw logic_error(Logger::String{"Internal error on ",__FILE__,"(",__LINE__,")"});
+
+				}
+
 			}
 
-
+			debug("from=",from," to=",to, " to-from=",(to-from));
 
 		}
-		*/
 
+		debug("--------------------------Can't find '",key,"'");
 		index = ixptr[0];
 		return *this;
 	}
