@@ -52,14 +52,25 @@
 
 			const char *type = child.attribute("type").as_string("string");
 
+			std::shared_ptr<Abstract::Column> col;
+
 			if(!strcasecmp(type,"int")) {
-				cols.emplace_back(make_shared<Column<int>>(child));
+				col = make_shared<Column<int>>(child);
 			} else if(!strcasecmp(type,"uint")) {
-				cols.emplace_back(make_shared<Column<unsigned int>>(child));
+				col = make_shared<Column<unsigned int>>(child);
 			} else if(!strcasecmp(type,"string")) {
-				cols.emplace_back(make_shared<Column<std::string>>(child));
+				col = make_shared<Column<std::string>>(child);
 			} else {
 				throw runtime_error(Logger::String{"Unexpected column type: ",type});
+			}
+
+			cols.push_back(col);
+
+			for(auto alias : String{child,"aliases","",false}.split(",")) {
+				alias.strip();
+				if(!alias.empty()) {
+					aliases.emplace_back(alias.as_quark(),col);
+				}
 			}
 
 		}
@@ -110,5 +121,31 @@
 		return begin().search(key);
 	}
 
+	size_t DataStore::Container::column_index(const char *name) const {
+
+		size_t index = 0;
+		for(auto col : cols) {
+			if(!strcasecmp(name,col->name())) {
+				return index;
+			}
+			index++;
+		}
+
+		// Check for aliases.
+		for(const Alias &alias : aliases) {
+			if(!strcasecmp(name,alias.name)) {
+				size_t index = 0;
+				for(auto col : cols) {
+					if(col.get() == alias.col.get()) {
+						return index;
+					}
+					index++;
+				}
+			}
+		}
+
+		return ((size_t) -1);
+
+	}
  }
 

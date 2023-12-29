@@ -56,6 +56,10 @@
 
 	std::string DataStore::Abstract::Column::to_string(std::shared_ptr<File> file, size_t offset) {
 
+		if(!offset) {
+			return "";
+		}
+
 		if(length()) {
 			return to_string(file->get_void_ptr(offset));
 		}

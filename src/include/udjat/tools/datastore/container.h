@@ -56,6 +56,17 @@
 			/// @brief The data columns.
 			std::vector<std::shared_ptr<Abstract::Column>> cols;
 
+			struct Alias {
+				const char *name;
+				std::shared_ptr<Abstract::Column> col;
+
+				Alias(const char *n, std::shared_ptr<Abstract::Column> c) : name{n}, col{c} {
+				}
+
+			};
+
+			std::vector<Alias> aliases;
+
 		public:
 
 			/// @brief A resource inside the container.
@@ -172,6 +183,10 @@
 
 			/// @brief Get the number of entries in the container.
 			size_t size() const;
+
+			/// @brief Get column id from name.
+			/// @return column index ou ((size_t) -1) if not found.
+			size_t column_index(const char *name) const;
 
 			/// @brief Get the timestamp of the last update.
 			TimeStamp update_time() const;

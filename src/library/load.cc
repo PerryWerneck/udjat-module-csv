@@ -174,7 +174,7 @@
 			const Container &container;
 			set<IndexEntry,decltype(comp)> &index;
 			Deduplicator &deduplicator;
-			vector<shared_ptr<DataStore::Abstract::Column>> columns;
+			// vector<shared_ptr<DataStore::Abstract::Column>> columns;
 
 			struct Map {
 				size_t from;
@@ -190,16 +190,12 @@
 
 			void open(const std::vector<String> &fromcols) override {
 
-				auto &tocols{container.columns()};
-
-				columns.clear();
 				debug("Headers:");
 				for(size_t from = 0; from < fromcols.size(); from++) {
-					for(size_t to = 0; to < tocols.size(); to++) {
-						if(!strcasecmp(fromcols[from].c_str(),tocols[to]->name())) {
-							debug("   ",fromcols[from].c_str(),": ",from,"->",to);
-							map.emplace_back(from,to);
-						}
+					size_t to = container.column_index(fromcols[from].c_str());
+					if(to != ((size_t) -1)) {
+						debug("   ",fromcols[from].c_str(),": ",from,"->",to);
+						map.emplace_back(from,to);
 					}
 				}
 
