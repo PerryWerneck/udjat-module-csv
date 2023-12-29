@@ -71,14 +71,17 @@
 	void DataStore::Container::state(const State) {
 	}
 
+	size_t DataStore::Container::size() const {
+		return *active_file->get<size_t>(active_file->get<Header>(0)->primary_offset);
+	}
+
 	void DataStore::Container::load() {
 		auto file = Loader::CSV{*this,path,filespec}.load();
-		file->map();
+		file->map(); // Map file in memory.
+		active_file = file;
 
-		size_t records = *file->get<size_t>(file->get<Header>(0)->primary_offset);
-
-		debug("Got ",records," records");
-		state(records ? Ready : Empty);
+		debug("Got ",size()," records");
+		state(size() ? Ready : Empty);
 
 	}
 

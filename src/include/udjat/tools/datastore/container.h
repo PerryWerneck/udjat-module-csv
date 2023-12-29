@@ -61,6 +61,9 @@
 
 			virtual void state(const State state);
 
+			/// @brief Get the number of entries in the container.
+			size_t size() const;
+
 			/// @brief Number of columns in the container.
 			inline const std::vector<std::shared_ptr<Abstract::Column>> & columns() const noexcept {
 				return cols;
