@@ -59,6 +59,11 @@
 			Container(const XML::Node &node);
 			~Container();
 
+			/// @brief Is the container loaded?
+			bool loaded() const {
+				return (bool) active_file;
+			}
+
 			virtual void state(const State state);
 
 			/// @brief Get the number of entries in the container.

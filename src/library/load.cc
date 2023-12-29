@@ -78,13 +78,16 @@
 			throw runtime_error("Datastore is not empty");
 		}
 
+		// Build a deduplicator for file.
+		Deduplicator dedup{file};
+
 		// Write empty header.
 		DataStore::Header header;
 		memset(&header,0,sizeof(header));
-		file->write(&header,sizeof(header));
+		header.updated = time(0);
+		file->write(header);
 
-		// TODO: Write column names.
-		file->write("\0",1);
+		// file->write(&header,sizeof(header));
 
 		// Write file sources.
 		for(auto &f : files) {
@@ -236,7 +239,6 @@
 
 		// Load files.
 		{
-			Deduplicator dedup{file};
 			for(auto &f : files) {
 				Logger::String{"Loading ",f.name.c_str()}.info("datastore");
 				Context context{container, index, dedup};
@@ -247,8 +249,7 @@
 		// Write primary index.
 		{
 			size_t qtdrec = index.size();
-//			Logger::String{"Got ",qtdrec," records"}.info("DataStore");
-			header.primary_offset = file->write(&qtdrec,sizeof(qtdrec));
+			header.primary_offset = file->write(qtdrec);
 
 			for(const auto &it : index) {
 				file->write(it.data,it.length * sizeof(it.data[0]));
@@ -276,13 +277,13 @@
 
 		}
 
-		// Build extended indexes.
+		// Build & write extended indexes.
 		{
 
 		}
 
 		// Write updated header
-		file->write((size_t) 0, &header,sizeof(header));
+		file->write(0, header);
 
 		// Return new data storage.
 		debug("Records: ",index.size());

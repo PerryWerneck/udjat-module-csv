@@ -65,11 +65,21 @@
 			/// @param length The length of block.
 			void write(size_t offset, const void *data, size_t length);
 
+			template <typename T>
+			inline void write(size_t offset, const T &value) {
+				return write(offset, &value,sizeof(T));
+			}
+
 			/// @brief Append data on file.
 			/// @param data The datablock to write.
 			/// @param length The length of block.
 			/// @return The offset of the data.
 			size_t write(const void *data, size_t length);
+
+			template <typename T>
+			inline size_t write(const T &value) {
+				return write(&value,sizeof(T));
+			}
 
 			/// @brief Write string on file.
 			/// @param str the string to write.

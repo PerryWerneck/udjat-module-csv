@@ -23,6 +23,7 @@
 
  #include <config.h>
  #include <udjat/tools/intl.h>
+ #include <udjat/agent.h>
  #include <udjat/agent/datastore.h>
  #include <memory>
 
@@ -47,6 +48,36 @@
 
 	void DataStore::Agent::state(const DataStore::State state) {
 		Udjat::Agent<DataStore::State>::set(state);
+	}
+
+	bool DataStore::Agent::getProperty(const char *key, std::string &value) const {
+
+		if(loaded()) {
+
+			// Has data, process it.
+			if(!strcasecmp(key,"records")) {
+				value = std::to_string(size());
+			}
+
+		}
+
+		return super::getProperty(key,value);
+	}
+
+	Value & DataStore::Agent::getProperties(Value &value) const {
+
+		if(loaded()) {
+
+			// Has data, process it.
+			value["records"] = size();
+
+		} else {
+
+			value["records"] = 0;
+
+		}
+
+		return super::getProperties(value);
 	}
 
 	void DataStore::Agent::start() {
