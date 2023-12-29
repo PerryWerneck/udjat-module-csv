@@ -25,7 +25,10 @@
  #include <udjat/defs.h>
  #include <udjat/tools/datastore/column.h>
  #include <udjat/tools/xml.h>
+ #include <udjat/tools/timestamp.h>
+ #include <udjat/tools/value.h>
  #include <vector>
+ #include <iterator>
 
  namespace Udjat {
 
@@ -53,11 +56,81 @@
 			/// @brief The data columns.
 			std::vector<std::shared_ptr<Abstract::Column>> cols;
 
+		protected:
+
+			/// @brief Get record from path.
+			/// @param The path for required resource.
+			/// @return Pointer to the offset list (nullptr if not found).
+			const size_t * find(const char *path) const;
+
 		public:
+
+			/// @brief A resource inside the container.
+			class Resource {
+			private:
+				friend class Container;
+
+				std::shared_ptr<File> file;										///< @brief The data file
+				const std::vector<std::shared_ptr<Abstract::Column>> &cols;		///< @brief The column definitions.
+				size_t *ixptr = nullptr;										///< @brief Pointer to the index block.
+				size_t index = 0;												///< @brief Current record id;
+
+				Resource(std::shared_ptr<File> file, const std::vector<std::shared_ptr<Abstract::Column>> &cols, size_t id);
+
+			public:
+				~Resource();
+
+				size_t count() const;
+				Resource& set(size_t id = 0);
+
+				operator bool() const;
+
+				Resource& operator++();
+				Resource& operator--();
+
+				Resource operator++(int);
+				Resource operator--(int);
+
+				bool operator== (const Resource& b);
+				bool operator!= (const Resource& b);
+
+				Udjat::Value & get(Udjat::Value &value) const;
+
+			};
+
+			/*
+			class Iterator {
+			private:
+				Resource resource;
+				Iterator(size_t recno = 0);
+				~Iterator();
+
+			public:
+				using iterator_category = std::forward_iterator_tag;
+				using difference_type   = size_t;
+				using value_type        = Resource;
+				using pointer           = Resource *;  // or also value_type*
+				using reference         = Resource &;  // or also value_type&
+
+				reference operator*() const { return resource; }
+				pointer operator->() { return &resource; }
+
+
+			};
+			*/
 
 			/// @brief Build container from XML node.
 			Container(const XML::Node &node);
 			~Container();
+
+			/// @brief Get resource by id.
+			inline Resource operator[](size_t id) {
+				return Resource{active_file,cols,id};
+			}
+
+			inline Udjat::Value & get(size_t id, Udjat::Value &value) const {
+				return Resource{active_file,cols,id}.get(value);
+			}
 
 			/// @brief Is the container loaded?
 			bool loaded() const {
@@ -68,6 +141,9 @@
 
 			/// @brief Get the number of entries in the container.
 			size_t size() const;
+
+			/// @brief Get the timestamp of the last update.
+			TimeStamp update_time() const;
 
 			/// @brief Number of columns in the container.
 			inline const std::vector<std::shared_ptr<Abstract::Column>> & columns() const noexcept {

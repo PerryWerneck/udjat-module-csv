@@ -70,10 +70,12 @@
 
 			// Has data, process it.
 			value["records"] = size();
+			value["dbupdate"] = update_time();
 
 		} else {
 
 			value["records"] = 0;
+			value["dbupdate"] = 0;
 
 		}
 
@@ -92,7 +94,7 @@
 
 	std::string DataStore::Agent::to_string() const noexcept {
 
-		int value = (int) get();
+		int value = (int) super::get();
 
 		if(value >= 0 && value < (int) ((sizeof(state_names)/sizeof(state_names[0])))) {
 			return state_names[value];
@@ -117,6 +119,30 @@
 		}
 
 		return super::StateFactory(node);
+
+	}
+
+	bool DataStore::Agent::getProperties(const char *path, Value &value) const {
+
+		if(super::getProperties(path,value)) {
+			return true;
+		}
+
+		if(strchr(path,'/')) {
+			// Reserved for future implementation ([COLUMN-NAME]/value)
+			return false;
+		}
+
+		debug("Searching for primary key '",path,"'");
+
+		/*
+		size_t *record = DataStore::Container::find(path);
+		if(!*record) {
+			return false;
+		}
+		*/
+
+		return false;
 
 	}
 

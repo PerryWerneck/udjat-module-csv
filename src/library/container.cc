@@ -28,6 +28,7 @@
  #include <udjat/tools/datastore/loader.h>
  #include <udjat/tools/datastore/file.h>
  #include <udjat/tools/object.h>
+ #include <udjat/tools/timestamp.h>
  #include <private/structs.h>
 
  using namespace std;
@@ -75,6 +76,10 @@
 		return active_file->get<size_t>(active_file->get<Header>(0).primary_offset);
 	}
 
+	TimeStamp DataStore::Container::update_time() const {
+		return TimeStamp{active_file->get<Header>(0).updated};
+	}
+
 	void DataStore::Container::load() {
 		auto file = Loader::CSV{*this,path,filespec}.load();
 		file->map(); // Map file in memory.
@@ -99,6 +104,19 @@
 		if(node.attribute("zero-fill").as_bool(false)) {
 			format.leftchar = '0';
 		}
+	}
+
+	const size_t * DataStore::Container::find(const char *path) const {
+
+		const Header &header{active_file->get<Header>(0)};
+
+		if(!header.primary_offset) {
+			throw std::system_error(ENODATA,std::system_category(),"Empty data store");
+		}
+
+		// TODO
+
+		return nullptr;
 	}
 
  }

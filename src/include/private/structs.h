@@ -30,7 +30,7 @@
 
 		#pragma pack(1)
 		struct Header {
-			size_t updated;			///< @brief Timestamp of the last update.
+			time_t updated;			///< @brief Timestamp of the last update.
 			size_t primary_offset;	///< @brief Offset of the beginning of the primary index.
 			size_t indexes;			///< @brief Offset of the index lists.
 		};

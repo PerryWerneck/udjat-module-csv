@@ -50,14 +50,10 @@
 		<Unit filename="src/library/block.cc" />
 		<Unit filename="src/library/column.cc" />
 		<Unit filename="src/library/container.cc" />
-<<<<<<< HEAD
-=======
-		<Unit filename="src/library/datastore.cc" />
->>>>>>> master
 		<Unit filename="src/library/deduplicator.cc" />
 		<Unit filename="src/library/file.cc" />
 		<Unit filename="src/library/load.cc" />
-		<Unit filename="src/library/table.cc" />
+		<Unit filename="src/library/resource.cc" />
 		<Unit filename="src/module/init.cc" />
 		<Unit filename="src/testprogram/testprogram.cc" />
 		<Extensions />
