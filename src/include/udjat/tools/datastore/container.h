@@ -56,13 +56,6 @@
 			/// @brief The data columns.
 			std::vector<std::shared_ptr<Abstract::Column>> cols;
 
-		protected:
-
-			/// @brief Get record from path.
-			/// @param The path for required resource.
-			/// @return Pointer to the offset list (nullptr if not found).
-			const size_t * find(const char *path) const;
-
 		public:
 
 			/// @brief A resource inside the container.
@@ -71,11 +64,13 @@
 				friend class Container;
 
 				std::shared_ptr<File> file;										///< @brief The data file
-				const std::vector<std::shared_ptr<Abstract::Column>> &cols;		///< @brief The column definitions.
+				const std::vector<std::shared_ptr<Abstract::Column>> cols;		///< @brief The column definitions.
 				size_t *ixptr = nullptr;										///< @brief Pointer to the index block.
 				size_t index = 0;												///< @brief Current record id;
 
 				Resource(std::shared_ptr<File> file, const std::vector<std::shared_ptr<Abstract::Column>> &cols, size_t id);
+
+				const size_t * recptr() const;
 
 			public:
 				~Resource();
@@ -85,11 +80,16 @@
 
 				operator bool() const;
 
+				std::string operator[](const char *column) const;
+
 				Resource& operator++();
 				Resource& operator--();
 
 				Resource operator++(int);
 				Resource operator--(int);
+
+				/// @brief Is the resource 'similar' to key?
+				bool operator== (const char *key) const;
 
 				bool operator== (const Resource& b);
 				bool operator!= (const Resource& b);
@@ -152,6 +152,20 @@
 
 			/// @brief Load source files, rebuild work file.
 			void load();
+
+			/// @brief Get record from path.
+			/// @param key The key to search.
+			/// @return The requested resource.
+			const Resource find(const char *key) const;
+
+		protected:
+
+			/// @brief Get record from index.
+			/// @param offset The offset for the requested index.
+			/// @param key The key to search.
+			/// @param The path for required resource.
+			/// @return The requested resource.
+			// const Resource find(size_t offset, const char *key) const;
 
 		};
 

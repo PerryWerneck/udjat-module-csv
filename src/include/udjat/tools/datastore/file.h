@@ -53,6 +53,11 @@
 				return *((T *) get_void_ptr(offset));
 			}
 
+			template <typename T>
+			inline const T * get_ptr(size_t offset) const {
+				return (T *) get_void_ptr(offset);
+			}
+
 			/// @brief Is the file mapped?
 			/// @return true if the file is mapped.
 			bool mapped() const noexcept {

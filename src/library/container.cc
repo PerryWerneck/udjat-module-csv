@@ -106,6 +106,18 @@
 		}
 	}
 
+	const DataStore::Container::Resource DataStore::Container::find(const char *key) const {
+
+		// References:
+		// https://stackoverflow.com/questions/4753977/what-is-the-fastest-search-method-for-a-sorted-array
+
+		// TODO
+
+
+		throw std::system_error(ENOTSUP,std::system_category(),"Key search is not implemented");
+	}
+
+	/*
 	const size_t * DataStore::Container::find(const char *path) const {
 
 		const Header &header{active_file->get<Header>(0)};
@@ -114,10 +126,14 @@
 			throw std::system_error(ENODATA,std::system_category(),"Empty data store");
 		}
 
+		// References:
+		// https://stackoverflow.com/questions/4753977/what-is-the-fastest-search-method-for-a-sorted-array
+
 		// TODO
 
 		return nullptr;
 	}
+	*/
 
  }
 

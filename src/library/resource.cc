@@ -24,6 +24,7 @@
  #include <config.h>
  #include <udjat/tools/datastore/container.h>
  #include <udjat/tools/datastore/file.h>
+ #include <udjat/tools/datastore/column.h>
  #include <private/structs.h>
  #include <stdexcept>
 
@@ -42,6 +43,9 @@
 
 		ixptr = (size_t *) file->get_void_ptr(header.primary_offset);
 
+	}
+
+	DataStore::Container::Resource::~Resource() {
 	}
 
 	size_t DataStore::Container::Resource::count() const {
@@ -99,7 +103,75 @@
 	}
 
 	bool DataStore::Container::Resource::operator!= (const DataStore::Container::Resource& b) {
-		return index != b.index || ixptr != b.ixptr;
+		return !operator==(b);
+	}
+
+	bool DataStore::Container::Resource::operator== (const char *key) const {
+
+		const size_t *ptr = recptr();
+		size_t keylen = strlen(key);
+
+		for(auto col : cols) {
+
+			if(col->key()) {
+
+				string value{col->to_string(file,*ptr)};
+				size_t length = col->length();
+
+				if(length) {
+
+					// Compare using length.
+
+					if(keylen < length) {
+
+						// The query string is smaller than the column, do a partial test.
+						return strncasecmp(value.c_str(),key,keylen) == 0;
+
+					} else {
+
+						// The query string is equal or larger than the column, do a full test.
+						if(strncasecmp(value.c_str(),key,length)) {
+							return false;
+						}
+
+					}
+
+					// Get next block.
+					key += length;
+					if(!*key) {
+						// Got all key, found it!
+						return true;
+					}
+
+				} else {
+
+					// It's an string, does it contains the key?
+					return strcasestr(value.c_str(),key) != NULL;
+
+				}
+
+			}
+			ptr++;
+		}
+
+		return true;
+	}
+
+	const size_t * DataStore::Container::Resource::recptr() const {
+		return ixptr + 1 + (index * cols.size());
+	}
+
+	std::string DataStore::Container::Resource::operator[](const char *column) const {
+
+		const size_t *ptr = recptr();
+		for(auto col : cols) {
+			if(!strcasecmp(column,col->name())) {
+				return col->to_string(file,*ptr);
+			}
+			ptr++;
+		}
+
+		return "";
 	}
 
 	Udjat::Value & DataStore::Container::Resource::get(Udjat::Value &value) const {
@@ -109,8 +181,11 @@
 		}
 
 		// Get all columns.
-
-
+		const size_t *ptr = recptr();
+		for(auto col : cols) {
+			value[col->name()] = col->to_string(file,*ptr);
+			ptr++;
+		}
 
 		return value;
 	}

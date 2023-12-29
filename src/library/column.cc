@@ -26,6 +26,7 @@
  #include <udjat/tools/converters.h>
  #include <udjat/tools/datastore/column.h>
  #include <udjat/tools/string.h>
+ #include <udjat/tools/logger.h>
 
  namespace Udjat {
 
@@ -51,6 +52,15 @@
 			apply_layout(str);
 		}
 		return str;
+	}
+
+	std::string DataStore::Abstract::Column::to_string(std::shared_ptr<File> file, size_t offset) {
+
+		if(length()) {
+			return to_string(file->get_void_ptr(offset));
+		}
+
+		return file->get_ptr<char>(offset);
 	}
 
  }

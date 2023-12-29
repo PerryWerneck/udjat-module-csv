@@ -128,21 +128,22 @@
 			return true;
 		}
 
-		if(strchr(path,'/')) {
-			// Reserved for future implementation ([COLUMN-NAME]/value)
+		if(!strncasecmp(path,"id/",3)) {
+
+			// It's an id
+			DataStore::Container::get((size_t) atoi(path+3)-1, value);
+
+		} else if(!strchr(path,'/')) {
+
+			debug("Searching for primary key '",path,"'");
+
+		} else {
+
 			return false;
+
 		}
 
-		debug("Searching for primary key '",path,"'");
-
-		/*
-		size_t *record = DataStore::Container::find(path);
-		if(!*record) {
-			return false;
-		}
-		*/
-
-		return false;
+		return true;
 
 	}
 
