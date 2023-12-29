@@ -86,6 +86,7 @@
 
 				operator bool() const;
 
+				virtual std::string to_string() const;
 				std::string operator[](const char *column) const;
 
 				Udjat::Value & get(Udjat::Value &value) const;

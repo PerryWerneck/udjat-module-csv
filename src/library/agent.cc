@@ -139,6 +139,7 @@
 			Resource res{DataStore::Container::find(path)};
 
 			if(res) {
+				debug("Found resource '",res.to_string(),"'");
 				res.get(value);
 				return true;
 			}

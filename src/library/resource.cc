@@ -187,4 +187,22 @@
 		return value;
 	}
 
+	std::string DataStore::Container::Resource::to_string() const {
+
+		std::string rc;
+		const size_t *ptr = recptr();
+
+		for(auto col : cols) {
+			if(col->key()) {
+				if(!rc.empty()) {
+					rc += " ";
+				}
+				rc += col->to_string(file,*ptr);
+			}
+			ptr++;
+		}
+		return rc;
+
+	}
+
  }

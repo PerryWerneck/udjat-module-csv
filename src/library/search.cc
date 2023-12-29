@@ -86,9 +86,21 @@
 
 			if(*this == key) {
 
-				debug("Found ",key," at index ",index, " pref=",(*this)["pref"]," ",(*this)["sb"]);
+				debug("Found ",key," at index ",index," (",to_string(),")");
 
-				// FIXME: Find first line.
+				// Go down until the first occurrence (Just in case).
+				size_t saved_index = index;
+				while(index > 1) {
+					index--;
+					if(*this == key) {
+						saved_index = index;
+					} else {
+						break;
+					}
+				}
+				index = saved_index;
+
+				debug("Final result was ",index," (",to_string(),")");
 
 				return *this;
 
@@ -96,7 +108,7 @@
 
 				int comp{compare(key)};
 
-				debug("comp=",comp, " pref=",(*this)["pref"]," ",(*this)["sb"]);
+				debug("comp=",comp," (",to_string(),")");
 
 				if(comp < 0) {
 
