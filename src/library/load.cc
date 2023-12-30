@@ -271,16 +271,11 @@
 					// Sort entries
 					{
 						file->map();
+						size_t off = ix*sizeof(size_t);
 						std::sort(records.begin(),records.end(),
-							[this,file,ix](size_t l, size_t h){
+							[this,file,ix,off](size_t l, size_t h){
 
-								size_t lblock[container.columns().size()];
-								file->read(l,lblock,container.columns().size() * sizeof(size_t));
-
-								size_t hblock[container.columns().size()];
-								file->read(h,hblock,container.columns().size() * sizeof(size_t));
-
-								return container.columns()[ix]->comp(file,lblock[ix],hblock[ix]);
+								return container.columns()[ix]->comp(file,file->get<size_t>(l+off),file->get<size_t>(h+off));
 
 							}
 						);
@@ -289,17 +284,31 @@
 
 					// Write index, ignore rows with empty column (record[ix] = 0)
 					{
-
+						size_t qtdrec = 0;
+						idx.offset = file->write(qtdrec);
+						size_t off = ix*sizeof(size_t);
+						for(size_t record : records) {
+							size_t v = 0;
+							file->read(record+off,&v,sizeof(v));
+							if(v) {
+								qtdrec++;
+								file->write(&record,sizeof(record));
+							}
+						}
+						file->write(idx.offset,&qtdrec,sizeof(qtdrec));
+						debug("Wrote ",qtdrec," entries on index");
 					}
 
 #ifdef DEBUG
-					{
+					if(idx.offset) {
 						cout << "------------------------" << endl;
 						file->map();
-						for(size_t record : records) {
-							size_t block[container.columns().size()];
-							file->read(record,block,container.columns().size() * sizeof(size_t));
-							cout << "    " << container.columns()[ix]->to_string(file,block[ix]) << endl;
+						const size_t *ixptr = file->get_ptr<size_t>(idx.offset);
+						size_t ixqtd = *(ixptr++);
+						for(size_t row = 0; row < ixqtd;row++) {
+							const size_t *info = file->get_ptr<size_t>(*ixptr);
+							cout << "    " << container.columns()[ix]->to_string(file,(info[ix])) << endl;
+							ixptr++;
 						}
 						file->unmap();
 					}
