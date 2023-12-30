@@ -175,6 +175,10 @@
 
 	std::string DataStore::File::read(size_t offset) {
 
+		if(!offset) {
+			return "";
+		}
+
 		if(ptr) {
 			return string{(char *) (ptr+offset)};
 		}
@@ -221,6 +225,10 @@
 	}
 
 	void DataStore::File::read(size_t offset, void *data, size_t length) {
+
+		if(!offset) {
+			memset(data,0,length);
+		}
 
 		if(ptr) {
 			memcpy(data,ptr+offset,length);

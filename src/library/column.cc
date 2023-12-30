@@ -85,5 +85,26 @@
 		return file->get_ptr<char>(offset);
 	}
 
+	bool DataStore::Abstract::Column::comp(std::shared_ptr<File> file, size_t loffset, size_t roffset) {
+
+		size_t len = length();
+		if(len) {
+
+			// It's a data block
+			char ldata[len];
+			file->read(loffset,ldata,len);
+
+			char rdata[len];
+			file->read(roffset,rdata,len);
+
+			return comp(ldata,rdata);
+
+		}
+
+		// It's an string
+		return comp(file->read(loffset).c_str(),file->read(roffset).c_str());
+
+	}
+
  }
 

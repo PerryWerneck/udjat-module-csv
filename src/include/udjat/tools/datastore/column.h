@@ -94,6 +94,10 @@
 				/// @return True if *lhs < *rhs
 				virtual bool comp(const void *lhs, const void *rhs) const = 0;
 
+				/// @brief Load and compare two values.
+				/// @return True if loffset < roffset.
+				virtual bool comp(std::shared_ptr<File> file, size_t loffset, size_t roffset);
+
 				/// @brief Convert datablock to string.
 				virtual std::string convert(const void *datablock) const = 0;
 

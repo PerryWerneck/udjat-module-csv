@@ -269,16 +269,41 @@
 					idx.column = ix;
 
 					// Sort entries
+					{
+						file->map();
+						std::sort(records.begin(),records.end(),
+							[this,file,ix](size_t l, size_t h){
 
-					// Just testing.
-					cout << "------------------------" << endl;
-					file->map();
-					for(size_t record : records) {
-						size_t block[container.columns().size()];
-						file->read(record,block,container.columns().size() * sizeof(size_t));
-						cout << "    " << container.columns()[ix]->to_string(file,block[ix]) << endl;
+								size_t lblock[container.columns().size()];
+								file->read(l,lblock,container.columns().size() * sizeof(size_t));
+
+								size_t hblock[container.columns().size()];
+								file->read(h,hblock,container.columns().size() * sizeof(size_t));
+
+								return container.columns()[ix]->comp(file,lblock[ix],hblock[ix]);
+
+							}
+						);
+						file->unmap();
 					}
-					file->unmap();
+
+					// Write index, ignore rows with empty column (record[ix] = 0)
+					{
+
+					}
+
+#ifdef DEBUG
+					{
+						cout << "------------------------" << endl;
+						file->map();
+						for(size_t record : records) {
+							size_t block[container.columns().size()];
+							file->read(record,block,container.columns().size() * sizeof(size_t));
+							cout << "    " << container.columns()[ix]->to_string(file,block[ix]) << endl;
+						}
+						file->unmap();
+					}
+#endif // DEBUG
 
 				}
 
