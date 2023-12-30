@@ -49,7 +49,7 @@
 				InputFile ifile;
 
 				if(stat(file.c_str(),&ifile.st)) {
-					Logger::String{file.c_str(),": ",strerror(errno)}.error("DataStore");
+					Logger::String{file.c_str(),": ",strerror(errno)}.error(container.id());
 				} else {
 					ifile.name = file;
 					files.push_back(ifile);
@@ -57,7 +57,7 @@
 
 			} else if(Logger::enabled(Logger::Trace)) {
 
-				Logger::String{"Ignoring '",file.c_str(),"'"}.trace("DataStore");
+				Logger::String{"Ignoring '",file.c_str(),"'"}.trace(container.id());
 
 			}
 
@@ -236,7 +236,7 @@
 		// Load files.
 		{
 			for(auto &f : files) {
-				Logger::String{"Loading ",f.name.c_str()}.info("datastore");
+				Logger::String{"Loading ",f.name.c_str()}.info(container.id());
 				Context context{container, index, dedup};
 				load_file(context,f.name.c_str());
 			}
