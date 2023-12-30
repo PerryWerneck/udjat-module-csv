@@ -165,6 +165,10 @@
 			Container(const XML::Node &node);
 			~Container();
 
+			inline const char *id() const noexcept {
+				return name;
+			}
+
 			/// @brief Get resource by id.
 			inline Resource operator[](size_t id) {
 				return Resource{active_file,cols,id};

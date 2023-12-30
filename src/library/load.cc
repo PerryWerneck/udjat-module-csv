@@ -245,6 +245,8 @@
 		// Write primary index.
 		vector<size_t> records;	///< @brief The offset of the data records (for secondary indexes).
 		{
+			Logger::String{"Writing primary index"}.trace(container.id());
+
 			size_t qtdrec = index.size();
 			header.primary_offset = file->write(qtdrec);
 
@@ -262,7 +264,7 @@
 
 				if(container.columns()[ix]->indexed()) {
 
-					debug("Column '",container.columns()[ix]->name(),"' is indexed");
+					Logger::String{"Indexing by '",container.columns()[ix]->name(),"'"}.trace(container.id());
 
 					struct Index idx;
 					memset(&idx,0,sizeof(idx));
@@ -299,6 +301,9 @@
 						debug("Wrote ",qtdrec," entries on index");
 					}
 
+					indexes.push_back(idx);
+
+					/*
 #ifdef DEBUG
 					if(idx.offset) {
 						cout << "------------------------" << endl;
@@ -313,10 +318,21 @@
 						file->unmap();
 					}
 #endif // DEBUG
+					*/
 
 				}
 
 			}
+
+			// Write column indexes list.
+			{
+				size_t qtdidx = indexes.size();
+				header.indexes = file->write(qtdidx);
+				for(struct Index &it : indexes) {
+					file->write(&it,sizeof(struct Index));
+				}
+			}
+
 		}
 
 		// Write updated header
