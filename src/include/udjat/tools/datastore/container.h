@@ -70,28 +70,38 @@
 		public:
 
 			/// @brief A resource inside the container.
-			class Resource {
+			class Iterator {
 			private:
 				friend class Container;
+				Iterator(const Container &container);
 
 				std::shared_ptr<File> file;										///< @brief The data file
-				const std::vector<std::shared_ptr<Abstract::Column>> cols;		///< @brief The column definitions.
-				size_t *ixptr = nullptr;										///< @brief Pointer to the index block.
-				size_t index = 0;												///< @brief Current record id;
+				const std::vector<std::shared_ptr<Abstract::Column>> &cols;		///< @brief The column definitions.
 
-				Resource(std::shared_ptr<File> file, const std::vector<std::shared_ptr<Abstract::Column>> &cols, size_t id);
+				uint8_t format = 0;												///< @brief Index format.
+				size_t row = 0;													///< @brief Selected row.
+				const size_t *ixptr = nullptr;									///< @brief Pointer to index data.
 
-				/// @brief Get pointer to row.
-				virtual const size_t * recptr() const;
+				/// @brief Get pointer to row descriptor
+				const size_t * rowptr() const;
 
 			public:
-				~Resource();
+				using iterator_category = std::random_access_iterator_tag;
+				using difference_type   = int;
+				using value_type        = Iterator;
+				using pointer           = Iterator *;  // or also value_type*
+				using reference         = Iterator &;  // or also value_type&
+
+				// constexpr reference operator*() const noexcept { return *this; }
+				// constexpr pointer operator->() const noexcept { return this; }
+
+				~Iterator();
 
 				size_t count() const;
 
-				Resource& set(size_t id = 0);
+				Iterator& set(size_t id = 0);
 
-				inline Resource & operator=(size_t id) {
+				inline Iterator & operator=(size_t id) {
 					return set(id);
 				}
 
@@ -103,7 +113,7 @@
 				Udjat::Value & get(Udjat::Value &value) const;
 
 				// Search
-				/// @brief Is the resource 'similar' to key?
+				/// @brief Is the iterator 'similar' to key?
 				inline bool operator== (const char *key) const {
 					return compare(key) == 0;
 				}
@@ -111,50 +121,31 @@
 				/// @brief Compare resource with 'key'
 				/// @param key the string to compare.
 				/// @return result of the casecmp test.
-				virtual int compare(const char *key) const;
+				int compare(const char *key) const;
 
-				Resource& search(const char *key);
+				Iterator& search(const char *key);
 
 				// Increment / Decrement
-				Resource& operator++();
-				Resource& operator--();
+				Iterator& operator++();
+				Iterator& operator--();
 
-				Resource operator++(int);
-				Resource operator--(int);
+				Iterator operator++(int);
+				Iterator operator--(int);
 
 				// Arithmetic
-				Resource& operator+=(size_t off);
-				Resource operator+(size_t off) const;
+				Iterator& operator+=(size_t off);
+				Iterator operator+(size_t off) const;
 
-				Resource& operator-=(size_t off);
-				Resource operator-(size_t off) const;
+				Iterator& operator-=(size_t off);
+				Iterator operator-(size_t off) const;
 
 				// Comparison operators
-				bool operator== (const Resource& b) const;
-				bool operator!= (const Resource& b) const;
-				bool operator<  (const Resource& b) const;
-				bool operator<= (const Resource& b) const;
-				bool operator>  (const Resource& b) const;
-				bool operator>= (const Resource& b) const;
-
-			};
-
-			class Iterator : public Resource {
-			private:
-				friend class Container;
-				Iterator(std::shared_ptr<File> file, const std::vector<std::shared_ptr<Abstract::Column>> &cols, size_t id);
-
-			public:
-				using iterator_category = std::random_access_iterator_tag;
-				using difference_type   = size_t;
-				using value_type        = Resource;
-				using pointer           = Resource *;  // or also value_type*
-				using reference         = Resource &;  // or also value_type&
-
-				constexpr reference operator*() const noexcept { return (Resource &) *this; }
-				constexpr pointer operator->() const noexcept { return (Resource *) this; }
-
-				~Iterator();
+				bool operator== (const Iterator& b) const;
+				bool operator!= (const Iterator& b) const;
+				bool operator<  (const Iterator& b) const;
+				bool operator<= (const Iterator& b) const;
+				bool operator>  (const Iterator& b) const;
+				bool operator>= (const Iterator& b) const;
 
 			};
 
@@ -170,13 +161,9 @@
 			}
 
 			/// @brief Get resource by id.
-			inline Resource operator[](size_t id) {
-				return Resource{active_file,cols,id};
-			}
+			// Iterator operator[](size_t id);
 
-			inline Udjat::Value & get(size_t id, Udjat::Value &value) const {
-				return Resource{active_file,cols,id}.get(value);
-			}
+			Udjat::Value & get(size_t id, Udjat::Value &value) const;
 
 			/// @brief Is the container loaded?
 			bool loaded() const {
@@ -187,6 +174,9 @@
 
 			/// @brief Get the number of entries in the container.
 			size_t size() const;
+
+			/// @brief Get column by name
+			std::shared_ptr<Abstract::Column> column(const char *name) const;
 
 			/// @brief Get column id from name.
 			/// @return column index ou ((size_t) -1) if not found.
@@ -203,10 +193,22 @@
 			/// @brief Load source files, rebuild work file.
 			void load();
 
-			/// @brief Get record from path.
-			/// @param key The key to search.
+			/// @brief Get resource using primary key.
+			/// @param key The key to search on the primary index.
 			/// @return The requested resource.
-			const Resource find(const char *key) const;
+			const Iterator find(const char *key) const;
+
+			/// @brief Get resource using columns index.
+			/// @param column The column name.
+			/// @param key The key to search on the column index.
+			/// @return The requested resource.
+			const Iterator find(const char *column, const char *key) const;
+
+			/// @brief Get value from search path.
+			/// @param path The path for the required resource.
+			/// @param value The value for resource data.
+			/// @return true if value was updated.
+			bool get(const char *path, Udjat::Value &value) const;
 
 		protected:
 

@@ -99,8 +99,113 @@
 		state(size() ? Ready : Empty);
 	}
 
-	const DataStore::Container::Resource DataStore::Container::find(const char *key) const {
+	const DataStore::Container::Iterator DataStore::Container::find(const char *key) const {
 		return begin().search(key);
+	}
+
+	const DataStore::Container::Iterator DataStore::Container::find(const char *column_name, const char *key) const {
+
+		auto col = this->column(column_name);
+
+		if(!col) {
+			throw std::system_error(ENOENT,std::system_category(),column_name);
+		}
+
+		if(!col->indexed()) {
+			throw runtime_error(Logger::Message{"Column '{}' is not indexed",column_name});
+		}
+
+		throw runtime_error("Incomplete");
+
+	}
+
+	bool DataStore::Container::get(const char *path, Udjat::Value &value) const {
+
+		while(*path && *path == '/') {
+			path++;
+		}
+
+		const char *mark = strchr(path,'/');
+
+		if(!mark) {
+
+			// Primary key search.
+			Iterator it{find(path)};
+
+			if(it) {
+				debug("Found resource '",it.to_string(),"'");
+				it.get(value);
+				return true;
+			}
+
+			return false;
+
+		}
+
+		mark++;
+
+		if(strncasecmp(path,"rownumber/",10) == 0) {
+
+			Iterator it{begin()};
+
+			it.set(atoi(path+10)-1);
+
+			if(it) {
+				it.get(value);
+				return true;
+			}
+
+		}
+
+
+		/*
+		if(!strncasecmp(path,"id/",3)) {
+
+			// It's an id
+			get((size_t) atoi(path+3)-1, value);
+			return true;
+
+		} else if(!strchr(path,'/')) {
+
+			debug("Searching for primary key '",path,"'");
+			Resource res{find(path)};
+
+			if(res) {
+				debug("Found resource '",res.to_string(),"'");
+				res.get(value);
+				return true;
+			}
+
+		} else {
+
+			// TODO: Search in the format [Column-name]/[Column-value]
+
+
+			return false;
+
+		}
+		*/
+
+		return false;
+
+	}
+
+	std::shared_ptr<DataStore::Abstract::Column> DataStore::Container::column(const char *name) const {
+
+		for(auto col : cols) {
+			if(!strcasecmp(name,col->name())) {
+				return col;
+			}
+		}
+
+		// Check for aliases.
+		for(const Alias &alias : aliases) {
+			if(!strcasecmp(name,alias.name)) {
+				return alias.col;
+			}
+		}
+
+		return std::shared_ptr<Abstract::Column>();
 	}
 
 	size_t DataStore::Container::column_index(const char *name) const {

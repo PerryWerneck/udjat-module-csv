@@ -128,6 +128,10 @@
 			return true;
 		}
 
+		return DataStore::Container::get(path,value);
+
+		/*
+
 		if(!strncasecmp(path,"id/",3)) {
 
 			// It's an id
@@ -150,24 +154,14 @@
 
 			// TODO: Search in the format [Column-name]/[Column-value]
 
-			/*
-			// Sequencial search.
-			debug("Doing a sequencial search from '",path,"'");
-
-			for(Resource res = DataStore::Container::begin(); res; res++) {
-				if(!res.compare(path)) {
-					res.get(value);
-					return true;
-				}
-
-			}
-			*/
 
 			return false;
 
 		}
 
 		return true;
+
+		*/
 
 	}
 

@@ -18,7 +18,7 @@
  */
 
  /**
-  * @brief Implements a resource inside the container.
+  * @brief Implements a Iterator inside the container.
   */
 
  #include <config.h>
@@ -32,7 +32,8 @@
 
  namespace Udjat {
 
-	DataStore::Container::Resource::Resource(std::shared_ptr<File> f, const std::vector<std::shared_ptr<Abstract::Column>> &c, size_t i)
+	/*
+	DataStore::Container::Iterator::Iterator(std::shared_ptr<File> f, const std::vector<std::shared_ptr<Abstract::Column>> &c, size_t i)
 		: file{f}, cols{c}, index{i} {
 
 		if(!file) {
@@ -48,161 +49,7 @@
 		ixptr = (size_t *) file->get_void_ptr(header.primary_offset);
 
 	}
+	*/
 
-	DataStore::Container::Resource::~Resource() {
-	}
-
-	size_t DataStore::Container::Resource::count() const {
-		return ixptr[0];
-	}
-
-	DataStore::Container::Resource & DataStore::Container::Resource::set(size_t id) {
-		if(id > ixptr[0]) {
-			id = ixptr[0];
-		}
-		index = id;
-		return *this;
-	}
-
-	DataStore::Container::Resource& DataStore::Container::Resource::operator+=(size_t off) {
-		set(index+off);
-		return *this;
-	}
-
-	DataStore::Container::Resource DataStore::Container::Resource::operator+(size_t off) const {
-		Resource rc = *this;
-		rc.set(index+off);
-		return rc;
-	}
-
-	DataStore::Container::Resource& DataStore::Container::Resource::operator-=(size_t off) {
-		if(off > index) {
-			throw out_of_range("Invalid offset");
-		}
-		set(index+off);
-		return *this;
-	}
-
-	DataStore::Container::Resource DataStore::Container::Resource::operator-(size_t off) const {
-		if(off > index) {
-			throw out_of_range("Invalid offset");
-		}
-		Resource rc = *this;
-		rc.set(index-off);
-		return rc;
-	}
-
-	DataStore::Container::Resource::operator bool() const {
-		return index < ixptr[0];
-	}
-
-	DataStore::Container::Resource& DataStore::Container::Resource::operator++() {
-		index++;
-		if(index > ixptr[0]) {
-			index = ixptr[0];
-		}
-		return *this;
-	}
-
-	DataStore::Container::Resource& DataStore::Container::Resource::operator--() {
-		if(index == 0) {
-			throw out_of_range("Already at the first resource");
-		}
-		index--;
-		return *this;
-	}
-
-	DataStore::Container::Resource DataStore::Container::Resource::operator++(int) {
-		Resource rc = *this;
-		index++;
-		if(index > ixptr[0]) {
-			index = ixptr[0];
-		}
-		return rc;
-	}
-
-	DataStore::Container::Resource DataStore::Container::Resource::operator--(int) {
-		if(index == 0) {
-			throw out_of_range("Already at the first resource");
-		}
-		Resource rc = *this;
-		index--;
-		return rc;
-	}
-
-	bool DataStore::Container::Resource::operator== (const DataStore::Container::Resource& b) const {
-		return index == b.index && ixptr == b.ixptr;
-	}
-
-	bool DataStore::Container::Resource::operator!= (const DataStore::Container::Resource& b) const {
-		return !operator==(b);
-	}
-
-	bool DataStore::Container::Resource::operator< (const Resource& b) const {
-		return index < b.index && ixptr == b.ixptr;
-	}
-
-	bool DataStore::Container::Resource::operator<= (const Resource& b) const{
-		return index <= b.index && ixptr == b.ixptr;
-	}
-
-	bool DataStore::Container::Resource::operator> (const Resource& b) const{
-		return index > b.index && ixptr == b.ixptr;
-	}
-
-	bool DataStore::Container::Resource::operator>= (const Resource& b) const{
-		return index >= b.index && ixptr == b.ixptr;
-	}
-
-	const size_t * DataStore::Container::Resource::recptr() const {
-		return ixptr + 1 + (index * cols.size());
-	}
-
-	std::string DataStore::Container::Resource::operator[](const char *column) const {
-
-		const size_t *ptr = recptr();
-		for(auto col : cols) {
-			if(!strcasecmp(column,col->name())) {
-				return col->to_string(file,*ptr);
-			}
-			ptr++;
-		}
-
-		return "";
-	}
-
-	Udjat::Value & DataStore::Container::Resource::get(Udjat::Value &value) const {
-
-		if(index >= ixptr[0]) {
-			return value;
-		}
-
-		// Get all columns.
-		const size_t *ptr = recptr();
-		for(auto col : cols) {
-			value[col->name()] = col->to_string(file,*ptr);
-			ptr++;
-		}
-
-		return value;
-	}
-
-	std::string DataStore::Container::Resource::to_string() const {
-
-		std::string rc;
-		const size_t *ptr = recptr();
-
-		for(auto col : cols) {
-			if(col->key()) {
-				if(!rc.empty()) {
-					rc += " ";
-				}
-				rc += col->to_string(file,*ptr);
-			}
-			ptr++;
-		}
-		return rc;
-
-	}
 
  }

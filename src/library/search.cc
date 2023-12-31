@@ -31,8 +31,9 @@
 
  namespace Udjat {
 
-	int DataStore::Container::Resource::compare(const char *key) const {
+	int DataStore::Container::Iterator::compare(const char *key) const {
 
+		/*
 		const size_t *ptr = recptr();
 
 		for(auto col : cols) {
@@ -70,10 +71,13 @@
 		}
 
 		return 1;
+		*/
+
 	}
 
-	DataStore::Container::Resource & DataStore::Container::Resource::search(const char *key) {
+	DataStore::Container::Iterator & DataStore::Container::Iterator::search(const char *key) {
 
+		/*
 		size_t from = 0;
 		size_t to = ixptr[0];
 
@@ -134,6 +138,8 @@
 
 		debug("--------------------------Can't find '",key,"'");
 		index = ixptr[0];
+		*/
+
 		return *this;
 	}
 
