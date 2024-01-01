@@ -95,6 +95,7 @@
 				// constexpr reference operator*() const noexcept { return *this; }
 				// constexpr pointer operator->() const noexcept { return this; }
 
+				Iterator(Iterator &src, size_t id);
 				~Iterator();
 
 				size_t count() const;
@@ -159,9 +160,6 @@
 			inline const char *id() const noexcept {
 				return name;
 			}
-
-			/// @brief Get resource by id.
-			// Iterator operator[](size_t id);
 
 			Udjat::Value & get(size_t id, Udjat::Value &value) const;
 

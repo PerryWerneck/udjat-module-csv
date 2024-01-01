@@ -24,6 +24,7 @@
  #include <config.h>
  #include <udjat/tools/datastore/container.h>
  #include <udjat/tools/datastore/file.h>
+ #include <udjat/tools/logger.h>
  #include <private/structs.h>
 
  using namespace std;
@@ -63,6 +64,10 @@
 
 		return it;
 
+	}
+
+	DataStore::Container::Iterator::Iterator(Iterator &src, size_t id) : Iterator{src} {
+		set(id);
 	}
 
 	DataStore::Container::Iterator::Iterator(const Container &container)
@@ -181,9 +186,16 @@
 
 	const size_t * DataStore::Container::Iterator::rowptr() const {
 
-		throw runtime_error("Incomplete, should consider the type");
+		switch(format) {
+		case 1:
+			return ixptr + 1 + (row * cols.size());
 
-		//return ixptr + 1 + (index * cols.size());
+		case 2:
+			throw runtime_error("Secondary key search is incomplete");
+		}
+
+		throw runtime_error(Logger::String{"Unexpected key format '",format,"'"});
+
 	}
 
 	std::string DataStore::Container::Iterator::operator[](const char *name) const {

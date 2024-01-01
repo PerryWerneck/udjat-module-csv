@@ -31,10 +31,51 @@
 
  namespace Udjat {
 
+	bool DataStore::Container::get(const char *path, Udjat::Value &value) const {
+
+		while(*path && *path == '/') {
+			path++;
+		}
+
+		const char *mark = strchr(path,'/');
+
+		if(!mark) {
+
+			// Primary key search.
+			Iterator it{find(path)};
+
+			if(it) {
+				debug("Found resource '",it.to_string(),"'");
+				it.get(value);
+				return true;
+			}
+
+			return false;
+
+		}
+
+		mark++;
+
+		if(strncasecmp(path,"rownumber/",10) == 0) {
+
+			Iterator it{begin()};
+
+			it.set(atoi(path+10)-1);
+
+			if(it) {
+				it.get(value);
+				return true;
+			}
+
+		}
+
+		return false;
+
+	}
+
 	int DataStore::Container::Iterator::compare(const char *key) const {
 
-		/*
-		const size_t *ptr = recptr();
+		const size_t *ptr = rowptr();
 
 		for(auto col : cols) {
 
@@ -71,13 +112,11 @@
 		}
 
 		return 1;
-		*/
 
 	}
 
 	DataStore::Container::Iterator & DataStore::Container::Iterator::search(const char *key) {
 
-		/*
 		size_t from = 0;
 		size_t to = ixptr[0];
 
@@ -85,26 +124,26 @@
 
 		while( (to - from) > 1 ) {
 
-			index = from+((to-from)/2);
-			debug("Center rec=",index);
+			row = from+((to-from)/2);
+			debug("Center row=",row);
 
 			if(*this == key) {
 
-				debug("Found ",key," at index ",index," (",to_string(),")");
+				debug("Found ",key," at row ",row," (",to_string(),")");
 
 				// Go down until the first occurrence (Just in case).
-				size_t saved_index = index;
-				while(index > 1) {
-					index--;
-					if(*this == key) {
-						saved_index = index;
+				size_t first_row = row;
+				while(row > 1) {
+					row--;
+					if(*this == row) {
+						first_row = row;
 					} else {
 						break;
 					}
 				}
-				index = saved_index;
+				row = first_row;
 
-				debug("Final result was ",index," (",to_string(),")");
+				debug("Final result was ",row," (",to_string(),")");
 
 				return *this;
 
@@ -117,12 +156,12 @@
 				if(comp < 0) {
 
 					// Current is lower, get highest values
-					from = index;
+					from = row;
 
 				} else if(comp > 0) {
 
 					// Current is bigger, get lower values
-					to = index;
+					to = row;
 
 				} else {
 
@@ -137,8 +176,7 @@
 		}
 
 		debug("--------------------------Can't find '",key,"'");
-		index = ixptr[0];
-		*/
+		row = ixptr[0];
 
 		return *this;
 	}
