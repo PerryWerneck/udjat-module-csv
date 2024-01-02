@@ -78,7 +78,7 @@
 				std::shared_ptr<File> file;										///< @brief The data file
 				const std::vector<std::shared_ptr<Abstract::Column>> &cols;		///< @brief The column definitions.
 
-				uint8_t format = 0;												///< @brief Index format.
+				uint16_t column = (uint16_t) -1;								///< @brief Search column (-1 when using primary index).
 				size_t row = 0;													///< @brief Selected row.
 				const size_t *ixptr = nullptr;									///< @brief Pointer to index data.
 
@@ -124,7 +124,8 @@
 				/// @return result of the casecmp test.
 				int compare(const char *key) const;
 
-				Iterator& search(const char *key);
+				Iterator& find(const char *key);
+				Iterator& find(const char *column, const char *key);
 
 				// Increment / Decrement
 				Iterator& operator++();

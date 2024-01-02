@@ -326,8 +326,8 @@
 
 			// Write column indexes list.
 			{
-				size_t qtdidx = indexes.size();
-				header.indexes = file->write(qtdidx);
+				header.indexes.count = indexes.size();
+				header.indexes.offset = file->size();
 				for(struct Index &it : indexes) {
 					file->write(&it,sizeof(struct Index));
 				}

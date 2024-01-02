@@ -100,23 +100,11 @@
 	}
 
 	const DataStore::Container::Iterator DataStore::Container::find(const char *key) const {
-		return begin().search(key);
+		return begin().find(key);
 	}
 
-	const DataStore::Container::Iterator DataStore::Container::find(const char *column_name, const char *key) const {
-
-		auto col = this->column(column_name);
-
-		if(!col) {
-			throw std::system_error(ENOENT,std::system_category(),column_name);
-		}
-
-		if(!col->indexed()) {
-			throw runtime_error(Logger::Message{"Column '{}' is not indexed",column_name});
-		}
-
-		throw runtime_error("Incomplete");
-
+	const DataStore::Container::Iterator DataStore::Container::find(const char *column, const char *key) const {
+		return begin().find(column,key);
 	}
 
 	std::shared_ptr<DataStore::Abstract::Column> DataStore::Container::column(const char *name) const {

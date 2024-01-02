@@ -25,6 +25,7 @@
  #include <config.h>
  #include <udjat/tools/datastore/container.h>
  #include <udjat/tools/logger.h>
+ #include <private/structs.h>
  #include <stdexcept>
 
  using namespace std;
@@ -67,6 +68,18 @@
 				return true;
 			}
 
+			return false;
+		}
+
+		{
+			Iterator it{begin()};
+			it.find(string{path,(size_t) (mark - path)-1}.c_str(),mark);
+
+			if(it) {
+				it.get(value);
+				return true;
+			}
+
 		}
 
 		return false;
@@ -77,50 +90,105 @@
 
 		const size_t *ptr = rowptr();
 
-		for(auto col : cols) {
+		if(column == (uint16_t) -1) {
 
-			if(col->key()) {
+			// Compare using primary key
 
-				// It's a primary column, test it.
-				string value{col->to_string(file,*ptr)};
-				size_t keylen = strlen(key);
+			for(auto col : cols) {
 
-				if(keylen < value.size()) {
+				if(col->key()) {
 
-					// The query string is smaller than the column, do a partial test.
-					return strncasecmp(value.c_str(),key,keylen);
+					// It's a primary column, test it.
+					string value{col->to_string(file,*ptr)};
+					size_t keylen = strlen(key);
 
-				} else {
+					if(keylen < value.size()) {
 
-					// The query string is equal or larger than the column, do a full test.
-					int rc = strncasecmp(value.c_str(),key,value.size());
-					if(rc) {
-						return rc;
+						// The query string is smaller than the column, do a partial test.
+						return strncasecmp(value.c_str(),key,keylen);
+
+					} else {
+
+						// The query string is equal or larger than the column, do a full test.
+						int rc = strncasecmp(value.c_str(),key,value.size());
+						if(rc) {
+							return rc;
+						}
+
+					}
+
+					// Get next block.
+					key += value.size();
+					if(!*key) {
+						// Key is complete, found it.
+						return 0;
 					}
 
 				}
-
-				// Get next block.
-				key += value.size();
-				if(!*key) {
-					// Key is complete, found it.
-					return 0;
-				}
-
+				ptr++;
 			}
-			ptr++;
+
+			return 1;
+
 		}
 
-		return 1;
+		// Compare using only the selected column.
+		throw runtime_error("Comparing column is incomplete");
 
 	}
 
-	DataStore::Container::Iterator & DataStore::Container::Iterator::search(const char *key) {
+	DataStore::Container::Iterator & DataStore::Container::Iterator::find(const char *colname, const char *key) {
+
+		debug("Finding column '",colname,"' and key '", key, "'");
+
+		column = (uint16_t) -1;
+
+		// Get column id
+		{
+			for(size_t ix = 0; ix < cols.size();ix++) {
+				debug(ix,": '",cols[ix]->name(),"'");
+				if(!strcasecmp(cols[ix]->name(),colname)) {
+					if(!cols[ix]->indexed()) {
+						throw runtime_error(Logger::String{"Column '",colname,"' cant be searched"});
+					}
+					column = (uint16_t) ix;
+					break;
+				}
+			}
+			if(column == (uint16_t) -1) {
+				throw std::system_error(ENOENT,std::system_category(),Logger::String{"Cant find column '",colname,"'"});
+			}
+		}
+
+		// Got column id, search for index.
+		debug("Searching index for column ",column);
+
+		const Header &header{file->get<Header>(0)};
+
+		const Index *index{file->get_ptr<Index>(header.indexes.offset)};
+
+		for(size_t ix = 0;ix < header.indexes.count;ix++) {
+
+			if(index->column == column) {
+				this->ixptr = file->get_ptr<size_t>(index->offset);
+				return find(key);
+			}
+
+			index++;
+		}
+
+		throw runtime_error(Logger::String{"Unable to locate index '",column,"'"});
+	}
+
+	DataStore::Container::Iterator & DataStore::Container::Iterator::find(const char *key) {
+
+		if(!(key && *key)) {
+			set(1);
+			return *this;
+		}
 
 		size_t from = 0;
 		size_t to = ixptr[0];
-
-		debug("------------------------------Searching for '",key,"'");
 
 		while( (to - from) > 1 ) {
 

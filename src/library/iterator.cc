@@ -42,7 +42,7 @@
 			throw std::system_error(ENODATA,std::system_category(),"Empty data store");
 		}
 
-		it.format = 1;
+		it.column = (uint16_t) -1;
 		it.ixptr = active_file->get_ptr<size_t>(header.primary_offset);
 
 		return it;
@@ -58,7 +58,6 @@
 			throw std::system_error(ENODATA,std::system_category(),"Empty data store");
 		}
 
-		it.format = 1;
 		it.ixptr = active_file->get_ptr<size_t>(header.primary_offset);
 		it.row = it.ixptr[0];	// Last row.
 
@@ -186,22 +185,32 @@
 
 	const size_t * DataStore::Container::Iterator::rowptr() const {
 
-		switch(format) {
-		case 1:
-			return ixptr + 1 + (row * cols.size());
-
-		case 2:
-			throw runtime_error("Secondary key search is incomplete");
+		if(row < 1 || row > ixptr[0]) {
+			throw runtime_error(Logger::String{"Invalid row, should be from 0 to ",(int) ixptr[0]});
 		}
 
-		throw runtime_error(Logger::String{"Unexpected key format '",format,"'"});
+		if(column == (uint16_t) -1) {
+			return ixptr + 1 + (row * cols.size());
+		}
+
+		return file->get_ptr<size_t>(ixptr[row]);
 
 	}
 
 	std::string DataStore::Container::Iterator::operator[](const char *name) const {
 
-		throw runtime_error("Needs refactor");
+		const size_t *ptr = rowptr();
 
+		for(auto col : cols) {
+			if(!strcasecmp(col->name(),name)) {
+				return col->to_string(file,*ptr);
+			}
+			ptr++;
+		}
+
+		Logger::String{"Unexpected column '",name,"', returning empty string"}.warning("datastore");
+
+		return "";
 	}
 
 	Udjat::Value & DataStore::Container::Iterator::get(Udjat::Value &value) const {
