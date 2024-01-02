@@ -27,6 +27,7 @@
  #include <udjat/tools/datastore/container.h>
  #include <udjat/tools/datastore/loader.h>
  #include <udjat/tools/datastore/file.h>
+ #include <udjat/tools/datastore/columns/ipv4.h>
  #include <udjat/tools/object.h>
  #include <udjat/tools/timestamp.h>
  #include <private/structs.h>
@@ -60,6 +61,8 @@
 				col = make_shared<Column<unsigned int>>(child);
 			} else if(!strcasecmp(type,"string")) {
 				col = make_shared<Column<std::string>>(child);
+			} else if(!strcasecmp(type,"ipv4")) {
+				col = make_shared<Column<in_addr>>(child);
 			} else {
 				throw runtime_error(Logger::String{"Unexpected column type: ",type});
 			}

@@ -39,11 +39,11 @@
 		<Unit filename="src/include/private/value.h" />
 		<Unit filename="src/include/udjat/agent/datastore.h" />
 		<Unit filename="src/include/udjat/tools/datastore/column.h" />
+		<Unit filename="src/include/udjat/tools/datastore/columns/ipv4.h" />
 		<Unit filename="src/include/udjat/tools/datastore/container.h" />
 		<Unit filename="src/include/udjat/tools/datastore/deduplicator.h" />
 		<Unit filename="src/include/udjat/tools/datastore/file.h" />
 		<Unit filename="src/include/udjat/tools/datastore/loader.h" />
-		<Unit filename="src/include/udjat/tools/memdb/simpletable.h" />
 		<Unit filename="src/library/agent.cc" />
 		<Unit filename="src/library/block.cc" />
 		<Unit filename="src/library/column.cc" />
