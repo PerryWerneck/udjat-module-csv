@@ -53,16 +53,25 @@
 
 			const char *type = child.attribute("type").as_string("string");
 
+			debug("-----------------[",type,"]-------------------------");
+
 			std::shared_ptr<Abstract::Column> col;
 
 			if(!strcasecmp(type,"int")) {
 				col = make_shared<Column<int>>(child);
+
 			} else if(!strcasecmp(type,"uint")) {
 				col = make_shared<Column<unsigned int>>(child);
+
 			} else if(!strcasecmp(type,"string")) {
 				col = make_shared<Column<std::string>>(child);
+
 			} else if(!strcasecmp(type,"ipv4")) {
 				col = make_shared<Column<in_addr>>(child);
+
+			} else if(!strncasecmp(type,"bool",4)) {
+				col = make_shared<Column<bool>>(child);
+
 			} else {
 				throw runtime_error(Logger::String{"Unexpected column type: ",type});
 			}

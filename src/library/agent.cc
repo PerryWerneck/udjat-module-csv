@@ -39,6 +39,20 @@
 		"Empty"
 	};
 
+	UDJAT_API DataStore::State DataStore::StateFactory(const char *str) noexcept {
+
+		if(str && *str) {
+			for(size_t ix = 0; ix < N_ELEMENTS(state_names); ix++) {
+				if(!strcasecmp(str,state_names[ix])) {
+					return (DataStore::State) ix;
+				}
+			}
+			Logger::String{"Unexpected state name '",str,"', assuming '",state_names[0],"'"}.warning("DataStore");
+		}
+
+		return (DataStore::State) 0;
+	}
+
 	DataStore::Agent::Agent(const XML::Node &definition)
 		: Udjat::Agent<DataStore::State>(definition,DataStore::Undefined), Udjat::DataStore::Container{definition} {
 	}

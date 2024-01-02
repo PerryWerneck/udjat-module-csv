@@ -27,20 +27,23 @@
  #include <udjat/tools/xml.h>
  #include <udjat/tools/timestamp.h>
  #include <udjat/tools/value.h>
+ #include <udjat/tools/converters.h>
  #include <vector>
  #include <iterator>
 
  namespace Udjat {
 
-	namespace DataStore {
+ 	namespace DataStore {
 
-		enum State : int {
+		enum State : uint8_t {
 			Undefined,		///< @brief Data store is in undefined state.
 			Updating,		///< @brief Updating from data source.
 			Failed,			///< @brief Update failed.
 			Ready,			///< @brief Data was loaded from source.
 			Empty			///< @brief Empty data.
 		};
+
+		UDJAT_API DataStore::State StateFactory(const char *str) noexcept;
 
 		/// @brief A data store container.
 		class UDJAT_API Container {
