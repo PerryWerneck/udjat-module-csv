@@ -73,7 +73,7 @@
 	}
 
 	int DataStore::Abstract::Column::comp(std::shared_ptr<File> file, size_t offset, const char *key) {
-		return strcasecmp(to_string(file,offset).c_str(),key);
+		return strncasecmp(to_string(file,offset).c_str(),key,strlen(key));
 	}
 
 	std::string DataStore::Abstract::Column::to_string(std::shared_ptr<File> file, size_t offset) {
