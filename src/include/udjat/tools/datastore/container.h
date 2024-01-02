@@ -125,7 +125,6 @@
 				int compare(const char *key) const;
 
 				Iterator& find(const char *key);
-				Iterator& find(const char *column, const char *key);
 
 				// Increment / Decrement
 				Iterator& operator++();
@@ -153,6 +152,8 @@
 
 			Iterator begin() const;
 			Iterator end() const;
+
+			Iterator begin(const char *colname) const;
 
 			/// @brief Build container from XML node.
 			Container(const XML::Node &node);

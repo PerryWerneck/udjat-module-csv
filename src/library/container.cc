@@ -104,7 +104,7 @@
 	}
 
 	const DataStore::Container::Iterator DataStore::Container::find(const char *column, const char *key) const {
-		return begin().find(column,key);
+		return begin(column).find(key);
 	}
 
 	std::shared_ptr<DataStore::Abstract::Column> DataStore::Container::column(const char *name) const {

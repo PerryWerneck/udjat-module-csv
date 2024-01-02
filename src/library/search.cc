@@ -43,10 +43,11 @@
 		if(!mark) {
 
 			// Primary key search.
-			Iterator it{find(path)};
+			Iterator it{begin()};
+			it.find(path);
 
 			if(it) {
-				debug("Found resource '",it.to_string(),"'");
+				debug("Found row '",it.to_string(),"'");
 				it.get(value);
 				return true;
 			}
@@ -72,8 +73,8 @@
 		}
 
 		{
-			Iterator it{begin()};
-			it.find(string{path,(size_t) (mark - path)-1}.c_str(),mark);
+			Iterator it{begin(string{path,(size_t) (mark - path)-1}.c_str())};
+			it.find(mark);
 
 			if(it) {
 				it.get(value);
@@ -133,51 +134,8 @@
 		}
 
 		// Compare using only the selected column.
-		throw runtime_error("Comparing column is incomplete");
+		return cols[column]->comp(file,ptr[column],key);
 
-	}
-
-	DataStore::Container::Iterator & DataStore::Container::Iterator::find(const char *colname, const char *key) {
-
-		debug("Finding column '",colname,"' and key '", key, "'");
-
-		column = (uint16_t) -1;
-
-		// Get column id
-		{
-			for(size_t ix = 0; ix < cols.size();ix++) {
-				debug(ix,": '",cols[ix]->name(),"'");
-				if(!strcasecmp(cols[ix]->name(),colname)) {
-					if(!cols[ix]->indexed()) {
-						throw runtime_error(Logger::String{"Column '",colname,"' cant be searched"});
-					}
-					column = (uint16_t) ix;
-					break;
-				}
-			}
-			if(column == (uint16_t) -1) {
-				throw std::system_error(ENOENT,std::system_category(),Logger::String{"Cant find column '",colname,"'"});
-			}
-		}
-
-		// Got column id, search for index.
-		debug("Searching index for column ",column);
-
-		const Header &header{file->get<Header>(0)};
-
-		const Index *index{file->get_ptr<Index>(header.indexes.offset)};
-
-		for(size_t ix = 0;ix < header.indexes.count;ix++) {
-
-			if(index->column == column) {
-				this->ixptr = file->get_ptr<size_t>(index->offset);
-				return find(key);
-			}
-
-			index++;
-		}
-
-		throw runtime_error(Logger::String{"Unable to locate index '",column,"'"});
 	}
 
 	DataStore::Container::Iterator & DataStore::Container::Iterator::find(const char *key) {
@@ -187,6 +145,55 @@
 			return *this;
 		}
 
+		size_t from = 0;
+		size_t to = ixptr[0];
+
+		while( (to - from) > 1 ) {
+
+			row = from+((to-from)/2);
+			debug("Center row=",row," from=",from," to=",to, " to-from=",(to-from));
+
+			int comp{compare(key)};
+
+			debug("comp=",comp);
+
+			if(comp == 0) {
+
+				// Found!
+
+				debug("Found ",key," at row ",row," (",to_string(),")");
+
+				// Go down until the first occurrence (Just in case).
+				size_t first_row = row;
+				while(row > 1) {
+					row--;
+					if(compare(key)) {
+						break;
+					} else {
+						first_row = row;
+					}
+				}
+				row = first_row;
+
+				debug("Final result was ",row," (",to_string(),")");
+
+				return *this;
+
+			} else if(comp < 0) {
+
+				// Current is lower, get highest values
+				from = row;
+
+			} else {
+
+				// Current is bigger, get lower values
+				to = row;
+
+			}
+
+		}
+
+		/*
 		size_t from = 0;
 		size_t to = ixptr[0];
 
@@ -242,6 +249,7 @@
 			debug("from=",from," to=",to, " to-from=",(to-from));
 
 		}
+		*/
 
 		debug("--------------------------Can't find '",key,"'");
 		row = ixptr[0];

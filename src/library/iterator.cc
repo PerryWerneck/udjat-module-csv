@@ -65,6 +65,32 @@
 
 	}
 
+	DataStore::Container::Iterator DataStore::Container::begin(const char *colname) const {
+
+		Iterator it{*this};
+		it.column = column_index(colname);
+		if(it.column == (uint16_t) -1) {
+			throw runtime_error(Logger::String{"Invalid column '",colname,"'"});
+		}
+
+		// Get column index.
+		const Header &header{active_file->get<Header>(0)};
+		const Index *index{active_file->get_ptr<Index>(header.indexes.offset)};
+
+		for(size_t ix = 0;ix < header.indexes.count;ix++) {
+
+			if(index->column == it.column) {
+				it.ixptr = active_file->get_ptr<size_t>(index->offset);
+				return it;
+			}
+
+			index++;
+		}
+
+		throw runtime_error(Logger::String{"No index for '",colname,"'"});
+
+	}
+
 	DataStore::Container::Iterator::Iterator(Iterator &src, size_t id) : Iterator{src} {
 		set(id);
 	}

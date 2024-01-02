@@ -110,6 +110,10 @@
 
 				virtual std::string to_string(std::shared_ptr<File> file, size_t offset);
 
+				/// @brief Compare column with string.
+				/// @return Result of test (strcasecmp)
+				virtual int comp(std::shared_ptr<File> file, size_t offset, const char *key);
+
 			};
 
 		}
