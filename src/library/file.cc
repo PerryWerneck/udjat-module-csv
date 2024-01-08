@@ -42,7 +42,7 @@
 
  namespace Udjat {
 
-	DataStore::File::File() : fd{open("/tmp",O_RDWR|O_CREAT|O_TRUNC|O_TMPFILE,0600)} {
+	DataStore::File::File() : fd{open("/tmp",O_RDWR|O_TMPFILE,0600)} {
 		debug("Creating temporary file");
 		if(fd < 0) {
 			throw std::system_error(errno,std::system_category(),"Unable to create temporary file");

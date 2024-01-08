@@ -38,8 +38,8 @@
 
 	DataStore::Container::Container(const XML::Node &definition)
 		: name{Quark{definition,"name","",false}.c_str()},
-			path{Object::getAttribute(definition,"path","")},
-			filespec{Object::getAttribute(definition,"filespec",".*")} {
+			path{Object::getAttribute(definition,"sources-from","")},
+			filespec{Object::getAttribute(definition,"sources-file-filter",".*")} {
 
 		if(!*name) {
 			throw runtime_error("Required attribute 'name' is missing");

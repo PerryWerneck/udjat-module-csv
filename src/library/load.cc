@@ -68,11 +68,7 @@
 
 	shared_ptr<DataStore::File> DataStore::Loader::Abstract::load() {
 
-#ifdef DEBUG
-		shared_ptr<File> file{make_shared<File>("/tmp/test.db")};
-#else
 		shared_ptr<File> file{make_shared<File>()};
-#endif // DEBUG
 
 		if(file->size()) {
 			throw runtime_error("Datastore is not empty");

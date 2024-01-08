@@ -138,44 +138,16 @@
 
 	bool DataStore::Agent::getProperties(const char *path, Value &value) const {
 
+		debug("--------------------------------------------------------------------");
+
+		debug("path='",path,"'");
 		if(super::getProperties(path,value)) {
+			debug("Got response from parent object");
 			return true;
 		}
 
+		debug("Getting response from container");
 		return DataStore::Container::get(path,value);
-
-		/*
-
-		if(!strncasecmp(path,"id/",3)) {
-
-			// It's an id
-			DataStore::Container::get((size_t) atoi(path+3)-1, value);
-
-		} else if(!strchr(path,'/')) {
-
-			debug("Searching for primary key '",path,"'");
-			Resource res{DataStore::Container::find(path)};
-
-			if(res) {
-				debug("Found resource '",res.to_string(),"'");
-				res.get(value);
-				return true;
-			}
-
-			return false;
-
-		} else {
-
-			// TODO: Search in the format [Column-name]/[Column-value]
-
-
-			return false;
-
-		}
-
-		return true;
-
-		*/
 
 	}
 

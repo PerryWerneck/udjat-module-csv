@@ -54,6 +54,7 @@
 
 			bool getProperty(const char *key, std::string &value) const override;
 			Value & getProperties(Value &value) const override;
+
 			bool getProperties(const char *path, Value &value) const override;
 
 		};
