@@ -230,65 +230,7 @@
 
 		}
 
-		/*
-		size_t from = 0;
-		size_t to = ixptr[0];
-
-		while( (to - from) > 1 ) {
-
-			row = from+((to-from)/2);
-			debug("Center row=",row);
-
-			if(*this == key) {
-
-				debug("Found ",key," at row ",row," (",to_string(),")");
-
-				// Go down until the first occurrence (Just in case).
-				size_t first_row = row;
-				while(row > 1) {
-					row--;
-					if(*this == row) {
-						first_row = row;
-					} else {
-						break;
-					}
-				}
-				row = first_row;
-
-				debug("Final result was ",row," (",to_string(),")");
-
-				return *this;
-
-			} else {
-
-				int comp{compare(key)};
-
-				debug("comp=",comp," (",to_string(),")");
-
-				if(comp < 0) {
-
-					// Current is lower, get highest values
-					from = row;
-
-				} else if(comp > 0) {
-
-					// Current is bigger, get lower values
-					to = row;
-
-				} else {
-
-					throw logic_error(Logger::String{"Internal error on ",__FILE__,"(",__LINE__,")"});
-
-				}
-
-			}
-
-			debug("from=",from," to=",to, " to-from=",(to-from));
-
-		}
-		*/
-
-		debug("--------------------------Can't find '",key,"'");
+		debug("Can't find '",key,"'");
 		row = ixptr[0];
 
 		return *this;
