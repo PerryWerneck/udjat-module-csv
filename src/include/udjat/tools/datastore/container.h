@@ -28,6 +28,8 @@
  #include <udjat/tools/timestamp.h>
  #include <udjat/tools/value.h>
  #include <udjat/tools/converters.h>
+ #include <udjat/tools/response.h>
+ #include <udjat/tools/report.h>
  #include <vector>
  #include <iterator>
 
@@ -81,7 +83,10 @@
 				std::shared_ptr<File> file;										///< @brief The data file
 				const std::vector<std::shared_ptr<Abstract::Column>> &cols;		///< @brief The column definitions.
 
-				uint16_t column = (uint16_t) -1;								///< @brief Search column (-1 when using primary index).
+				struct {
+					std::string key;											///< @brief Search key.
+					uint16_t column = (uint16_t) -1;							///< @brief Search column (-1 when using primary index).
+				} filter;
 				size_t row = 0;													///< @brief Selected row.
 				const size_t *ixptr = nullptr;									///< @brief Pointer to index data.
 
@@ -196,12 +201,12 @@
 			/// @brief Load source files, rebuild work file.
 			void load();
 
-			/// @brief Get resource using primary key.
+			/// @brief Get iterator using primary key or path.
 			/// @param key The key to search on the primary index.
 			/// @return The requested resource.
 			const Iterator find(const char *key) const;
 
-			/// @brief Get resource using columns index.
+			/// @brief Get iterator using columns index.
 			/// @param column The column name.
 			/// @param key The key to search on the column index.
 			/// @return The requested resource.
@@ -212,6 +217,18 @@
 			/// @param value The value for resource data.
 			/// @return true if value was updated.
 			bool get(const char *path, Udjat::Value &value) const;
+
+			/// @brief Get response from search path.
+			/// @param path The path for the required resource.
+			/// @param value The value for resource data.
+			/// @return true if value was updated.
+			bool get(const char *path, Udjat::Response::Value &value) const;
+
+			/// @brief Get values from search path.
+			/// @param path The path for the required resource.
+			/// @param value The containser to responses.
+			/// @return true if value was updated.
+			bool get(const char *path, Udjat::Response::Table &value) const;
 
 		protected:
 

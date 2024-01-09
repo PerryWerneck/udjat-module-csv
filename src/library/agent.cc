@@ -24,6 +24,7 @@
  #include <config.h>
  #include <udjat/tools/intl.h>
  #include <udjat/agent.h>
+ #include <udjat/tools/datastore/container.h>
  #include <udjat/agent/datastore.h>
  #include <memory>
 
@@ -136,9 +137,34 @@
 
 	}
 
-	bool DataStore::Agent::getProperties(const char *path, Value &value) const {
+	bool DataStore::Agent::getProperties(const char *path, Response::Value &value) const {
 
-		debug("--------------------------------------------------------------------");
+		debug("path='",path,"'");
+		if(super::getProperties(path,value)) {
+			debug("Got response from parent object");
+			return true;
+		}
+
+		debug("Getting response from container");
+		return DataStore::Container::get(path,value);
+
+	}
+
+	bool DataStore::Agent::getProperties(const char *path, Response::Table &value) const {
+
+		debug("path='",path,"'");
+		if(super::getProperties(path,value)) {
+			debug("Got response from parent object");
+			return true;
+		}
+
+		debug("Getting response from container");
+		return DataStore::Container::get(path,value);
+		return false;
+
+	}
+
+	bool DataStore::Agent::getProperties(const char *path, Value &value) const {
 
 		debug("path='",path,"'");
 		if(super::getProperties(path,value)) {

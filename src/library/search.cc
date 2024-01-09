@@ -32,7 +32,9 @@
 
  namespace Udjat {
 
-	bool DataStore::Container::get(const char *path, Udjat::Value &value) const {
+	using Container = DataStore::Container;
+
+	Container::Iterator get_path(const DataStore::Container &container, const char *path) {
 
 		while(*path && *path == '/') {
 			path++;
@@ -41,49 +43,82 @@
 		const char *mark = strchr(path,'/');
 
 		if(!mark) {
-
 			// Primary key search.
-			Iterator it{begin()};
+			Container::Iterator it{container.begin()};
 			it.find(path);
-
-			if(it) {
-				debug("Found row '",it.to_string(),"'");
-				it.get(value);
-				return true;
-			}
-
-			return false;
-
+			return it;
 		}
 
 		mark++;
 
+		Container::Iterator it{container.begin(string{path,(size_t) (mark - path)-1}.c_str())};
+		it.find(mark);
+		return it;
+
+	}
+
+	bool DataStore::Container::get(const char *path, Udjat::Value &value) const {
+
+		// It's asking for a single row??
 		if(strncasecmp(path,"rownumber/",10) == 0) {
-
-			Iterator it{begin()};
-
+			Container::Iterator it{begin()};
 			it.set(atoi(path+10)-1);
-
-			if(it) {
-				it.get(value);
-				return true;
-			}
-
-			return false;
+			return it;
 		}
 
-		{
-			Iterator it{begin(string{path,(size_t) (mark - path)-1}.c_str())};
-			it.find(mark);
+		Container::Iterator it{get_path(*this,path)};
 
-			if(it) {
-				it.get(value);
-				return true;
-			}
-
+		if(it) {
+			it.get(value);
+			return true;
 		}
 
 		return false;
+
+	}
+
+	bool DataStore::Container::get(const char *path, Udjat::Response::Value &value) const {
+
+		Container::Iterator it{get_path(*this,path)};
+
+		if(it) {
+			// Todo: Setup last_modified()
+			it.get(value);
+			return true;
+		}
+
+		return false;
+
+	}
+
+	bool DataStore::Container::get(const char *path, Udjat::Response::Table &value) const {
+
+		Container::Iterator it{get_path(*this,path)};
+		if(!it) {
+			return false;
+		}
+
+		// Todo: Setup last_modified()
+
+		// Start report
+		std::vector<std::string> column_names;
+
+		for(auto col : cols) {
+			column_names.push_back(col->name());
+		}
+
+		value.start(column_names);
+
+		while(it) {
+
+			for(auto col : column_names) {
+				value.push_back(it[col.c_str()]);
+			}
+
+			it++;
+		}
+
+		return true;
 
 	}
 
@@ -91,7 +126,7 @@
 
 		const size_t *ptr = rowptr();
 
-		if(column == (uint16_t) -1) {
+		if(filter.column == (uint16_t) -1) {
 
 			// Compare using primary key
 
@@ -134,7 +169,7 @@
 		}
 
 		// Compare using only the selected column.
-		return cols[column]->comp(file,ptr[column],key);
+		return cols[filter.column]->comp(file,ptr[filter.column],key);
 
 	}
 
@@ -144,6 +179,8 @@
 			set(1);
 			return *this;
 		}
+
+		filter.key = key;
 
 		size_t from = 0;
 		size_t to = ixptr[0];

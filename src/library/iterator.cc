@@ -42,7 +42,7 @@
 			throw std::system_error(ENODATA,std::system_category(),"Empty data store");
 		}
 
-		it.column = (uint16_t) -1;
+		it.filter.column = (uint16_t) -1;
 		it.ixptr = active_file->get_ptr<size_t>(header.primary_offset);
 
 		return it;
@@ -68,8 +68,8 @@
 	DataStore::Container::Iterator DataStore::Container::begin(const char *colname) const {
 
 		Iterator it{*this};
-		it.column = column_index(colname);
-		if(it.column == (uint16_t) -1) {
+		it.filter.column = column_index(colname);
+		if(it.filter.column == (uint16_t) -1) {
 			throw runtime_error(Logger::String{"Invalid column '",colname,"'"});
 		}
 
@@ -79,7 +79,7 @@
 
 		for(size_t ix = 0;ix < header.indexes.count;ix++) {
 
-			if(index->column == it.column) {
+			if(index->column == it.filter.column) {
 				it.ixptr = active_file->get_ptr<size_t>(index->offset);
 				return it;
 			}
@@ -148,7 +148,10 @@
 	}
 
 	DataStore::Container::Iterator::operator bool() const {
-		return row < ixptr[0];
+		if(row < ixptr[0]) {
+			return filter.key.empty() || (compare(filter.key.c_str()) == 0);
+		}
+		return false;
 	}
 
 	DataStore::Container::Iterator& DataStore::Container::Iterator::operator++() {
@@ -215,7 +218,7 @@
 			throw runtime_error(Logger::String{"Invalid row, should be from 0 to ",(int) ixptr[0]});
 		}
 
-		if(column == (uint16_t) -1) {
+		if(filter.column == (uint16_t) -1) {
 			return ixptr + 1 + (row * cols.size());
 		}
 

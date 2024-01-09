@@ -53,9 +53,12 @@
 			std::shared_ptr<Udjat::Abstract::State> StateFactory(const XML::Node &node) override;
 
 			bool getProperty(const char *key, std::string &value) const override;
+
 			Value & getProperties(Value &value) const override;
 
 			bool getProperties(const char *path, Value &value) const override;
+			bool getProperties(const char *path, Response::Value &value) const override;
+			bool getProperties(const char *path, Response::Table &value) const override;
 
 		};
 
