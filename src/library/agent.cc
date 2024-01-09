@@ -40,7 +40,7 @@
 		"Empty"
 	};
 
-	UDJAT_API DataStore::State DataStore::StateFactory(const char *str) noexcept {
+	UDJAT_API DataStore::State DataStore::StateFactory(const char *str) {
 
 		if(str && *str) {
 			for(size_t ix = 0; ix < N_ELEMENTS(state_names); ix++) {
@@ -48,10 +48,10 @@
 					return (DataStore::State) ix;
 				}
 			}
-			Logger::String{"Unexpected state name '",str,"', assuming '",state_names[0],"'"}.warning("DataStore");
 		}
 
-		return (DataStore::State) 0;
+		throw runtime_error(Logger::String{"Unexpected state name '",str,"'"});
+
 	}
 
 	DataStore::Agent::Agent(const XML::Node &definition)
@@ -62,6 +62,7 @@
 	}
 
 	void DataStore::Agent::state(const DataStore::State state) {
+		debug("State set to '",state_names[state]," (",(int) state,")");
 		Udjat::Agent<DataStore::State>::set(state);
 	}
 
@@ -121,7 +122,10 @@
 
 	std::shared_ptr<Abstract::State> DataStore::Agent::StateFactory(const XML::Node &node) {
 
+		debug("--------------------------------> ",__FUNCTION__);
+
 		const char *name = node.attribute("value").as_string(node.attribute("name").as_string(""));
+
 		if(name && *name) {
 			for(size_t ix = 0; ix < (sizeof(state_names)/sizeof(state_names[0])); ix++) {
 				if(!strcasecmp(name,state_names[ix])) {

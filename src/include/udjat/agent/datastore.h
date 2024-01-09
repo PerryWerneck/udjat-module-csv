@@ -31,7 +31,7 @@
 
 	template <>
 	inline DataStore::State from_xml<DataStore::State>(const XML::Node &node, const DataStore::State, const char *attrname) {
-		return DataStore::StateFactory(node.attribute(attrname).as_string());
+		return DataStore::StateFactory(node.attribute(attrname).as_string("Undefined"));
 	}
 
 	namespace DataStore {

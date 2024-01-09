@@ -82,7 +82,7 @@
 		Container::Iterator it{get_path(*this,path)};
 
 		if(it) {
-			// Todo: Setup last_modified()
+			// TODO: Set value for last_modified()
 			it.get(value);
 			return true;
 		}

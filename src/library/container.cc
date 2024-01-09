@@ -107,7 +107,7 @@
 		auto file = Loader::CSV{*this,path,filespec}.load();
 		file->map(); // Map file in memory.
 		active_file = file;
-		Logger::String{"New storage with ",size()," record(s) is active"}.trace(name);
+		Logger::String{"New storage with ",size()," record(s) is active (",TimeStamp{last_modified()}.to_string(),")"}.trace(name);
 		state(size() ? Ready : Empty);
 	}
 
@@ -135,6 +135,26 @@
 		}
 
 		return std::shared_ptr<Abstract::Column>();
+	}
+
+	time_t DataStore::Container::last_modified() const {
+
+		time_t timestamp = 0;
+
+		if(active_file && active_file->mapped()) {
+			const char *filename = active_file->get_ptr<char>(sizeof(Header));
+			while(*filename) {
+				time_t *tm = (time_t *) (filename + strlen(filename)+1);
+				debug("Filename: '",filename,"' timestamp: ",TimeStamp(*tm).to_string());
+				if(!timestamp || *tm < timestamp) {
+					timestamp = *tm;
+				}
+				filename = ((const char *) (tm+1));
+			}
+		}
+
+		return timestamp;
+
 	}
 
 	size_t DataStore::Container::column_index(const char *name) const {

@@ -87,8 +87,9 @@
 
 		// Write file sources.
 		for(auto &f : files) {
-			file->write(&f.st.st_mtim,sizeof(f.st.st_mtim));
 			file->write(f.name.c_str(),f.name.size()+1);
+			time_t timestamp = (time_t) (f.st.st_mtim.tv_sec); // Just in case
+			file->write(&timestamp,sizeof(timestamp));
 		}
 		file->write("\0",1);
 

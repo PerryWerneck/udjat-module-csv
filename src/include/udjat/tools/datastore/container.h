@@ -45,7 +45,7 @@
 			Empty			///< @brief Empty data.
 		};
 
-		UDJAT_API DataStore::State StateFactory(const char *str) noexcept;
+		UDJAT_API DataStore::State StateFactory(const char *str);
 
 		/// @brief A data store container.
 		class UDJAT_API Container {
@@ -171,7 +171,10 @@
 				return name;
 			}
 
-			Udjat::Value & get(size_t id, Udjat::Value &value) const;
+			/// @brief Get timestamp from source files.
+			time_t last_modified() const;
+
+			//Udjat::Value & get(size_t id, Udjat::Value &value) const;
 
 			/// @brief Is the container loaded?
 			bool loaded() const {
