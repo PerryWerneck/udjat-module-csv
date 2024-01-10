@@ -25,6 +25,7 @@
  #include <udjat/defs.h>
  #include <udjat/agent.h>
  #include <udjat/tools/xml.h>
+ #include <udjat/tools/file/watcher.h>
  #include <udjat/tools/datastore/container.h>
 
  namespace Udjat {
@@ -37,7 +38,12 @@
 	namespace DataStore {
 
 		/// @brief Data store default agent.
-		class UDJAT_API Agent : public Udjat::Agent<DataStore::State>, private Udjat::DataStore::Container {
+		class UDJAT_API Agent : public Udjat::Agent<DataStore::State>, private Udjat::DataStore::Container, private Udjat::File::Watcher {
+		private:
+
+			bool reload_required = false;	///< @brief True if there is a pending file watch event.
+			void updated(const Udjat::File::Watcher::Event event, const char *filename) override;
+
 		protected:
 
 		public:
@@ -47,6 +53,8 @@
 			void state(const DataStore::State state) override;
 
 			void start() override;
+
+			bool refresh() override;
 
 			std::string to_string() const noexcept override;
 

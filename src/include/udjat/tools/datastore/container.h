@@ -42,7 +42,8 @@
 			Updating,		///< @brief Updating from data source.
 			Failed,			///< @brief Update failed.
 			Ready,			///< @brief Data was loaded from source.
-			Empty			///< @brief Empty data.
+			Empty,			///< @brief Empty data.
+			Waiting,		///< @brief Waiting to reload.
 		};
 
 		UDJAT_API DataStore::State StateFactory(const char *str);
@@ -53,7 +54,6 @@
 
 			const char *name;
 			const char *path;
-			const char *filespec;
 
 			/// @brief The current file holding the real data.
 			std::shared_ptr<File> active_file;
@@ -71,6 +71,9 @@
 			};
 
 			std::vector<Alias> aliases;
+
+		protected:
+			const char *filespec;
 
 		public:
 

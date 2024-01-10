@@ -23,10 +23,14 @@
 
  #include <config.h>
  #include <udjat/tools/intl.h>
+ #include <udjat/agent/abstract.h>
  #include <udjat/agent.h>
+ #include <udjat/tools/file/watcher.h>
  #include <udjat/tools/datastore/container.h>
  #include <udjat/agent/datastore.h>
+ #include <udjat/tools/configuration.h>
  #include <memory>
+ #include <regex>
 
  using namespace std;
 
@@ -37,7 +41,8 @@
 		"Loading",
 		"Failed",
 		"Loaded",
-		"Empty"
+		"Empty",
+		"Waiting"
 	};
 
 	UDJAT_API DataStore::State DataStore::StateFactory(const char *str) {
@@ -55,14 +60,37 @@
 	}
 
 	DataStore::Agent::Agent(const XML::Node &definition)
-		: Udjat::Agent<DataStore::State>(definition,DataStore::Undefined), Udjat::DataStore::Container{definition} {
+		: Udjat::Agent<DataStore::State>(definition,DataStore::Undefined),
+		  Udjat::DataStore::Container{definition},
+		  Udjat::File::Watcher{definition,"sources-from" } {
 	}
 
 	DataStore::Agent::~Agent() {
 	}
 
+	void DataStore::Agent::updated(const Udjat::File::Watcher::Event, const char *filename) {
+
+		if(filename && *filename) {
+			auto pattern = std::regex(filespec,std::regex::icase);
+			if(!std::regex_match(filename,pattern)) {
+				trace() << "Ignoring change of '" << filename << "', doesnt match '" << filespec << "'" << endl;
+				return;
+			}
+		}
+
+		reload_required = true;
+
+		// Wait a few seconds.
+		TimeStamp next{sched_update(Config::Value<time_t>{"file-agent","auto-update-delay",30}.get())};
+
+		trace() << "Agent update scheduled to " << next << " due to changes on '" << filename << "'" << endl;
+
+		state(DataStore::Waiting);
+
+	}
+
 	void DataStore::Agent::state(const DataStore::State state) {
-		debug("State set to '",state_names[state]," (",(int) state,")");
+		debug("State set to '",state_names[state],"' (",(int) state,")");
 		Udjat::Agent<DataStore::State>::set(state);
 	}
 
@@ -166,6 +194,18 @@
 		return DataStore::Container::get(path,value);
 		return false;
 
+	}
+
+	bool DataStore::Agent::refresh() {
+
+		if(reload_required) {
+			reload_required = false;
+
+			debug("--------------------------------> RELOAD CSV");
+
+		}
+
+		return false;
 	}
 
 	bool DataStore::Agent::getProperties(const char *path, Value &value) const {
