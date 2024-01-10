@@ -200,9 +200,8 @@
 
 		if(reload_required) {
 			reload_required = false;
-
-			debug("--------------------------------> RELOAD CSV");
-
+			load();
+			return true;
 		}
 
 		return false;

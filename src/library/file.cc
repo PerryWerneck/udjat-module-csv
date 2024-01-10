@@ -43,7 +43,11 @@
  namespace Udjat {
 
 	DataStore::File::File() : fd{open("/tmp",O_RDWR|O_TMPFILE,0600)} {
-		debug("Creating temporary file");
+
+		if(Logger::enabled(Logger::Trace)) {
+			cout << "datastore\tStorage " << hex << this << dec << " constructed using temporary file" << endl;
+		}
+
 		if(fd < 0) {
 			throw std::system_error(errno,std::system_category(),"Unable to create temporary file");
 		}
@@ -51,7 +55,9 @@
 
 	DataStore::File::File(const char *filename) : fd{::open(filename,O_RDWR|O_CREAT,0640)} {
 
-		debug("Creating DB at '",filename,"'");
+		if(Logger::enabled(Logger::Trace)) {
+			cout << "datastore\tStorage " << hex << this << dec << " constructed using " << filename << endl;
+		}
 
 		if(fd < 0) {
 			throw std::system_error(errno,std::system_category(),filename);
@@ -67,6 +73,11 @@
 			::close(fd);
 			fd = -1;
 		}
+
+		if(Logger::enabled(Logger::Trace)) {
+			cout << "datastore\tStorage " << hex << this << dec << " deleted" << endl;
+		}
+
 	}
 
 	size_t DataStore::File::size() {
