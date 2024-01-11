@@ -55,7 +55,7 @@
 			}
 		}
 
-		throw runtime_error(Logger::String{"Unexpected state name '",str,"'"});
+		return DataStore::State::Undefined;
 
 	}
 
@@ -149,8 +149,6 @@
 	}
 
 	std::shared_ptr<Abstract::State> DataStore::Agent::StateFactory(const XML::Node &node) {
-
-		debug("--------------------------------> ",__FUNCTION__);
 
 		const char *name = node.attribute("value").as_string(node.attribute("name").as_string(""));
 

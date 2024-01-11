@@ -53,8 +53,6 @@
 
 			const char *type = child.attribute("type").as_string("string");
 
-			debug("-----------------[",type,"]-------------------------");
-
 			std::shared_ptr<Abstract::Column> col;
 
 			if(!strcasecmp(type,"int")) {

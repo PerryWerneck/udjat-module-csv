@@ -27,12 +27,19 @@
  #include <udjat/tools/xml.h>
  #include <udjat/tools/file/watcher.h>
  #include <udjat/tools/datastore/container.h>
+ #include <iostream>
+
+ using namespace std;
 
  namespace Udjat {
 
 	template <>
 	inline DataStore::State from_xml<DataStore::State>(const XML::Node &node, const DataStore::State, const char *attrname) {
-		return DataStore::StateFactory(node.attribute(attrname).as_string("Undefined"));
+		const char *name = node.attribute(attrname).as_string("");
+		if(!*name) {
+			name = node.attribute("name").as_string("undefined");
+		}
+		return DataStore::StateFactory(name);
 	}
 
 	namespace DataStore {
