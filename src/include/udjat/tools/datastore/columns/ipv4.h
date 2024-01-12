@@ -40,7 +40,7 @@
 		template <>
 		class UDJAT_API Column<in_addr> : public Abstract::Column {
 		public:
-			Column(const XML::Node &node) : Abstract::Column{node} {
+			Column(const XML::Node &node,size_t index) : Abstract::Column{node,index} {
 			}
 
 			size_t length() const noexcept override {

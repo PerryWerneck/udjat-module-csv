@@ -31,8 +31,8 @@
 
  namespace Udjat {
 
-	DataStore::Abstract::Column::Column(const XML::Node &node)
-		: cname{Quark{node,"name","unnamed"}.c_str()} {
+	DataStore::Abstract::Column::Column(const XML::Node &node, size_t i)
+		: cname{Quark{node,"name","unnamed"}.c_str()},index{i} {
 
 		if(node.attribute("primary-key").as_bool(false) || node.attribute("primary").as_bool(false)) {
 			type = Primary;

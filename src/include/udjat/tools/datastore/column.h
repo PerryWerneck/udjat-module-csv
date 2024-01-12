@@ -52,9 +52,10 @@
 
 			protected:
 				const char *cname;
+				size_t index;
 
 			public:
-				Column(const XML::Node &node);
+				Column(const XML::Node &node,size_t index);
 
 				bool operator==(const char *n) const {
 					return strcasecmp(cname,n) == 0;
@@ -121,7 +122,7 @@
 		template <typename T>
 		class UDJAT_API Column : public Abstract::Column {
 		public:
-			Column(const XML::Node &node) : Abstract::Column{node} {
+			Column(const XML::Node &node, size_t index) : Abstract::Column{node,index} {
 			}
 
 			size_t length() const noexcept override {
@@ -146,7 +147,7 @@
 		template <>
 		class UDJAT_API Column<std::string> : public Abstract::Column {
 		public:
-			Column(const XML::Node &node) : Abstract::Column{node} {
+			Column(const XML::Node &node,size_t index) : Abstract::Column{node,index} {
 			}
 
 			size_t length() const noexcept override {

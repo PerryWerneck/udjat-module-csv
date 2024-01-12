@@ -50,6 +50,7 @@
 			throw runtime_error("Required attribute 'path' is missing");
 		}
 
+		size_t index = 0;
 		for(XML::Node child = definition.child("column"); child; child = child.next_sibling("column")) {
 
 			const char *type = child.attribute("type").as_string("string");
@@ -57,19 +58,19 @@
 			std::shared_ptr<Abstract::Column> col;
 
 			if(!strcasecmp(type,"int")) {
-				col = make_shared<Column<int>>(child);
+				col = make_shared<Column<int>>(child,index++);
 
 			} else if(!strcasecmp(type,"uint")) {
-				col = make_shared<Column<unsigned int>>(child);
+				col = make_shared<Column<unsigned int>>(child,index++);
 
 			} else if(!strcasecmp(type,"string")) {
-				col = make_shared<Column<std::string>>(child);
+				col = make_shared<Column<std::string>>(child,index++);
 
 			} else if(!strcasecmp(type,"ipv4")) {
-				col = make_shared<Column<in_addr>>(child);
+				col = make_shared<Column<in_addr>>(child,index++);
 
 			} else if(!strncasecmp(type,"bool",4)) {
-				col = make_shared<Column<bool>>(child);
+				col = make_shared<Column<bool>>(child,index++);
 
 			} else {
 				throw runtime_error(Logger::String{"Unexpected column type: ",type});
