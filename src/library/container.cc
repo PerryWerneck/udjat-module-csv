@@ -31,13 +31,14 @@
  #include <udjat/tools/object.h>
  #include <udjat/tools/timestamp.h>
  #include <private/structs.h>
+ #include <udjat/tools/quark.h>
 
  using namespace std;
 
  namespace Udjat {
 
 	DataStore::Container::Container(const XML::Node &definition)
-		: name{Quark{definition,"name","",false}.c_str()},
+		: name{Quark{definition,"name"}.c_str()},
 			path{Object::getAttribute(definition,"sources-from","")},
 			filespec{Object::getAttribute(definition,"sources-file-filter",".*")} {
 
@@ -76,7 +77,7 @@
 
 			cols.push_back(col);
 
-			for(auto alias : String{child,"aliases","",false}.split(",")) {
+			for(auto alias : String{child,"aliases",""}.split(",")) {
 				alias.strip();
 				if(!alias.empty()) {
 					aliases.emplace_back(alias.as_quark(),col);

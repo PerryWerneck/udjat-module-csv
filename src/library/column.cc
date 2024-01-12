@@ -27,11 +27,12 @@
  #include <udjat/tools/datastore/column.h>
  #include <udjat/tools/string.h>
  #include <udjat/tools/logger.h>
+ #include <udjat/tools/quark.h>
 
  namespace Udjat {
 
 	DataStore::Abstract::Column::Column(const XML::Node &node)
-		: cname{Quark{node,"name","unnamed",false}.c_str()} {
+		: cname{Quark{node,"name","unnamed"}.c_str()} {
 
 		if(node.attribute("primary-key").as_bool(false) || node.attribute("primary").as_bool(false)) {
 			type = Primary;
