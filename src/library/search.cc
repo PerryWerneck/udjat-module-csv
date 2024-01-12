@@ -24,6 +24,7 @@
  #include <config.h>
  #include <config.h>
  #include <udjat/tools/datastore/container.h>
+ #include <udjat/tools/datastore/column.h>
  #include <udjat/tools/logger.h>
  #include <private/structs.h>
  #include <stdexcept>
@@ -178,8 +179,7 @@
 		}
 
 		// Compare using only the selected column.
-		//return cols[filter.column]->comp(file,ptr[filter.column],key);
-		return 1;
+		return cols[filter.column]->comp(row,key);
 
 	}
 

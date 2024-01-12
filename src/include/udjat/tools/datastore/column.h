@@ -102,7 +102,11 @@
 
 				/// @brief Load and compare two values.
 				/// @return True if loffset < roffset.
-				virtual bool comp(std::shared_ptr<File> file, size_t loffset, size_t roffset);
+				virtual bool comp(std::shared_ptr<File> file, const size_t *lrow, const size_t *rrow) const;
+
+				/// @brief Compare column with string.
+				/// @return Result of test (strcasecmp)
+				virtual int comp(std::shared_ptr<File> file, const size_t *offset, const char *key) const;
 
 				/// @brief Convert datablock to string.
 				virtual std::string convert(const void *datablock) const = 0;
@@ -114,13 +118,10 @@
 
 				std::string to_string(const void *datablock) const;
 
-				virtual std::string to_string(std::shared_ptr<File> file, size_t offset);
+				virtual std::string to_string(std::shared_ptr<File> file, size_t offset) const;
 
-				virtual std::string to_string(std::shared_ptr<File> file, const size_t *row);
+				virtual std::string to_string(std::shared_ptr<File> file, const size_t *row) const;
 
-				/// @brief Compare column with string.
-				/// @return Result of test (strcasecmp)
-				virtual int comp(std::shared_ptr<File> file, size_t offset, const char *key);
 
 			};
 

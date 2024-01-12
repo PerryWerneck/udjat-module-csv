@@ -274,7 +274,7 @@
 						std::sort(records.begin(),records.end(),
 							[this,file,ix,off](size_t l, size_t h){
 
-								return container.columns()[ix]->comp(file,file->get<size_t>(l+off),file->get<size_t>(h+off));
+								return container.columns()[ix]->comp(file,file->get_ptr<size_t>(l),file->get_ptr<size_t>(h));
 
 							}
 						);

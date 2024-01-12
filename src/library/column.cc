@@ -65,11 +65,11 @@
 		return str;
 	}
 
-	int DataStore::Abstract::Column::comp(std::shared_ptr<File> file, size_t offset, const char *key) {
+	int DataStore::Abstract::Column::comp(std::shared_ptr<File> file, const size_t *offset, const char *key) const {
 		return strncasecmp(to_string(file,offset).c_str(),key,strlen(key));
 	}
 
-	std::string DataStore::Abstract::Column::to_string(std::shared_ptr<File> file, size_t offset) {
+	std::string DataStore::Abstract::Column::to_string(std::shared_ptr<File> file, size_t offset) const {
 
 		if(!offset) {
 			return "";
@@ -82,24 +82,24 @@
 		return file->get_ptr<char>(offset);
 	}
 
-	bool DataStore::Abstract::Column::comp(std::shared_ptr<File> file, size_t loffset, size_t roffset) {
+	bool DataStore::Abstract::Column::comp(std::shared_ptr<File> file, const size_t *lrow, const size_t *rrow) const {
 
 		size_t len = length();
 		if(len) {
 
 			// It's a data block
 			char ldata[len];
-			file->read(loffset,ldata,len);
+			file->read(lrow[index],ldata,len);
 
 			char rdata[len];
-			file->read(roffset,rdata,len);
+			file->read(rrow[index],rdata,len);
 
 			return comp(ldata,rdata);
 
 		}
 
 		// It's an string
-		return comp(file->read(loffset).c_str(),file->read(roffset).c_str());
+		return comp(file->read(lrow[index]).c_str(),file->read(rrow[index]).c_str());
 
 	}
 
@@ -112,7 +112,7 @@
 	}
 
 
-	std::string DataStore::Abstract::Column::to_string(std::shared_ptr<File> file, const size_t *row) {
+	std::string DataStore::Abstract::Column::to_string(std::shared_ptr<File> file, const size_t *row) const {
 		return to_string(file,row[index]);
 	}
 
