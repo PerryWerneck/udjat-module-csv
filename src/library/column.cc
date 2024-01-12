@@ -65,14 +65,6 @@
 		return str;
 	}
 
-	std::string DataStore::Abstract::Column::to_string(const void *datablock) const {
-		String str{convert(datablock)};
-		if(format.length) {
-			apply_layout(str);
-		}
-		return str;
-	}
-
 	int DataStore::Abstract::Column::comp(std::shared_ptr<File> file, size_t offset, const char *key) {
 		return strncasecmp(to_string(file,offset).c_str(),key,strlen(key));
 	}
@@ -109,6 +101,19 @@
 		// It's an string
 		return comp(file->read(loffset).c_str(),file->read(roffset).c_str());
 
+	}
+
+	std::string DataStore::Abstract::Column::to_string(const void *datablock) const {
+		String str{convert(datablock)};
+		if(format.length) {
+			apply_layout(str);
+		}
+		return str;
+	}
+
+
+	std::string DataStore::Abstract::Column::to_string(std::shared_ptr<File> file, const size_t *row) {
+		return to_string(file,row[index]);
 	}
 
  }

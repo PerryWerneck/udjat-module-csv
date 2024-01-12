@@ -80,6 +80,11 @@
 					return format.length != 0 && format.leftchar != 0;
 				}
 
+				/// @brief Get column offset.
+				inline size_t offset(const size_t *rowptr) const noexcept {
+					return rowptr[index];
+				}
+
 				/// @brief Get the size of data-block for this column.
 				/// @retval 0 The data-block is a string.
 				virtual size_t length() const noexcept = 0;
@@ -110,6 +115,8 @@
 				std::string to_string(const void *datablock) const;
 
 				virtual std::string to_string(std::shared_ptr<File> file, size_t offset);
+
+				virtual std::string to_string(std::shared_ptr<File> file, const size_t *row);
 
 				/// @brief Compare column with string.
 				/// @return Result of test (strcasecmp)

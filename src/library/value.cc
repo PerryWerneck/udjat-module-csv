@@ -24,6 +24,8 @@
  #include <config.h>
  #include <udjat/defs.h>
  #include <udjat/tools/value.h>
+ #include <udjat/tools/datastore/column.h>
+ #include <udjat/tools/logger.h>
  #include <private/value.h>
  #include <string>
 
@@ -31,21 +33,13 @@
 
  namespace Udjat {
 
-	bool DataStore::Value::isNull() const {
-		return offset == 0;
-	}
-
 	bool DataStore::Value::isNumber() const {
 
 		if(col->length() == 0 || col->formatted()) {
 			return false;
 		}
 
-		if(!offset) {
-			return false;
-		}
-
-		string str = col->to_string(file,offset);
+		string str = col->to_string(file,rowptr);
 		for(const char *ptr = str.c_str();*ptr;ptr++) {
 			if(*ptr < '0' || *ptr > '9') {
 				return false;
@@ -56,11 +50,7 @@
 	}
 
 	const Udjat::Value & DataStore::Value::get(std::string &value) const {
-		if(offset) {
-			value = col->to_string(file,offset);
-		} else {
-			value.clear();
-		}
+		value = col->to_string(file,rowptr);
 		return *this;
 	}
 

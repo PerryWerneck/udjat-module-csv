@@ -40,6 +40,13 @@
 			path++;
 		}
 
+		if(!strncasecmp(path,"row/",4)) {
+			// Search by path.
+			Container::Iterator it{container.begin()};
+			it += atoi(path+4);
+			return it;
+		}
+
 		const char *mark = strchr(path,'/');
 
 		if(!mark) {
@@ -60,9 +67,9 @@
 	bool DataStore::Container::get(const char *path, Udjat::Value &value) const {
 
 		// It's asking for a single row??
-		if(strncasecmp(path,"rownumber/",10) == 0) {
+		if(strncasecmp(path,"row/",4) == 0) {
 			Container::Iterator it{begin()};
-			it.set(atoi(path+10)-1);
+			it.set(atoi(path+4)-1);
 			return it;
 		}
 
@@ -124,7 +131,7 @@
 
 	int DataStore::Container::Iterator::compare(const char *key) const {
 
-		const size_t *ptr = rowptr();
+		const size_t *row = rowptr();
 
 		if(filter.column == (uint16_t) -1) {
 
@@ -135,7 +142,10 @@
 				if(col->key()) {
 
 					// It's a primary column, test it.
-					string value{col->to_string(file,*ptr)};
+					string value{col->to_string(file,row)};
+
+					debug("col: '",value,"' key: '",key,"'");
+
 					size_t keylen = strlen(key);
 
 					if(keylen < value.size()) {
@@ -161,7 +171,6 @@
 					}
 
 				}
-				ptr++;
 			}
 
 			return 1;
@@ -169,7 +178,8 @@
 		}
 
 		// Compare using only the selected column.
-		return cols[filter.column]->comp(file,ptr[filter.column],key);
+		//return cols[filter.column]->comp(file,ptr[filter.column],key);
+		return 1;
 
 	}
 

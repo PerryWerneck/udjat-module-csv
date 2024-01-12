@@ -35,14 +35,13 @@
 		private:
 			std::shared_ptr<File> file;
 			std::shared_ptr<Abstract::Column> col;
-			size_t offset = 0;
+			const size_t *rowptr;
 
 		public:
-			Value(std::shared_ptr<File> f, std::shared_ptr<Abstract::Column> c, size_t o = 0)
-				: file{f}, col{c}, offset{o} {
+			Value(std::shared_ptr<File> f, std::shared_ptr<Abstract::Column> c, const size_t *r)
+				: file{f}, col{c}, rowptr{r} {
 			}
 
-			bool isNull() const override;
 			bool isNumber() const override;
 			const Udjat::Value & get(std::string &value) const override;
 

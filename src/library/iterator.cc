@@ -33,6 +33,10 @@
 
 	DataStore::Container::Iterator DataStore::Container::begin() const {
 
+		if(!loaded()) {
+			throw runtime_error("Container was not loaded");
+		}
+
 		// Standard iterator, uses primary index
 		Iterator it{*this};
 
@@ -228,13 +232,10 @@
 
 	std::string DataStore::Container::Iterator::operator[](const char *name) const {
 
-		const size_t *ptr = rowptr();
-
 		for(auto col : cols) {
 			if(!strcasecmp(col->name(),name)) {
-				return col->to_string(file,*ptr);
+				return col->to_string(file,rowptr());
 			}
-			ptr++;
 		}
 
 		Logger::String{"Unexpected column '",name,"', returning empty string"}.warning("datastore");
@@ -251,8 +252,8 @@
 		// Get all columns.
 		const size_t *ptr = rowptr();
 		for(auto col : cols) {
-			value[col->name()] = col->to_string(file,*ptr);
-			ptr++;
+			debug(col->name(),"='",col->to_string(file,ptr),"'");
+			value[col->name()] = col->to_string(file,ptr);
 		}
 
 		return value;
