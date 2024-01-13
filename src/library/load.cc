@@ -137,7 +137,7 @@
 				if(container.columns()[col]->key() && l.data[col] != h.data[col]) {
 
 					// Not the same vale, compare.
-					return container.columns()[col]->comp(file,l.data,h.data);
+					return container.columns()[col]->less(file,l.data,h.data);
 
 					/*
 					size_t length = container.columns()[col]->length();
@@ -279,7 +279,7 @@
 						std::sort(records.begin(),records.end(),
 							[this,file,ix,off](size_t l, size_t h){
 
-								return container.columns()[ix]->comp(file,file->get_ptr<size_t>(l),file->get_ptr<size_t>(h));
+								return container.columns()[ix]->less(file,file->get_ptr<size_t>(l),file->get_ptr<size_t>(h));
 
 							}
 						);

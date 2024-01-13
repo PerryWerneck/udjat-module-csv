@@ -39,6 +39,11 @@
 
 		template <>
 		class UDJAT_API Column<in_addr> : public Abstract::Column {
+		protected:
+			bool less(const void *lhs, const void *rhs) const override {
+				return htonl(((const in_addr *) lhs)->s_addr) < htonl(((const in_addr *) rhs)->s_addr);
+			}
+
 		public:
 			Column(const XML::Node &node,size_t index) : Abstract::Column{node,index} {
 			}
@@ -56,10 +61,6 @@
 					throw std::runtime_error(Logger::String{"Invalid IPV4 '",text,"'"});
 				}
 				return store.insert(&addr,sizeof(addr));
-			}
-
-			bool comp(const void *lhs, const void *rhs) const override {
-				return htonl(((const in_addr *) lhs)->s_addr) < htonl(((const in_addr *) rhs)->s_addr);
 			}
 
 			std::string convert(const void *datablock) const override {

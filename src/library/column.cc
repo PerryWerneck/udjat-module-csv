@@ -82,7 +82,7 @@
 		return file->get_ptr<char>(offset);
 	}
 
-	bool DataStore::Abstract::Column::comp(std::shared_ptr<File> file, const size_t *lrow, const size_t *rrow) const {
+	bool DataStore::Abstract::Column::less(std::shared_ptr<File> file, const size_t *lrow, const size_t *rrow) const {
 
 		size_t len = length();
 		if(len) {
@@ -94,12 +94,12 @@
 			char rdata[len];
 			file->read(rrow[index],rdata,len);
 
-			return comp(ldata,rdata);
+			return less(ldata,rdata);
 
 		}
 
 		// It's an string
-		return comp(file->read(lrow[index]).c_str(),file->read(rrow[index]).c_str());
+		return less(file->read(lrow[index]).c_str(),file->read(rrow[index]).c_str());
 
 	}
 

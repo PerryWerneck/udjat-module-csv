@@ -59,7 +59,7 @@
 				/// @brief Compare two values.
 				/// @see std::less
 				/// @return True if *lhs < *rhs
-				virtual bool comp(const void *lhs, const void *rhs) const = 0;
+				virtual bool less(const void *lhs, const void *rhs) const = 0;
 
 			public:
 				Column(const XML::Node &node,size_t index);
@@ -105,7 +105,7 @@
 				/// @brief Load and compare two values, used while loading.
 				/// @param file The file being loaded.
 				/// @return True if loffset < roffset.
-				virtual bool comp(std::shared_ptr<File> file, const size_t *lrow, const size_t *rrow) const;
+				virtual bool less(std::shared_ptr<File> file, const size_t *lrow, const size_t *rrow) const;
 
 				/// @brief Compare column with string.
 				/// @return Result of test (strcasecmp)
@@ -130,6 +130,13 @@
 
 		template <typename T>
 		class UDJAT_API Column : public Abstract::Column {
+		protected:
+
+			bool less(const void *lhs, const void *rhs) const override {
+				return *((T *) lhs) < *((T *) rhs);
+			}
+
+
 		public:
 			Column(const XML::Node &node, size_t index) : Abstract::Column{node,index} {
 			}
@@ -143,10 +150,6 @@
 				return store.insert(&value,sizeof(value));
 			}
 
-			bool comp(const void *lhs, const void *rhs) const override {
-				return *((T *) lhs) < *((T *) rhs);
-			}
-
 			std::string convert(const void *datablock) const override {
 				return std::to_string(*((T *) datablock));
 			}
@@ -155,6 +158,11 @@
 
 		template <>
 		class UDJAT_API Column<std::string> : public Abstract::Column {
+		protected:
+			bool less(const void *lhs, const void *rhs) const override {
+				return strcasecmp((const char *) lhs, (const char *) rhs) < 0;
+			}
+
 		public:
 			Column(const XML::Node &node,size_t index) : Abstract::Column{node,index} {
 			}
@@ -165,10 +173,6 @@
 
 			size_t store(Deduplicator &store, const char *text) const override {
 				return store.insert(text,strlen(text)+1);
-			}
-
-			bool comp(const void *lhs, const void *rhs) const override {
-				return strcasecmp((const char *) lhs, (const char *) rhs) < 0;
 			}
 
 			std::string convert(const void *datablock) const override {
