@@ -262,16 +262,15 @@
 	std::string DataStore::Container::Iterator::to_string() const {
 
 		std::string rc;
-		const size_t *ptr = rowptr();
+		const size_t *row = rowptr();
 
 		for(auto col : cols) {
 			if(col->key()) {
 				if(!rc.empty()) {
 					rc += " ";
 				}
-				rc += col->to_string(file,*ptr);
+				rc += col->to_string(file,row);
 			}
-			ptr++;
 		}
 		return rc;
 

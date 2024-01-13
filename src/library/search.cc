@@ -179,7 +179,7 @@
 		}
 
 		// Compare using only the selected column.
-		return cols[filter.column]->comp(row,key);
+		return cols[filter.column]->comp(file,row,key);
 
 	}
 

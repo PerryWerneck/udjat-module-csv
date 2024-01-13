@@ -54,6 +54,13 @@
 				const char *cname;
 				size_t index;
 
+				virtual std::string to_string(std::shared_ptr<File> file, size_t offset) const;
+
+				/// @brief Compare two values.
+				/// @see std::less
+				/// @return True if *lhs < *rhs
+				virtual bool comp(const void *lhs, const void *rhs) const = 0;
+
 			public:
 				Column(const XML::Node &node,size_t index);
 
@@ -95,18 +102,14 @@
 				/// @return Offset of the stored data.
 				virtual size_t store(Deduplicator &destination, const char *text) const = 0;
 
-				/// @brief Compare two values.
-				/// @see std::less
-				/// @return True if *lhs < *rhs
-				virtual bool comp(const void *lhs, const void *rhs) const = 0;
-
-				/// @brief Load and compare two values.
+				/// @brief Load and compare two values, used while loading.
+				/// @param file The file being loaded.
 				/// @return True if loffset < roffset.
 				virtual bool comp(std::shared_ptr<File> file, const size_t *lrow, const size_t *rrow) const;
 
 				/// @brief Compare column with string.
 				/// @return Result of test (strcasecmp)
-				virtual int comp(std::shared_ptr<File> file, const size_t *offset, const char *key) const;
+				virtual int comp(std::shared_ptr<File> file, const size_t *row, const char *key) const;
 
 				/// @brief Convert datablock to string.
 				virtual std::string convert(const void *datablock) const = 0;
@@ -117,8 +120,6 @@
 				const std::string & apply_layout(std::string &str) const;
 
 				std::string to_string(const void *datablock) const;
-
-				virtual std::string to_string(std::shared_ptr<File> file, size_t offset) const;
 
 				virtual std::string to_string(std::shared_ptr<File> file, const size_t *row) const;
 

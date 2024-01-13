@@ -137,6 +137,9 @@
 				if(container.columns()[col]->key() && l.data[col] != h.data[col]) {
 
 					// Not the same vale, compare.
+					return container.columns()[col]->comp(file,l.data,h.data);
+
+					/*
 					size_t length = container.columns()[col]->length();
 					if(length) {
 
@@ -147,6 +150,7 @@
 						file->read(l.data[col],lval,length);
 						file->read(h.data[col],hval,length);
 
+						#error use row comp(file,lrow,hrow)
 						return container.columns()[col]->comp(lval,hval);
 
 					} else {
@@ -154,6 +158,7 @@
 						// TODO: Test string.
 						return false;
 					}
+					*/
 
 				}
 
