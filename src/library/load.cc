@@ -210,7 +210,7 @@
 
 				// Parse fields
 				for(const auto &item : map) {
-					record.data[item.to] = tocols[item.to]->store(deduplicator, values[item.from].strip().c_str());
+					record.data[item.to] = tocols[item.to]->save(deduplicator, values[item.from].strip().c_str());
 				}
 
 				// Search

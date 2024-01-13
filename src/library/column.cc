@@ -103,17 +103,23 @@
 
 	}
 
+	/*
 	std::string DataStore::Abstract::Column::to_string(const void *datablock) const {
-		String str{convert(datablock)};
+		String str{to_string(datablock)};
 		if(format.length) {
 			apply_layout(str);
 		}
 		return str;
 	}
+	*/
 
 
 	std::string DataStore::Abstract::Column::to_string(std::shared_ptr<File> file, const size_t *row) const {
-		return to_string(file,row[index]);
+		std::string str{to_string(file,row[index])};
+		if(format.length) {
+			apply_layout(str);
+		}
+		return str;
 	}
 
  }

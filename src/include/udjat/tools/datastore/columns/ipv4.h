@@ -44,6 +44,10 @@
 				return htonl(((const in_addr *) lhs)->s_addr) < htonl(((const in_addr *) rhs)->s_addr);
 			}
 
+			std::string to_string(const void *datablock) const override {
+				return std::to_string(*((in_addr *) datablock));
+			}
+
 		public:
 			Column(const XML::Node &node,size_t index) : Abstract::Column{node,index} {
 			}
@@ -52,7 +56,7 @@
 				return sizeof(in_addr);
 			};
 
-			size_t store(Deduplicator &store, const char *text) const override {
+			size_t save(Deduplicator &store, const char *text) const override {
 
 				// FIXME: Is the deduplication really usefull here?
 
@@ -61,10 +65,6 @@
 					throw std::runtime_error(Logger::String{"Invalid IPV4 '",text,"'"});
 				}
 				return store.insert(&addr,sizeof(addr));
-			}
-
-			std::string convert(const void *datablock) const override {
-				return std::to_string(*((in_addr *) datablock));
 			}
 
 		};

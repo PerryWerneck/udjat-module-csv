@@ -61,6 +61,11 @@
 				/// @return True if *lhs < *rhs
 				virtual bool less(const void *lhs, const void *rhs) const = 0;
 
+				/// @brief Convert datablock to string.
+				//virtual std::string convert(const void *datablock) const = 0;
+
+				virtual std::string to_string(const void *datablock) const = 0;
+
 			public:
 				Column(const XML::Node &node,size_t index);
 
@@ -100,7 +105,7 @@
 				/// @param destination The deduplicator used to store the data.
 				/// @param text The string to store.
 				/// @return Offset of the stored data.
-				virtual size_t store(Deduplicator &destination, const char *text) const = 0;
+				virtual size_t save(Deduplicator &destination, const char *text) const = 0;
 
 				/// @brief Load and compare two values, used while loading.
 				/// @param file The file being loaded.
@@ -111,18 +116,12 @@
 				/// @return Result of test (strcasecmp)
 				virtual int comp(std::shared_ptr<File> file, const size_t *row, const char *key) const;
 
-				/// @brief Convert datablock to string.
-				virtual std::string convert(const void *datablock) const = 0;
-
 				/// @brief Format string.
 				/// @param str String to format.
 				/// @return str
 				const std::string & apply_layout(std::string &str) const;
 
-				std::string to_string(const void *datablock) const;
-
 				virtual std::string to_string(std::shared_ptr<File> file, const size_t *row) const;
-
 
 			};
 
@@ -136,6 +135,13 @@
 				return *((T *) lhs) < *((T *) rhs);
 			}
 
+			std::string to_string(const void *datablock) const override {
+				return std::to_string(*((T *) datablock));
+			}
+
+			virtual size_t write(Deduplicator &store, const T &value) const {
+				return store.insert(&value,sizeof(value));
+			}
 
 		public:
 			Column(const XML::Node &node, size_t index) : Abstract::Column{node,index} {
@@ -145,13 +151,8 @@
 				return sizeof(T);
 			};
 
-			size_t store(Deduplicator &store, const char *text) const override {
-				T value{Udjat::from_string<T>(text)};
-				return store.insert(&value,sizeof(value));
-			}
-
-			std::string convert(const void *datablock) const override {
-				return std::to_string(*((T *) datablock));
+			size_t save(Deduplicator &store, const char *text) const override {
+				return write(store,Udjat::from_string<T>(text));
 			}
 
 		};
@@ -163,6 +164,10 @@
 				return strcasecmp((const char *) lhs, (const char *) rhs) < 0;
 			}
 
+			std::string to_string(const void *datablock) const override {
+				return std::string{datablock ? (const char *) datablock : ""};
+			}
+
 		public:
 			Column(const XML::Node &node,size_t index) : Abstract::Column{node,index} {
 			}
@@ -171,12 +176,8 @@
 				return 0;
 			};
 
-			size_t store(Deduplicator &store, const char *text) const override {
+			size_t save(Deduplicator &store, const char *text) const override {
 				return store.insert(text,strlen(text)+1);
-			}
-
-			std::string convert(const void *datablock) const override {
-				return std::string{datablock ? (const char *) datablock : ""};
 			}
 
 		};
