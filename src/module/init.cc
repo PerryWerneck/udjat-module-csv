@@ -71,12 +71,11 @@
 			{
 				time_t timestamp = db->last_modified();
 				response.last_modified(timestamp);
-
 				if(request.cached(timestamp)) {
-					debug("----------------------------> NOT MODIFIED");
-					// return response.not_modified();
+					debug("-----------------------------------------> NOT MODIFIED");
+					response.not_modified(true);
+					return true;
 				}
-
 			}
 
 			request.pop();	// Remove db name.
