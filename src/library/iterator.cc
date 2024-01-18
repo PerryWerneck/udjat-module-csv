@@ -111,10 +111,6 @@
 	DataStore::Container::Iterator::~Iterator() {
 	}
 
-	size_t DataStore::Container::Iterator::count() const {
-		return ixptr[0];
-	}
-
 	DataStore::Container::Iterator & DataStore::Container::Iterator::set(size_t id) {
 		if(id > ixptr[0]) {
 			id = ixptr[0];
@@ -156,6 +152,25 @@
 			return filter.key.empty() || (compare(filter.key.c_str()) == 0);
 		}
 		return false;
+	}
+
+	size_t DataStore::Container::Iterator::count() {
+
+		if(filter.key.empty()) {
+			// No filter, use index count.
+			return ixptr[0];
+		}
+
+		// Have filter, count.
+		size_t saved_row{row};
+
+		while(*this) {
+			row++;
+		}
+
+		size_t rc{row-saved_row};
+		row = saved_row; // Restore row.
+		return rc;
 	}
 
 	DataStore::Container::Iterator& DataStore::Container::Iterator::operator++() {

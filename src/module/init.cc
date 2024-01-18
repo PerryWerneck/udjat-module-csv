@@ -20,10 +20,13 @@
  #include <config.h>
  #include <udjat/defs.h>
  #include <udjat/module.h>
- #include <udjat/worker.h>
+ #include <udjat/tools/worker.h>
  #include <udjat/factory.h>
  #include <udjat/tools/intl.h>
+ #include <udjat/tools/request.h>
+ #include <udjat/tools/abstract/response.h>
  #include <udjat/agent/datastore.h>
+ #include <udjat/tools/datastore/container.h>
  #include <stdexcept>
 
  using namespace Udjat;
@@ -44,8 +47,54 @@
 		~Module() {
 		}
 
-		bool work(Request &request, Response::Value &response) const override {
+		Worker::ResponseType probe(const Request &request) const noexcept override {
+
+			debug(__FUNCTION__,"----------------------------------(",request.path(),")");
+			if(DataStore::Container::find(request)) {
+				debug("Accepting request '",request.path(),"'");
+				return ResponseType::Table;
+			}
+
+			debug("Rejecting request '",request.path(),"'");
+			return ResponseType::None;
+		}
+
+		bool work(Request &request, Response::Table &response) const override {
+
+			debug(__FUNCTION__,"('",request.path(),"')");
+
+			auto db = DataStore::Container::find(request);
+			if(!db) {
+				return false;
+			}
+
+			{
+				time_t timestamp = db->last_modified();
+				response.last_modified(timestamp);
+
+				if(request.cached(timestamp)) {
+					debug("----------------------------> NOT MODIFIED");
+					// return response.not_modified();
+				}
+
+			}
+
+			request.pop();
+
+			if( ((HTTP::Method) request) == HTTP::Get) {
+
+				debug("HTTP GET");
+				return db->get(request.path(),response);
+
+			} else if( ((HTTP::Method) request) == HTTP::Head) {
+
+				debug("HTTP HEAD");
+				return db->head(request.path(),response);
+
+			}
+
 			return false;
+
 		}
 
 		// Udjat::Factory

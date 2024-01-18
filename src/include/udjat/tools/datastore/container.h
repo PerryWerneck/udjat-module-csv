@@ -30,6 +30,7 @@
  #include <udjat/tools/converters.h>
  #include <udjat/tools/response.h>
  #include <udjat/tools/report.h>
+ #include <udjat/tools/request.h>
  #include <vector>
  #include <iterator>
 
@@ -109,7 +110,7 @@
 				Iterator(Iterator &src, size_t id);
 				~Iterator();
 
-				size_t count() const;
+				size_t count();
 
 				Iterator& set(size_t id = 0);
 
@@ -169,6 +170,15 @@
 			/// @brief Build container from XML node.
 			Container(const XML::Node &node);
 			~Container();
+
+			inline bool operator==(const char *name) const noexcept {
+				return strcasecmp(name,this->name) == 0;
+			}
+
+			/// @brief Get datastore by request.
+			/// @param name The name of required datastore.
+			/// @return nullptr if not found.
+			static Container * find(const Request &request);
 
 			inline const char *id() const noexcept {
 				return name;
@@ -232,18 +242,13 @@
 
 			/// @brief Get values from search path.
 			/// @param path The path for the required resource.
-			/// @param value The containser to responses.
+			/// @param value The container to responses.
 			/// @return true if value was updated.
 			bool get(const char *path, Udjat::Response::Table &value) const;
 
-		protected:
-
-			/// @brief Get record from index.
-			/// @param offset The offset for the requested index.
-			/// @param key The key to search.
-			/// @param The path for required resource.
-			/// @return The requested resource.
-			// const Resource find(size_t offset, const char *key) const;
+			/// @brief Count number of responses.
+			/// @param path The path for the required resource.
+			bool head(const char *path, Udjat::Abstract::Response &response) const;
 
 		};
 

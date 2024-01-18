@@ -30,12 +30,22 @@
  #include <udjat/tools/datastore/columns/ipv4.h>
  #include <udjat/tools/object.h>
  #include <udjat/tools/timestamp.h>
+ #include <udjat/tools/singleton.h>
  #include <private/structs.h>
  #include <udjat/tools/quark.h>
 
  using namespace std;
 
  namespace Udjat {
+
+	class Controller : public Singleton::Container<DataStore::Container> {
+	public:
+		static Controller & getInstance() {
+			static Controller instance;
+			return instance;
+		}
+
+	} containers;
 
 	DataStore::Container::Container(const XML::Node &definition)
 		: name{Quark{definition,"name"}.c_str()},
@@ -87,12 +97,28 @@
 
 		}
 
+		containers.getInstance().push_back(this);
 	}
 
 	DataStore::Container::~Container() {
+		containers.getInstance().remove(this);
 	}
 
 	void DataStore::Container::state(const State) {
+	}
+
+	DataStore::Container * DataStore::Container::find(const Request &request) {
+
+		const char *path = request.path();
+		while(*path && *path == '/') {
+			path++;
+		}
+
+		const char *ptr = strchr(path,'/');
+		if(ptr) {
+			return containers.getInstance().find(string{path,(size_t)(ptr-path)}.c_str());
+		}
+		return containers.getInstance().find(path);
 	}
 
 	size_t DataStore::Container::size() const {

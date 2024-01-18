@@ -23,6 +23,7 @@
 
  #include <config.h>
  #include <config.h>
+ #include <udjat/tools/abstract/response.h>
  #include <udjat/tools/datastore/container.h>
  #include <udjat/tools/datastore/column.h>
  #include <udjat/tools/logger.h>
@@ -90,7 +91,10 @@
 		Container::Iterator it{get_path(*this,path)};
 
 		if(it) {
-			// TODO: Set value for last_modified()
+
+			value.last_modified(last_modified());
+			value.count(it.count());
+
 			it.get(value);
 			return true;
 		}
@@ -101,12 +105,15 @@
 
 	bool DataStore::Container::get(const char *path, Udjat::Response::Table &value) const {
 
+		debug(__FUNCTION__,"('",path,"')");
+
 		Container::Iterator it{get_path(*this,path)};
 		if(!it) {
 			return false;
 		}
 
-		// Todo: Setup last_modified()
+		value.last_modified(last_modified());
+		value.count(it.count());
 
 		// Start report
 		std::vector<std::string> column_names;
@@ -128,6 +135,19 @@
 
 		return true;
 
+	}
+
+	bool DataStore::Container::head(const char *path, Udjat::Abstract::Response &response) const {
+
+		Container::Iterator it{get_path(*this,path)};
+		if(!it) {
+			return false;
+		}
+
+		response.last_modified(last_modified());
+		response.count(it.count());
+
+		return true;
 	}
 
 	int DataStore::Container::Iterator::compare(const char *key) const {
