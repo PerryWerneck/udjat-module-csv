@@ -56,7 +56,7 @@
 			const char *name;
 			const char *path;
 
-			time_t expires = 3600;
+			time_t expires;
 
 			/// @brief The current file holding the real data.
 			std::shared_ptr<File> active_file;

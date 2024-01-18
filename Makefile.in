@@ -6,6 +6,7 @@ PACKAGE_NAME=@PACKAGE_NAME@
 MAIN_SOURCES= \
 	$(wildcard src/library/*.cc) \
 	$(wildcard src/library/loaders/*.cc) \
+	$(wildcard src/library/columns/*.cc) \
 	$(wildcard src/library/os/@OSNAME@/*.cc) \
 	$(wildcard src/module/*.cc) \
 

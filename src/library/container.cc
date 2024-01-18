@@ -49,8 +49,8 @@
 
 	DataStore::Container::Container(const XML::Node &definition)
 		: name{Quark{definition,"name"}.c_str()},
-			expires{XML::AttributeFactory(definition,"max-age").as_uint(3600)},
 			path{Object::getAttribute(definition,"sources-from","")},
+			expires{XML::AttributeFactory(definition,"max-age").as_uint(3600)},
 			filespec{Object::getAttribute(definition,"sources-file-filter",".*")} {
 
 		if(!*name) {

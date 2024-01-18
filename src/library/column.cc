@@ -28,6 +28,9 @@
  #include <udjat/tools/string.h>
  #include <udjat/tools/logger.h>
  #include <udjat/tools/quark.h>
+ #include <stdexcept>
+
+ using namespace std;
 
  namespace Udjat {
 
@@ -121,6 +124,15 @@
 		}
 		return str;
 	}
+
+	bool DataStore::Abstract::Column::less(const void *, const void *) const {
+		throw logic_error(Logger::String{"Cant call ",__FUNCTION__," with datablock on column '",name(),"'"});
+	}
+
+	std::string DataStore::Abstract::Column::to_string(const void *datablock) const {
+		throw logic_error(Logger::String{"Cant call ",__FUNCTION__," with datablock on column '",name(),"'"});
+	}
+
 
  }
 

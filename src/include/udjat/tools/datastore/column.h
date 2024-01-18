@@ -59,12 +59,10 @@
 				/// @brief Compare two values.
 				/// @see std::less
 				/// @return True if *lhs < *rhs
-				virtual bool less(const void *lhs, const void *rhs) const = 0;
+				virtual bool less(const void *lhs, const void *rhs) const;
 
 				/// @brief Convert datablock to string.
-				//virtual std::string convert(const void *datablock) const = 0;
-
-				virtual std::string to_string(const void *datablock) const = 0;
+				virtual std::string to_string(const void *datablock) const;
 
 			public:
 				Column(const XML::Node &node,size_t index);
