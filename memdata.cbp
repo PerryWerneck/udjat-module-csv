@@ -50,6 +50,7 @@
 		<Unit filename="src/library/agent.cc" />
 		<Unit filename="src/library/block.cc" />
 		<Unit filename="src/library/column.cc" />
+		<Unit filename="src/library/columns/int32.cc" />
 		<Unit filename="src/library/columns/ipv4.cc" />
 		<Unit filename="src/library/container.cc" />
 		<Unit filename="src/library/deduplicator.cc" />

@@ -39,18 +39,6 @@
 
 		template <>
 		class UDJAT_API Column<in_addr> : public Abstract::Column {
-		protected:
-
-			/*
-			bool less(const void *lhs, const void *rhs) const override {
-				return htonl(((const in_addr *) lhs)->s_addr) < htonl(((const in_addr *) rhs)->s_addr);
-			}
-
-			std::string to_string(const void *datablock) const override {
-				return std::to_string(*((in_addr *) datablock));
-			}
-			*/
-
 		public:
 			Column(const XML::Node &node,size_t index) : Abstract::Column{node,index} {
 			}
@@ -60,11 +48,8 @@
 			};
 
 			size_t save(Deduplicator &store, const char *text) const override;
-
 			int comp(std::shared_ptr<File> file, const size_t *row, const char *key) const override;
-
 			bool less(std::shared_ptr<File> file, const size_t *lrow, const size_t *rrow) const override;
-
 			std::string to_string(std::shared_ptr<File> file, const size_t *row) const;
 
 		};

@@ -156,6 +156,40 @@
 		};
 
 		template <>
+		class UDJAT_API Column<int32_t> : public Abstract::Column {
+		public:
+			Column(const XML::Node &node,size_t index) : Abstract::Column{node,index} {
+			}
+
+			size_t length() const noexcept override {
+				return sizeof(int32_t);
+			};
+
+			size_t save(Deduplicator &store, const char *text) const override;
+			int comp(std::shared_ptr<File> file, const size_t *row, const char *key) const override;
+			bool less(std::shared_ptr<File> file, const size_t *lrow, const size_t *rrow) const override;
+			std::string to_string(std::shared_ptr<File> file, const size_t *row) const;
+
+		};
+
+		template <>
+		class UDJAT_API Column<uint32_t> : public Abstract::Column {
+		public:
+			Column(const XML::Node &node,size_t index) : Abstract::Column{node,index} {
+			}
+
+			size_t length() const noexcept override {
+				return sizeof(uint32_t);
+			};
+
+			size_t save(Deduplicator &store, const char *text) const override;
+			int comp(std::shared_ptr<File> file, const size_t *row, const char *key) const override;
+			bool less(std::shared_ptr<File> file, const size_t *lrow, const size_t *rrow) const override;
+			std::string to_string(std::shared_ptr<File> file, const size_t *row) const;
+
+		};
+
+		template <>
 		class UDJAT_API Column<std::string> : public Abstract::Column {
 		protected:
 			bool less(const void *lhs, const void *rhs) const override {
