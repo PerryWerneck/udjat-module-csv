@@ -112,6 +112,11 @@
 			return false;
 		}
 
+		debug("-------------------------->",expires);
+		if(expires) {
+			value.expires(time(0)+expires);
+		}
+
 		value.last_modified(last_modified());
 		value.count(it.count());
 

@@ -41,7 +41,7 @@
 	private:
 
 	public:
-		Module() : Udjat::Module("csv-file",module_info), Udjat::Worker("csv",module_info), Udjat::Factory("csv-file",module_info) {
+		Module() : Udjat::Module("csv-file",module_info), Udjat::Worker("csv-files",module_info), Udjat::Factory("csv-file",module_info) {
 		}
 
 		~Module() {
@@ -79,7 +79,7 @@
 
 			}
 
-			request.pop();
+			request.pop();	// Remove db name.
 
 			if( ((HTTP::Method) request) == HTTP::Get) {
 

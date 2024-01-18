@@ -49,6 +49,7 @@
 
 	DataStore::Container::Container(const XML::Node &definition)
 		: name{Quark{definition,"name"}.c_str()},
+			expires{XML::AttributeFactory(definition,"max-age").as_uint(3600)},
 			path{Object::getAttribute(definition,"sources-from","")},
 			filespec{Object::getAttribute(definition,"sources-file-filter",".*")} {
 
@@ -125,9 +126,9 @@
 		return active_file->get<size_t>(active_file->get<Header>(0).primary_offset);
 	}
 
-	TimeStamp DataStore::Container::update_time() const {
-		return TimeStamp{active_file->get<Header>(0).updated};
-	}
+	//TimeStamp DataStore::Container::update_time() const {
+	//	return TimeStamp{active_file->get<Header>(0).updated};
+	//}
 
 	void DataStore::Container::load() {
 		auto file = Loader::CSV{*this,path,filespec}.load();

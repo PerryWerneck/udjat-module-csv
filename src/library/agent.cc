@@ -114,12 +114,12 @@
 
 			// Has data, process it.
 			value["records"] = size();
-			value["dbupdate"] = update_time();
+			value["modified"] = TimeStamp{DataStore::Container::last_modified()};
 
 		} else {
 
 			value["records"] = 0;
-			value["dbupdate"] = 0;
+			value["modified"] = 0;
 
 		}
 

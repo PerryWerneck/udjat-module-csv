@@ -56,6 +56,8 @@
 			const char *name;
 			const char *path;
 
+			time_t expires = 3600;
+
 			/// @brief The current file holding the real data.
 			std::shared_ptr<File> active_file;
 
@@ -205,9 +207,6 @@
 			/// @brief Get column id from name.
 			/// @return column index ou ((size_t) -1) if not found.
 			size_t column_index(const char *name) const;
-
-			/// @brief Get the timestamp of the last update.
-			TimeStamp update_time() const;
 
 			/// @brief Number of columns in the container.
 			inline const std::vector<std::shared_ptr<Abstract::Column>> & columns() const noexcept {
