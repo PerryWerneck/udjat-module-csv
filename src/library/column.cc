@@ -129,7 +129,7 @@
 		throw logic_error(Logger::String{"Cant call ",__FUNCTION__," with datablock on column '",name(),"'"});
 	}
 
-	std::string DataStore::Abstract::Column::to_string(const void *datablock) const {
+	std::string DataStore::Abstract::Column::to_string(const void *) const {
 		throw logic_error(Logger::String{"Cant call ",__FUNCTION__," with datablock on column '",name(),"'"});
 	}
 

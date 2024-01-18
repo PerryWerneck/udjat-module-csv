@@ -81,6 +81,7 @@
 		DataStore::Header header;
 		memset(&header,0,sizeof(header));
 		header.updated = time(0);
+		header.columns = container.columns().size();
 		file->write(header);
 
 		// file->write(&header,sizeof(header));
@@ -138,27 +139,6 @@
 
 					// Not the same vale, compare.
 					return container.columns()[col]->less(file,l.data,h.data);
-
-					/*
-					size_t length = container.columns()[col]->length();
-					if(length) {
-
-						// Load real data from file.
-						uint8_t lval[length];
-						uint8_t hval[length];
-
-						file->read(l.data[col],lval,length);
-						file->read(h.data[col],hval,length);
-
-						#error use row comp(file,lrow,hrow)
-						return container.columns()[col]->comp(lval,hval);
-
-					} else {
-
-						// TODO: Test string.
-						return false;
-					}
-					*/
 
 				}
 

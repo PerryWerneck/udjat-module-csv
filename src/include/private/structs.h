@@ -33,6 +33,7 @@
 		struct Header {
 			time_t updated;			///< @brief Timestamp of the last update.
 			size_t primary_offset;	///< @brief Offset for the beginning of the primary index.
+			size_t columns;			///< @brief Number of columns.
 			struct {
 				size_t count;		///< @brief Count of secondary indexes.
 				size_t offset;
