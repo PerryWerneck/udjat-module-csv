@@ -113,18 +113,66 @@
 		return value;
 	}
 
-	size_t DataStore::Iterator::count() {
+	size_t DataStore::Iterator::count() const {
 
-		size_t saved_row = row;
 		size_t rc = 0;
 
-		while(*this) {
-			rc++;
-			(*this)++;
+		if(*this) {
+			DataStore::Iterator it{*this};
+			while(it) {
+				rc++;
+				it++;
+			}
 		}
 
-		row = saved_row;
 		return rc;
+	}
+
+	bool DataStore::Iterator::head(Udjat::Abstract::Response &value) const {
+
+		if(!*this) {
+			return false;
+		}
+
+		value.last_modified(file->get<Header>(0).last_modified);
+		value.count(this->count());
+
+		return true;
+	}
+
+	bool DataStore::Iterator::get(Udjat::Response::Table &value) const {
+
+		DataStore::Iterator it{*this};
+		if(!it) {
+			return false;
+		}
+
+		value.last_modified(file->get<Header>(0).last_modified);
+
+		// Start report
+		std::vector<std::string> column_names;
+
+		for(auto col : cols) {
+			column_names.push_back(col->name());
+		}
+
+		value.start(column_names);
+
+		size_t items = 0;
+		while(it) {
+
+			for(auto col : column_names) {
+				value.push_back((*this)[col.c_str()]);
+			}
+
+			items++;
+			it++;
+		}
+		value.count(items);
+
+		return true;
+
+
 	}
 
  }

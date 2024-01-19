@@ -32,6 +32,7 @@
 		/// @brief File header.
 		struct Header {
 			time_t updated;			///< @brief Timestamp of the last update.
+			time_t last_modified;
 			size_t primary_offset;	///< @brief Offset for the beginning of the primary index.
 			size_t columns;			///< @brief Number of columns.
 			struct {

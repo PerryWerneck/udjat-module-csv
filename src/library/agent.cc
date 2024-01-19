@@ -176,8 +176,14 @@
 		}
 
 		debug("Getting response from container");
-		return DataStore::Container::get(path,value);
+		DataStore::Iterator it = DataStore::Container::find(path);
+		if(!it) {
+			return false;
+		}
 
+		it.get(value);
+
+		return true;
 	}
 
 	bool DataStore::Agent::getProperties(const char *path, Response::Table &value) const {
@@ -189,8 +195,13 @@
 		}
 
 		debug("Getting response from container");
-		return DataStore::Container::get(path,value);
-		return false;
+		DataStore::Iterator it = DataStore::Container::find(path);
+		if(!it) {
+			return false;
+		}
+
+		it.get(value);
+		return true;
 
 	}
 
@@ -214,7 +225,13 @@
 		}
 
 		debug("Getting response from container");
-		return DataStore::Container::get(path,value);
+		DataStore::Iterator it = DataStore::Container::find(path);
+		if(!it) {
+			return false;
+		}
+
+		it.get(value);
+		return true;
 
 	}
 

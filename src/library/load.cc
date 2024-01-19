@@ -85,12 +85,16 @@
 		header.columns = container.columns().size();
 		file->write(header);
 
-		// file->write(&header,sizeof(header));
-
 		// Write file sources.
 		for(auto &f : files) {
-			file->write(f.name.c_str(),f.name.size()+1);
+
 			time_t timestamp = (time_t) (f.st.st_mtim.tv_sec); // Just in case
+
+			if(!header.last_modified || header.last_modified < timestamp) {
+				header.last_modified = timestamp;
+			}
+
+			file->write(f.name.c_str(),f.name.size()+1);
 			file->write(&timestamp,sizeof(timestamp));
 		}
 		file->write("\0",1);
@@ -323,22 +327,6 @@
 
 		// Return new data storage.
 		debug("Records: ",index.size());
-
-		debug("--------------------------------------------------------------------------------");
-		{
-			file->map();
-
-			DataStore::Iterator it{file,container.columns(),"nome","lab"};
-
-			for(size_t ix = 0; it && ix < 10; ix++) {
-				debug("    '",it.primary_key(),"' ",it["nome"]);
-				it++;
-			}
-
-			file->unmap();
-		}
-
-		debug("--------------------------------------------------------------------------------");
 
 		return file;
 

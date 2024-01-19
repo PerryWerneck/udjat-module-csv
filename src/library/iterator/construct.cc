@@ -24,31 +24,13 @@
  #include <config.h>
  #include <udjat/tools/datastore/iterator.h>
  #include <udjat/tools/datastore/file.h>
+ #include <udjat/tools/datastore/column.h>
  #include <udjat/tools/logger.h>
  #include <private/structs.h>
 
  using namespace std;
 
  namespace Udjat {
-
-	DataStore::Iterator DataStore::Iterator::Factory(const std::shared_ptr<DataStore::File> file, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &cols, const char *path) {
-
-		while(*path && *path == '/') {
-			path++;
-		}
-
-		const char *mark = strchr(path,'/');
-
-		if(!mark) {
-			// Primary key search.
-			return DataStore::Iterator{file,cols,path};
-		}
-
-		mark++;
-
-		return DataStore::Iterator{file,cols,string{path,(size_t) (mark - path)-1},mark};
-
-	}
 
 	DataStore::Iterator::Iterator(const std::shared_ptr<DataStore::File> f, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &c)
 		: file{f}, cols{c}, filter{[](const Iterator &){return 0;}} {
@@ -73,53 +55,7 @@
 		ixptr = file->get_ptr<size_t>(file->get<Header>(0).primary_offset);
 
 		// Filter using primary keys.
-		filter = [search_key](const Iterator &it) {
-
-			const char *key = search_key.c_str();
-
-			const size_t *row{it.rowptr()};
-			for(const auto col : it.cols) {
-
-				if(col->key()) {
-
-					// It's a primary column, test it.
-					string value{col->to_string(it.file,row)};
-					col->apply_layout(value);
-
-					debug("col: '",value,"' key: '",key,"'");
-
-					size_t keylen = strlen(key);
-
-					if(keylen < value.size()) {
-
-						// The query string is smaller than the column, do a partial test.
-						return strncasecmp(value.c_str(),key,keylen);
-
-					} else {
-
-						// The query string is equal or larger than the column, do a full test.
-						int rc = strncasecmp(value.c_str(),key,value.size());
-						if(rc) {
-							return rc;
-						}
-
-					}
-
-					// Get next block.
-					key += value.size();
-					if(!*key) {
-						// Key is complete, found it.
-						return 0;
-					}
-
-				}
-			}
-
-			return 1;
-
-		};
-
-		search();
+		set_default_filter(search_key);
 
 	}
 
@@ -155,16 +91,78 @@
 
 			index++;
 		}
+
 		if(!ixptr) {
 			throw logic_error(Logger::String{"Cant find index for '",column_name,"'"});
 		}
 
-		// Construct filter.
-		filter = [search_key](const Iterator &it) {
-			return it.cols[it.ixtype]->comp(it.file,it.rowptr(),search_key.c_str());
-		};
+		set_default_filter(search_key);
 
-		search();
 	}
+
+	void DataStore::Iterator::set_default_filter(const std::string &search_key) {
+
+		if(ixtype != (uint16_t) -1) {
+
+			// Use column based filter.
+			filter = [search_key](const Iterator &it) {
+				return it.cols[it.ixtype]->comp(it.file,it.rowptr(),search_key.c_str());
+			};
+
+
+		} else {
+
+			// Use primary key filter.
+			filter = [search_key](const Iterator &it) {
+
+				const char *key = search_key.c_str();
+
+				const size_t *row{it.rowptr()};
+				for(const auto col : it.cols) {
+
+					if(col->key()) {
+
+						// It's a primary column, test it.
+						string value{col->to_string(it.file,row)};
+						col->apply_layout(value);
+
+						debug("col: '",value,"' key: '",key,"'");
+
+						size_t keylen = strlen(key);
+
+						if(keylen < value.size()) {
+
+							// The query string is smaller than the column, do a partial test.
+							return strncasecmp(value.c_str(),key,keylen);
+
+						} else {
+
+							// The query string is equal or larger than the column, do a full test.
+							int rc = strncasecmp(value.c_str(),key,value.size());
+							if(rc) {
+								return rc;
+							}
+
+						}
+
+						// Get next block.
+						key += value.size();
+						if(!*key) {
+							// Key is complete, found it.
+							return 0;
+						}
+
+					}
+				}
+
+				return 1;
+
+			};
+
+		}
+
+		search();	// Select first entry.
+	}
+
 
  }

@@ -24,7 +24,9 @@
  #pragma once
  #include <udjat/defs.h>
  #include <udjat/tools/datastore/file.h>
+ #include <udjat/tools/request.h>
  #include <udjat/tools/datastore/column.h>
+ #include <udjat/tools/report.h>
  #include <udjat/tools/value.h>
  #include <memory>
  #include <functional>
@@ -61,6 +63,8 @@
 			/// @brief Search using filter.
 			void search();
 
+			void set_default_filter(const std::string &search_key);
+
 		public:
 			using iterator_category = std::random_access_iterator_tag;
 			using difference_type   = int;
@@ -70,6 +74,9 @@
 
 			/// @brief Build an iterator from path.
 			static Iterator Factory(const std::shared_ptr<DataStore::File> file, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &cols, const char *path);
+
+			/// @brief Build an iterator from request.
+			static Iterator Factory(const std::shared_ptr<DataStore::File> file, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &cols, const Request &request);
 
 			/// @brief Build an iterator to the entire file.
 			Iterator(const std::shared_ptr<DataStore::File> file, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &cols);
@@ -111,7 +118,7 @@
 			// Get data
 
 			/// @brief Get item count.
-			size_t count();
+			size_t count() const;
 
 			/// @brief Get primary key.
 			std::string primary_key() const;
@@ -124,6 +131,14 @@
 
 			/// @brief Get row contents.
 			Udjat::Value & get(Udjat::Value &value) const;
+
+			/// @brief Get values from iterator.
+			/// @param path The path for the required resource.
+			/// @param value The container to responses.
+			/// @return true if value was updated.
+			bool get(Udjat::Response::Table &value) const;
+
+			bool head(Udjat::Abstract::Response &response) const;
 
 		};
 

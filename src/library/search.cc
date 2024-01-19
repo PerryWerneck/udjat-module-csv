@@ -30,13 +30,13 @@
 
  namespace Udjat {
 
+	/*
 	DataStore::Iterator DataStore::Container::IteratorFactory(const char *path) const {
 		return Iterator::Factory(active_file,columns(),path);
 	}
 
-	bool DataStore::Container::head(const char *path, Udjat::Abstract::Response &response) const {
+	bool DataStore::Container::head(const DataStore::Iterator &it, Udjat::Abstract::Response &response) const {
 
-		DataStore::Iterator it{IteratorFactory(path)};
 		if(!it) {
 			return false;
 		}
@@ -49,6 +49,12 @@
 		response.count(it.count());
 
 		return true;
+
+	}
+
+	bool DataStore::Container::head(const char *path, Udjat::Abstract::Response &response) const {
+		DataStore::Iterator it{IteratorFactory(path)};
+		return head(it,response);
 	}
 
 	bool DataStore::Container::get(const char *path, Udjat::Response::Table &value) const {
@@ -56,38 +62,13 @@
 		debug(__FUNCTION__,"('",path,"')");
 
 		DataStore::Iterator it{IteratorFactory(path)};
+
 		if(!it) {
 			return false;
 		}
 
-		if(expires) {
-			value.expires(time(0)+expires);
-		}
-
 		value.last_modified(last_modified());
-
-		// Start report
-		std::vector<std::string> column_names;
-
-		for(auto col : cols) {
-			column_names.push_back(col->name());
-		}
-
-		value.start(column_names);
-
-		size_t items = 0;
-		while(it) {
-
-			for(auto col : column_names) {
-				value.push_back(it[col.c_str()]);
-			}
-
-			items++;
-			it++;
-		}
-		value.count(items);
-
-		return true;
+		return it.get(value);
 
 	}
 
@@ -120,14 +101,7 @@
 
 		DataStore::Iterator it{IteratorFactory(path)};
 
-		if(it) {
-
-			if(expires) {
-				value.expires(time(0)+expires);
-			}
-
-			value.last_modified(last_modified());
-			value.count(it.count());
+		if(head(it,value)) {
 			it.get(value);
 			return true;
 		}
@@ -135,6 +109,7 @@
 		return false;
 
 	}
+	*/
 
  }
 

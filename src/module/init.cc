@@ -50,7 +50,7 @@
 		Worker::ResponseType probe(const Request &request) const noexcept override {
 
 			debug(__FUNCTION__,"----------------------------------(",request.path(),")");
-			if(DataStore::Container::find(request)) {
+			if(DataStore::Container::get(request)) {
 				debug("Accepting request '",request.path(),"'");
 				return ResponseType::Table;
 			}
@@ -63,7 +63,7 @@
 
 			debug(__FUNCTION__,"('",request.path(),"')");
 
-			auto db = DataStore::Container::find(request);
+			auto db = DataStore::Container::get(request);
 			if(!db) {
 				return false;
 			}
@@ -79,20 +79,28 @@
 			}
 
 			request.pop();	// Remove db name.
+			DataStore::Iterator it = db->find(request);
+			if(!it) {
+				return false;
+			}
 
 			if( ((HTTP::Method) request) == HTTP::Get) {
 
 				debug("HTTP GET");
-				return db->get(request.path(),response);
+				it.get(response);
 
 			} else if( ((HTTP::Method) request) == HTTP::Head) {
 
 				debug("HTTP HEAD");
-				return db->head(request.path(),response);
+				return it.head(response);
+
+			} else {
+
+				return false;
 
 			}
 
-			return false;
+			return true;
 
 		}
 

@@ -56,10 +56,10 @@
 		<Unit filename="src/library/container.cc" />
 		<Unit filename="src/library/deduplicator.cc" />
 		<Unit filename="src/library/file.cc" />
-		<Unit filename="src/library/iterator.cc" />
 		<Unit filename="src/library/iterator/arithmetic.cc" />
 		<Unit filename="src/library/iterator/comparison.cc" />
 		<Unit filename="src/library/iterator/construct.cc" />
+		<Unit filename="src/library/iterator/factory.cc" />
 		<Unit filename="src/library/iterator/get.cc" />
 		<Unit filename="src/library/iterator/search.cc" />
 		<Unit filename="src/library/iterator_deprecated.cc" />

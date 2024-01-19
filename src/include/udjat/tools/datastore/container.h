@@ -89,17 +89,6 @@
 				return strcasecmp(name,this->name) == 0;
 			}
 
-			/// @brief Search from primary key.
-			Iterator find(const char *key);
-
-			/// @brief Search column.
-			Iterator find(const char *column_name, const char *key);
-
-			/// @brief Get datastore by request.
-			/// @param name The name of required datastore.
-			/// @return nullptr if not found.
-			static Container * find(const Request &request);
-
 			inline const char *id() const noexcept {
 				return name;
 			}
@@ -134,19 +123,27 @@
 			/// @brief Load source files, rebuild work file.
 			void load();
 
-			Iterator IteratorFactory(const char *path) const;
+			/// @brief Get container by request.
+			/// @param name The name of required datastore.
+			/// @return nullptr if not found.
+			static Container * get(const Request &request);
 
 			/// @brief Get iterator using primary key or path.
 			/// @param key The key to search on the primary index.
-			/// @return The requested resource.
-			const Iterator find(const char *key) const;
+			/// @return Iterator with the first record found.
+			Iterator find(const char *path) const;
 
 			/// @brief Get iterator using columns index.
 			/// @param column The column name.
 			/// @param key The key to search on the column index.
-			/// @return The requested resource.
-			const Iterator find(const char *column, const char *key) const;
+			/// @return Iterator with the first record found.
+			Iterator find(const char *column, const char *key) const;
 
+			/// @brief Get iterator using request.
+			/// @param request the request.
+			Iterator find(Request &request);
+
+			/*
 			/// @brief Get value from search path.
 			/// @param path The path for the required resource.
 			/// @param value The value for resource data.
@@ -168,6 +165,13 @@
 			/// @brief Count number of responses.
 			/// @param path The path for the required resource.
 			bool head(const char *path, Udjat::Abstract::Response &response) const;
+
+			/// @brief Count number of responses from iterator.
+			/// @param it the iterator to count.
+			/// @param path The path for the required resource.
+			/// @return true if the iterator is valid.
+			bool head(const DataStore::Iterator &it, Udjat::Abstract::Response &response) const;
+			*/
 
 		};
 

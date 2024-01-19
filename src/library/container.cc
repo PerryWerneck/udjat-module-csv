@@ -108,7 +108,7 @@
 	void DataStore::Container::state(const State) {
 	}
 
-	DataStore::Container * DataStore::Container::find(const Request &request) {
+	DataStore::Container * DataStore::Container::get(const Request &request) {
 
 		const char *path = request.path();
 		while(*path && *path == '/') {
@@ -138,11 +138,11 @@
 		state(size() ? Ready : Empty);
 	}
 
-	const DataStore::Iterator DataStore::Container::find(const char *key) const {
+	DataStore::Iterator DataStore::Container::find(const char *key) const {
 		return DataStore::Iterator{active_file,columns(),key};
 	}
 
-	const DataStore::Iterator DataStore::Container::find(const char *column, const char *key) const {
+	DataStore::Iterator DataStore::Container::find(const char *column, const char *key) const {
 		return DataStore::Iterator{active_file,columns(),column,key};
 	}
 
@@ -165,23 +165,11 @@
 	}
 
 	time_t DataStore::Container::last_modified() const {
+		return active_file->get<Header>(0).last_modified;
+	}
 
-		time_t timestamp = 0;
-
-		if(active_file && active_file->mapped()) {
-			const char *filename = active_file->get_ptr<char>(sizeof(Header));
-			while(*filename) {
-				time_t *tm = (time_t *) (filename + strlen(filename)+1);
-				debug("Filename: '",filename,"' timestamp: ",TimeStamp(*tm).to_string());
-				if(!timestamp || *tm < timestamp) {
-					timestamp = *tm;
-				}
-				filename = ((const char *) (tm+1));
-			}
-		}
-
-		return timestamp;
-
+	DataStore::Iterator DataStore::Container::find(Request &request) {
+		return DataStore::Iterator::Factory(active_file,cols,request);
 	}
 
 	size_t DataStore::Container::column_index(const char *name) const {
