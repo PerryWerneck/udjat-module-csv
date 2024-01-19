@@ -23,6 +23,7 @@
  #include <config.h>
  #include <udjat/defs.h>
  #include <udjat/tools/datastore/loader.h>
+ #include <udjat/tools/datastore/iterator.h>
  #include <udjat/tools/file.h>
  #include <udjat/tools/logger.h>
  #include <private/structs.h>
@@ -322,6 +323,23 @@
 
 		// Return new data storage.
 		debug("Records: ",index.size());
+
+		debug("--------------------------------------------------------------------------------");
+		{
+			file->map();
+
+			DataStore::Iterator it{file,container.columns(),"7989"};
+
+			for(size_t ix = 0; it && ix < 10; ix++) {
+				debug("    '",it.primary_key(),"'");
+				it++;
+			}
+
+			file->unmap();
+		}
+
+		debug("--------------------------------------------------------------------------------");
+
 		return file;
 
 	}

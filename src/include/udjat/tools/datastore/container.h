@@ -177,6 +177,10 @@
 				return strcasecmp(name,this->name) == 0;
 			}
 
+			inline std::shared_ptr<File> file() const noexcept {
+				return active_file;
+			};
+
 			/// @brief Get datastore by request.
 			/// @param name The name of required datastore.
 			/// @return nullptr if not found.
