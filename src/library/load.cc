@@ -328,10 +328,10 @@
 		{
 			file->map();
 
-			DataStore::Iterator it{file,container.columns(),"7989"};
+			DataStore::Iterator it{file,container.columns(),"nome","lab"};
 
 			for(size_t ix = 0; it && ix < 10; ix++) {
-				debug("    '",it.primary_key(),"'");
+				debug("    '",it.primary_key(),"' ",it["nome"]);
 				it++;
 			}
 
