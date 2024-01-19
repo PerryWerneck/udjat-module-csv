@@ -152,6 +152,7 @@
 		// Start report
 		std::vector<std::string> column_names;
 
+		column_names.push_back("_row");
 		for(auto col : cols) {
 			column_names.push_back(col->name());
 		}
@@ -162,7 +163,15 @@
 		while(it) {
 
 			for(auto col : column_names) {
-				value.push_back((*this)[col.c_str()]);
+
+#ifdef DEBUG
+				if(!strcasecmp(col.c_str(),"_row")) {
+					value.push_back(it.row);
+					continue;
+				}
+#endif // DEBUG
+
+				value.push_back(it[col.c_str()]);
 			}
 
 			items++;
