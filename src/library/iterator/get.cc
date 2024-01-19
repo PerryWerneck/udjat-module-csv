@@ -113,4 +113,18 @@
 		return value;
 	}
 
+	size_t DataStore::Iterator::count() {
+
+		size_t saved_row = row;
+		size_t rc = 0;
+
+		while(*this) {
+			rc++;
+			(*this)++;
+		}
+
+		row = saved_row;
+		return rc;
+	}
+
  }

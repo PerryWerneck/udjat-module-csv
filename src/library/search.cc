@@ -18,107 +18,53 @@
  */
 
  /**
-  * @brief Search resource from similar string.
+  * @brief Get lists from container.
   */
-
  #include <config.h>
- #include <config.h>
- #include <udjat/tools/abstract/response.h>
+ #include <udjat/defs.h>
+ #include <udjat/tools/datastore/iterator.h>
  #include <udjat/tools/datastore/container.h>
- #include <udjat/tools/datastore/column.h>
  #include <udjat/tools/logger.h>
- #include <private/structs.h>
- #include <stdexcept>
 
  using namespace std;
 
  namespace Udjat {
 
-	using Container = DataStore::Container;
-
-	Container::Iterator get_path(const DataStore::Container &container, const char *path) {
-
-		while(*path && *path == '/') {
-			path++;
-		}
-
-		if(!strncasecmp(path,"row/",4)) {
-			// Search by path.
-			Container::Iterator it{container.begin()};
-			it += atoi(path+4);
-			return it;
-		}
-
-		const char *mark = strchr(path,'/');
-
-		if(!mark) {
-			// Primary key search.
-			Container::Iterator it{container.begin()};
-			it.find(path);
-			return it;
-		}
-
-		mark++;
-
-		Container::Iterator it{container.begin(string{path,(size_t) (mark - path)-1}.c_str())};
-		it.find(mark);
-		return it;
-
+	DataStore::Iterator DataStore::Container::IteratorFactory(const char *path) const {
+		return Iterator::Factory(active_file,columns(),path);
 	}
 
-	bool DataStore::Container::get(const char *path, Udjat::Value &value) const {
+	bool DataStore::Container::head(const char *path, Udjat::Abstract::Response &response) const {
 
-		// It's asking for a single row??
-		if(strncasecmp(path,"row/",4) == 0) {
-			Container::Iterator it{begin()};
-			it.set(atoi(path+4)-1);
-			return it;
+		DataStore::Iterator it{IteratorFactory(path)};
+		if(!it) {
+			return false;
 		}
 
-		Container::Iterator it{get_path(*this,path)};
-
-		if(it) {
-			it.get(value);
-			return true;
+		if(expires) {
+			response.expires(time(0)+expires);
 		}
 
-		return false;
+		response.last_modified(last_modified());
+		response.count(it.count());
 
-	}
-
-	bool DataStore::Container::get(const char *path, Udjat::Response::Value &value) const {
-
-		Container::Iterator it{get_path(*this,path)};
-
-		if(it) {
-
-			value.last_modified(last_modified());
-			value.count(it.count());
-
-			it.get(value);
-			return true;
-		}
-
-		return false;
-
+		return true;
 	}
 
 	bool DataStore::Container::get(const char *path, Udjat::Response::Table &value) const {
 
 		debug(__FUNCTION__,"('",path,"')");
 
-		Container::Iterator it{get_path(*this,path)};
+		DataStore::Iterator it{IteratorFactory(path)};
 		if(!it) {
 			return false;
 		}
 
-		debug("-------------------------->",expires);
 		if(expires) {
 			value.expires(time(0)+expires);
 		}
 
 		value.last_modified(last_modified());
-		value.count(it.count());
 
 		// Start report
 		std::vector<std::string> column_names;
@@ -129,148 +75,66 @@
 
 		value.start(column_names);
 
+		size_t items = 0;
 		while(it) {
 
 			for(auto col : column_names) {
 				value.push_back(it[col.c_str()]);
 			}
 
+			items++;
 			it++;
 		}
+		value.count(items);
 
 		return true;
 
 	}
 
-	bool DataStore::Container::head(const char *path, Udjat::Abstract::Response &response) const {
+	bool DataStore::Container::get(const char *path, Udjat::Value &value) const {
 
-		Container::Iterator it{get_path(*this,path)};
+		// It's asking for a single row??
+		if(strncasecmp(path,"row/",4) == 0) {
+
+			DataStore::Iterator it{active_file,columns()};
+			it = atoi(path+4);
+			if(it) {
+				it.get(value);
+				return true;
+			}
+
+			return false;
+		}
+
+		DataStore::Iterator it{IteratorFactory(path)};
 		if(!it) {
 			return false;
 		}
 
-		response.last_modified(last_modified());
-		response.count(it.count());
-
+		it.get(value);
 		return true;
+
 	}
 
-	int DataStore::Container::Iterator::compare(const char *key) const {
+	bool DataStore::Container::get(const char *path, Udjat::Response::Value &value) const {
 
-		const size_t *row = rowptr();
+		DataStore::Iterator it{IteratorFactory(path)};
 
-		if(filter.column == (uint16_t) -1) {
+		if(it) {
 
-			// Compare using primary key
-
-			for(auto col : cols) {
-
-				if(col->key()) {
-
-					// It's a primary column, test it.
-					string value{col->to_string(file,row)};
-
-					debug("col: '",value,"' key: '",key,"'");
-
-					size_t keylen = strlen(key);
-
-					if(keylen < value.size()) {
-
-						// The query string is smaller than the column, do a partial test.
-						return strncasecmp(value.c_str(),key,keylen);
-
-					} else {
-
-						// The query string is equal or larger than the column, do a full test.
-						int rc = strncasecmp(value.c_str(),key,value.size());
-						if(rc) {
-							return rc;
-						}
-
-					}
-
-					// Get next block.
-					key += value.size();
-					if(!*key) {
-						// Key is complete, found it.
-						return 0;
-					}
-
-				}
+			if(expires) {
+				value.expires(time(0)+expires);
 			}
 
-			return 1;
-
+			value.last_modified(last_modified());
+			value.count(it.count());
+			it.get(value);
+			return true;
 		}
 
-		// Compare using only the selected column.
-		return cols[filter.column]->comp(file,row,key);
+		return false;
 
 	}
-
-	DataStore::Container::Iterator & DataStore::Container::Iterator::find(const char *key) {
-
-		if(!(key && *key)) {
-			set(1);
-			return *this;
-		}
-
-		filter.key = key;
-
-		size_t from = 0;
-		size_t to = ixptr[0];
-
-		while( (to - from) > 1 ) {
-
-			row = from+((to-from)/2);
-			debug("Center row=",row," from=",from," to=",to, " to-from=",(to-from));
-
-			int comp{compare(key)};
-
-			debug("comp=",comp);
-
-			if(comp == 0) {
-
-				// Found!
-
-				debug("Found ",key," at row ",row," (",to_string(),")");
-
-				// Go down until the first occurrence (Just in case).
-				size_t first_row = row;
-				while(row > 1) {
-					row--;
-					if(compare(key)) {
-						break;
-					} else {
-						first_row = row;
-					}
-				}
-				row = first_row;
-
-				debug("Final result was ",row," (",to_string(),")");
-
-				return *this;
-
-			} else if(comp < 0) {
-
-				// Current is lower, get highest values
-				from = row;
-
-			} else {
-
-				// Current is bigger, get lower values
-				to = row;
-
-			}
-
-		}
-
-		debug("Can't find '",key,"'");
-		row = ixptr[0];
-
-		return *this;
-	}
-
 
  }
 

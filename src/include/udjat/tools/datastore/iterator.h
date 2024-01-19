@@ -68,6 +68,9 @@
 			using pointer           = Iterator *;  // or also value_type*
 			using reference         = Iterator &;  // or also value_type&
 
+			/// @brief Build an iterator from path.
+			static Iterator Factory(const std::shared_ptr<DataStore::File> file, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &cols, const char *path);
+
 			/// @brief Build an iterator to the entire file.
 			Iterator(const std::shared_ptr<DataStore::File> file, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &cols);
 
@@ -106,6 +109,9 @@
 			bool operator>= (const Iterator& b) const;
 
 			// Get data
+
+			/// @brief Get item count.
+			size_t count();
 
 			/// @brief Get primary key.
 			std::string primary_key() const;

@@ -138,12 +138,12 @@
 		state(size() ? Ready : Empty);
 	}
 
-	const DataStore::Container::Iterator DataStore::Container::find(const char *key) const {
-		return begin().find(key);
+	const DataStore::Iterator DataStore::Container::find(const char *key) const {
+		return DataStore::Iterator{active_file,columns(),key};
 	}
 
-	const DataStore::Container::Iterator DataStore::Container::find(const char *column, const char *key) const {
-		return begin(column).find(key);
+	const DataStore::Iterator DataStore::Container::find(const char *column, const char *key) const {
+		return DataStore::Iterator{active_file,columns(),column,key};
 	}
 
 	std::shared_ptr<DataStore::Abstract::Column> DataStore::Container::column(const char *name) const {
@@ -210,5 +210,6 @@
 		return ((size_t) -1);
 
 	}
+
  }
 

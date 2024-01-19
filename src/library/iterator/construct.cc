@@ -31,6 +31,25 @@
 
  namespace Udjat {
 
+	DataStore::Iterator DataStore::Iterator::Factory(const std::shared_ptr<DataStore::File> file, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &cols, const char *path) {
+
+		while(*path && *path == '/') {
+			path++;
+		}
+
+		const char *mark = strchr(path,'/');
+
+		if(!mark) {
+			// Primary key search.
+			return DataStore::Iterator{file,cols,path};
+		}
+
+		mark++;
+
+		return DataStore::Iterator{file,cols,string{path,(size_t) (mark - path)-1},mark};
+
+	}
+
 	DataStore::Iterator::Iterator(const std::shared_ptr<DataStore::File> f, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &c)
 		: file{f}, cols{c}, filter{[](const Iterator &){return 0;}} {
 

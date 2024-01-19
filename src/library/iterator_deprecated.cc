@@ -21,6 +21,7 @@
   * @brief Implements container iterator.
   */
 
+  /*
  #include <config.h>
  #include <udjat/tools/datastore/container.h>
  #include <udjat/tools/datastore/file.h>
@@ -292,3 +293,4 @@
 	}
 
  }
+ */

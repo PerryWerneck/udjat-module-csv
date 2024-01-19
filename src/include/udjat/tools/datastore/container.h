@@ -24,6 +24,7 @@
  #pragma once
  #include <udjat/defs.h>
  #include <udjat/tools/datastore/column.h>
+ #include <udjat/tools/datastore/iterator.h>
  #include <udjat/tools/xml.h>
  #include <udjat/tools/timestamp.h>
  #include <udjat/tools/value.h>
@@ -80,95 +81,6 @@
 
 		public:
 
-			/// @brief A resource inside the container.
-			class Iterator {
-			private:
-				friend class Container;
-				Iterator(const Container &container);
-
-				std::shared_ptr<File> file;										///< @brief The data file
-				const std::vector<std::shared_ptr<Abstract::Column>> &cols;		///< @brief The column definitions.
-
-				struct {
-					std::string key;											///< @brief Search key.
-					uint16_t column = (uint16_t) -1;							///< @brief Search column (-1 when using primary index).
-				} filter;
-				size_t row = 0;													///< @brief Selected row.
-				const size_t *ixptr = nullptr;									///< @brief Pointer to index data.
-
-				/// @brief Get pointer to row descriptor
-				const size_t * rowptr() const;
-
-			public:
-				using iterator_category = std::random_access_iterator_tag;
-				using difference_type   = int;
-				using value_type        = Iterator;
-				using pointer           = Iterator *;  // or also value_type*
-				using reference         = Iterator &;  // or also value_type&
-
-				// constexpr reference operator*() const noexcept { return *this; }
-				// constexpr pointer operator->() const noexcept { return this; }
-
-				Iterator(Iterator &src, size_t id);
-				~Iterator();
-
-				size_t count();
-
-				Iterator& set(size_t id = 0);
-
-				inline Iterator & operator=(size_t id) {
-					return set(id);
-				}
-
-				operator bool() const;
-
-				virtual std::string to_string() const;
-				std::string operator[](const char *column) const;
-
-				Udjat::Value & get(Udjat::Value &value) const;
-
-				// Search
-				/// @brief Is the iterator 'similar' to key?
-				inline bool operator== (const char *key) const {
-					return compare(key) == 0;
-				}
-
-				/// @brief Compare resource with 'key'
-				/// @param key the string to compare.
-				/// @return result of the casecmp test.
-				int compare(const char *key) const;
-
-				Iterator& find(const char *key);
-
-				// Increment / Decrement
-				Iterator& operator++();
-				Iterator& operator--();
-
-				Iterator operator++(int);
-				Iterator operator--(int);
-
-				// Arithmetic
-				Iterator& operator+=(size_t off);
-				Iterator operator+(size_t off) const;
-
-				Iterator& operator-=(size_t off);
-				Iterator operator-(size_t off) const;
-
-				// Comparison operators
-				bool operator== (const Iterator& b) const;
-				bool operator!= (const Iterator& b) const;
-				bool operator<  (const Iterator& b) const;
-				bool operator<= (const Iterator& b) const;
-				bool operator>  (const Iterator& b) const;
-				bool operator>= (const Iterator& b) const;
-
-			};
-
-			Iterator begin() const;
-			Iterator end() const;
-
-			Iterator begin(const char *colname) const;
-
 			/// @brief Build container from XML node.
 			Container(const XML::Node &node);
 			~Container();
@@ -177,9 +89,11 @@
 				return strcasecmp(name,this->name) == 0;
 			}
 
-			inline std::shared_ptr<File> file() const noexcept {
-				return active_file;
-			};
+			/// @brief Search from primary key.
+			Iterator find(const char *key);
+
+			/// @brief Search column.
+			Iterator find(const char *column_name, const char *key);
 
 			/// @brief Get datastore by request.
 			/// @param name The name of required datastore.
@@ -219,6 +133,8 @@
 
 			/// @brief Load source files, rebuild work file.
 			void load();
+
+			Iterator IteratorFactory(const char *path) const;
 
 			/// @brief Get iterator using primary key or path.
 			/// @param key The key to search on the primary index.
