@@ -27,6 +27,7 @@
  #include <udjat/tools/datastore/column.h>
  #include <udjat/tools/logger.h>
  #include <private/structs.h>
+ #include <private/iterator.h>
 
  using namespace std;
 
@@ -41,29 +42,19 @@
 
 	}
 
-	/*
 	DataStore::Iterator::Iterator(const std::shared_ptr<DataStore::File> f, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &c, const std::string &search_key)
-		: file{f}, cols{c} {
+		: file{f}, cols{c}, handler{make_shared<DataStore::PrimaryKeyHandler>(*this,search_key.c_str())} {
 
-		if(!file->mapped()) {
-			throw logic_error("Unable to iterate an unmapped datastore");
-		}
-
-		// Get pointer to primary index.
-		ixptr = file->get_ptr<size_t>(file->get<Header>(0).primary_offset);
-
-		// Filter using primary keys.
-		set_default_filter(search_key);
+		search();
 
 	}
 
 	DataStore::Iterator::Iterator(const std::shared_ptr<DataStore::File> f, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &c, const std::string &column_name, const std::string &search_key)
-		: file{f}, cols{c} {
+		: file{f}, cols{c}, handler{make_shared<ColumnKeyHandler>(*this,column_name.c_str(),search_key.c_str())} {
 
-		if(!file->mapped()) {
-			throw logic_error("Unable to iterate an unmapped datastore");
-		}
+		search();
 
+		/*
 		// Get column index.
 		ixtype = (uint16_t) -1;
 		for(size_t c = 0; c < cols.size();c++) {
@@ -95,8 +86,8 @@
 		}
 
 		set_default_filter(search_key);
+		*/
 
 	}
-	*/
 
  }

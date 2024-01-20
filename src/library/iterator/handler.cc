@@ -33,7 +33,38 @@
 
  namespace Udjat {
 
-	DataStore::ColumnKeyHandler::ColumnKeyHandler(const Iterator &it, uint16_t c) : PrimaryKeyHandler{it}, colnumber{c} {
+	DataStore::Iterator::Handler::Handler() {
+	}
+
+	DataStore::Iterator::Handler::~Handler() {
+	}
+
+	uint16_t DataStore::Iterator::Handler::search_column_id(const Iterator &it, const char *colname) {
+
+		for(size_t c = 0; c < it.cols.size();c++) {
+			if(it.cols[c]->indexed() && !strcasecmp(it.cols[c]->name(),colname)) {
+				return (uint16_t) c;
+			}
+		}
+
+		throw runtime_error(Logger::String{"Unable to search using '",colname,"'"});
+
+	}
+
+	DataStore::PrimaryKeyHandler::PrimaryKeyHandler(const Iterator &it, const char *s) : search_key{s} {
+
+		// Get pointer to primary index.
+		ixptr = file(it)->get_ptr<size_t>(file(it)->get<Header>(0).primary_offset);
+
+	}
+
+	DataStore::PrimaryKeyHandler::~PrimaryKeyHandler() {
+	}
+
+	DataStore::ColumnKeyHandler::~ColumnKeyHandler() {
+	}
+
+	DataStore::ColumnKeyHandler::ColumnKeyHandler(const Iterator &it, uint16_t c, const char *search_key) : PrimaryKeyHandler{it,search_key}, colnumber{c} {
 
 		// Get pointer to column index.
 		const Header &header{file(it)->get<Header>(0)};
@@ -53,6 +84,10 @@
 			throw logic_error(Logger::String{"Unable to find index for required column"});
 		}
 
+	}
+
+	DataStore::ColumnKeyHandler::ColumnKeyHandler(const Iterator &it, const char *colname, const char *search_key)
+		: ColumnKeyHandler{it,search_column_id(it,colname),search_key} {
 	}
 
 	size_t DataStore::PrimaryKeyHandler::size() const {
@@ -82,6 +117,56 @@
 
 		return file(it)->get_ptr<size_t>( *(ixptr + 1 + row(it)) );
 
+	}
+
+	int DataStore::PrimaryKeyHandler::filter(const Iterator &it) const {
+
+		const char *key = search_key.c_str();
+
+		const size_t *row{rowptr(it)};
+		for(const auto col : cols(it)) {
+
+			if(col->key()) {
+
+				// It's a primary column, test it.
+				string value{col->to_string(file(it),row)};
+				col->apply_layout(value);
+
+				debug("col: '",value,"' key: '",key,"'");
+
+				size_t keylen = strlen(key);
+
+				if(keylen < value.size()) {
+
+					// The query string is smaller than the column, do a partial test.
+					return strncasecmp(value.c_str(),key,keylen);
+
+				} else {
+
+					// The query string is equal or larger than the column, do a full test.
+					int rc = strncasecmp(value.c_str(),key,value.size());
+					if(rc) {
+						return rc;
+					}
+
+				}
+
+				// Get next block.
+				key += value.size();
+				if(!*key) {
+					// Key is complete, found it.
+					return 0;
+				}
+
+			}
+		}
+
+		return 1;
+
+	}
+
+	int DataStore::ColumnKeyHandler::filter(const Iterator &it) const {
+		return cols(it)[colnumber]->comp(file(it),rowptr(it),search_key.c_str());
 	}
 
 	/*

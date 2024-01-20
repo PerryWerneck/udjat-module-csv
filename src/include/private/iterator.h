@@ -45,7 +45,11 @@
 			}
 
 		public:
+			Handler();
 			virtual ~Handler();
+
+			/// @brief Convenience method to get column number from name.
+			static uint16_t search_column_id(const Iterator &it, const char *colname);
 
 			/// @brief Get pointer to selected row.
 			virtual const size_t * rowptr(const Iterator &it) const = 0;
@@ -72,7 +76,7 @@
 			const size_t *ixptr = nullptr;
 
 		public:
-			PrimaryKeyHandler(const Iterator &it);
+			PrimaryKeyHandler(const Iterator &it, const char *search_key = "");
 			virtual ~PrimaryKeyHandler();
 
 			const size_t * rowptr(const Iterator &it) const override;
@@ -90,7 +94,9 @@
 			uint16_t colnumber;
 
 		public:
-			ColumnKeyHandler(const Iterator &it, uint16_t colnumber);
+			ColumnKeyHandler(const Iterator &it, uint16_t colnumber, const char *search_key = "");
+			ColumnKeyHandler(const Iterator &it, const char *colname, const char *search_key = "");
+
 			virtual ~ColumnKeyHandler();
 
 			const size_t * rowptr(const Iterator &it) const override;
