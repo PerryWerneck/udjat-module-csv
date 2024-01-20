@@ -38,6 +38,7 @@
 		<Unit filename="src/include/config.h" />
 		<Unit filename="src/include/private/column.h" />
 		<Unit filename="src/include/private/controller.h" />
+		<Unit filename="src/include/private/iterator.h" />
 		<Unit filename="src/include/private/structs.h" />
 		<Unit filename="src/include/private/value.h" />
 		<Unit filename="src/include/udjat/agent/datastore.h" />
@@ -48,6 +49,7 @@
 		<Unit filename="src/include/udjat/tools/datastore/file.h" />
 		<Unit filename="src/include/udjat/tools/datastore/iterator.h" />
 		<Unit filename="src/include/udjat/tools/datastore/loader.h" />
+		<Unit filename="src/include/udjat/tools/datastore/query.h" />
 		<Unit filename="src/library/agent.cc" />
 		<Unit filename="src/library/block.cc" />
 		<Unit filename="src/library/column.cc" />
@@ -61,10 +63,12 @@
 		<Unit filename="src/library/iterator/construct.cc" />
 		<Unit filename="src/library/iterator/factory.cc" />
 		<Unit filename="src/library/iterator/get.cc" />
+		<Unit filename="src/library/iterator/handler.cc" />
 		<Unit filename="src/library/iterator/search.cc" />
 		<Unit filename="src/library/iterator_deprecated.cc" />
 		<Unit filename="src/library/load.cc" />
 		<Unit filename="src/library/loaders/csv.cc" />
+		<Unit filename="src/library/query.cc" />
 		<Unit filename="src/library/resource.cc" />
 		<Unit filename="src/library/search.cc" />
 		<Unit filename="src/library/value.cc" />

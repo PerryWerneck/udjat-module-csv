@@ -18,42 +18,38 @@
  */
 
  /**
-  * @brief Implements container iterator.
+  * @brief Implement query.
   */
 
  #include <config.h>
- #include <udjat/tools/datastore/iterator.h>
- #include <udjat/tools/datastore/file.h>
- #include <udjat/tools/logger.h>
- #include <private/structs.h>
+ #include <udjat/defs.h>
+ #include <udjat/tools/datastore/query.h>
+ #include <stdexcept>
 
  using namespace std;
 
  namespace Udjat {
 
-	bool DataStore::Iterator::operator== (const DataStore::Iterator& b) const {
-		return row == b.row;
-	}
+	std::shared_ptr<DataStore::Query> DataStore::Query::Factory(const XML::Node &node, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> cols) {
 
-	bool DataStore::Iterator::operator!= (const DataStore::Iterator& b) const {
-		return row != b.row;
-	}
+		/// @brief IPV4 Network query.
+		class QueryNetV4 : public DataStore::Query {
+		private:
 
-	bool DataStore::Iterator::operator< (const DataStore::Iterator& b) const {
-		return row < b.row;
-	}
+			struct Column {
+				uint16_t ip;		///< @brief ID of the Reference IP column.
+				uint16_t mask;		///< @brief ID of the netmask column.
+			} column;
 
-	bool DataStore::Iterator::operator<= (const DataStore::Iterator& b) const{
-		return row <= b.row;
-	}
+		public:
+			QueryNetV4(const XML::Node &node, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> cols) : DataStore::Query{node} {
 
-	bool DataStore::Iterator::operator> (const DataStore::Iterator& b) const{
-		return row > b.row;
-	}
+			}
 
-	bool DataStore::Iterator::operator>= (const DataStore::Iterator& b) const{
-		return row >= b.row;
-	}
+		};
 
+
+		throw runtime_error("Unknown or invalid query");
+	}
 
  }

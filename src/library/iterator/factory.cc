@@ -25,6 +25,7 @@
  #include <udjat/tools/datastore/iterator.h>
  #include <udjat/tools/logger.h>
  #include <private/structs.h>
+ #include <private/iterator.h>
 
  using namespace std;
 
@@ -62,27 +63,8 @@
 					path += szname + 1;
 					debug("Path updated to '",path,"'");
 
-					// Set column.
-					it.ixtype = (uint16_t) ix;
-
-					// Get pointer to ixtype index.
-					const Header &header{file->get<Header>(0)};
-					const Index *index{file->get_ptr<Index>(header.indexes.offset)};
-
-					it.ixptr = nullptr;
-					for(size_t ix = 0;ix < header.indexes.count;ix++) {
-
-						if(index->column == it.ixtype) {
-							it.ixptr = file->get_ptr<size_t>(index->offset);
-							break;
-						}
-						index++;
-					}
-
-					if(!it.ixptr) {
-						throw logic_error(Logger::String{"Unable to find index for '",name,"'"});
-					}
-
+					// Set column index
+					it.handler = make_shared<ColumnKeyHandler>(it,ix);
 					it = 0; // First row.
 
 					break;
@@ -100,15 +82,34 @@
 			size_t row = stoi(path+4);
 			it = row;
 
-			it.filter = [row](const Iterator &it) {
-				return it.row == row ? 0 : 1;
+			class Handler : public PrimaryKeyHandler {
+			private:
+				size_t selected_row;
+
+			public:
+				Handler(const Iterator &it, size_t r) : PrimaryKeyHandler{it}, selected_row{r} {
+				}
+
+				int filter(const Iterator &it) const override {
+					return row(it) == selected_row ? 0 : 1;
+				}
+
 			};
+
+			it.handler = make_shared<Handler>(it,row);
 
 			return it;
 		}
 
-		// Use remaining path as filter key.
-		it.set_default_filter(path);
+		// It there's no handler, use the default one.
+		if(!it.handler) {
+			it.handler = make_shared<PrimaryKeyHandler>(it);
+		}
+
+		// Use remaining path as search key.
+		it.handler->key(path);
+
+		it.search();
 
 		return it;
 	}

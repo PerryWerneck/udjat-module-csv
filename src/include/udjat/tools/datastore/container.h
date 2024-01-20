@@ -25,6 +25,7 @@
  #include <udjat/defs.h>
  #include <udjat/tools/datastore/column.h>
  #include <udjat/tools/datastore/iterator.h>
+ #include <udjat/tools/datastore/query.h>
  #include <udjat/tools/xml.h>
  #include <udjat/tools/timestamp.h>
  #include <udjat/tools/value.h>
@@ -75,6 +76,7 @@
 			};
 
 			std::vector<Alias> aliases;
+			std::vector<std::shared_ptr<Query>> queries;
 
 		protected:
 			const char *filespec;

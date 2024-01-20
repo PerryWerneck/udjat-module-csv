@@ -48,22 +48,10 @@
 			/// @brief Selected row (from 0 to the end of file)
 			size_t row = 1;
 
-			/// @brief Pointer to the index data.
-			const size_t *ixptr = nullptr;
-
-			/// @brief Index type (-1 = the default one).
-			uint16_t ixtype = (uint16_t) -1;
-
-			/// @brief Get pointer to selected row.
-			const size_t * rowptr() const;
-
-			/// @brief The filter expression.
-			std::function<int(const Iterator &it)> filter;
-
-			/// @brief Search using filter.
+			/// @brief Search using handler.
 			void search();
 
-			void set_default_filter(const std::string &search_key);
+			const size_t * rowptr() const;
 
 		public:
 			using iterator_category = std::random_access_iterator_tag;
@@ -71,6 +59,9 @@
 			using value_type        = Iterator;
 			using pointer           = Iterator *;  // or also value_type*
 			using reference         = Iterator &;  // or also value_type&
+
+			class Handler;
+			friend class Handler;
 
 			/// @brief Build an iterator from path.
 			static Iterator Factory(const std::shared_ptr<DataStore::File> file, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &cols, const char *path);
@@ -139,6 +130,9 @@
 			bool get(Udjat::Response::Table &value) const;
 
 			bool head(Udjat::Abstract::Response &response) const;
+
+		private:
+			std::shared_ptr<Handler> handler;
 
 		};
 

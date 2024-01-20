@@ -26,14 +26,15 @@
  #include <udjat/tools/datastore/file.h>
  #include <udjat/tools/logger.h>
  #include <private/structs.h>
+ #include <private/iterator.h>
 
  using namespace std;
 
  namespace Udjat {
 
 	DataStore::Iterator & DataStore::Iterator::operator=(const size_t row) {
-		if(row > ixptr[0]) {
-			this->row = ixptr[0];
+		if(row > handler->size()) {
+			this->row = handler->size();
 		} else {
 			this->row = row;
 		}
@@ -41,16 +42,16 @@
 	}
 
 	DataStore::Iterator::operator bool() const {
-		if(row > ixptr[0]) {
+		if(row > handler->size()) {
 			return false;
 		}
-		return filter(*this) == 0;
+		return handler->filter(*this) == 0;
 	}
 
 	DataStore::Iterator & DataStore::Iterator::operator++() {
 		row++;
-		if(row > ixptr[0]) {
-			row = ixptr[0];
+		if(row > handler->size()) {
+			row = handler->size();
 		}
 		return *this;
 	}
@@ -66,8 +67,8 @@
 	DataStore::Iterator DataStore::Iterator::operator++(int) {
 		Iterator rc = *this;
 		row++;
-		if(row > ixptr[0]) {
-			row = ixptr[0];
+		if(row > handler->size()) {
+			row = handler->size();
 		}
 		return rc;
 	}
@@ -80,6 +81,5 @@
 		row--;
 		return rc;
 	}
-
 
  }

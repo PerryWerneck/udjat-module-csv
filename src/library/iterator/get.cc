@@ -26,28 +26,19 @@
  #include <udjat/tools/datastore/file.h>
  #include <udjat/tools/logger.h>
  #include <private/structs.h>
+ #include <private/iterator.h>
 
  using namespace std;
 
  namespace Udjat {
 
 	const size_t * DataStore::Iterator::rowptr() const {
-
-		if(row > ixptr[0]) {
-			throw runtime_error(Logger::String{"Invalid row, should be from 0 to ",(int) ixptr[0]});
-		}
-
-		if(ixtype == (uint16_t) -1) {
-			return ixptr + 1 + (row * cols.size());
-		}
-
-		return file->get_ptr<size_t>(ixptr[row]);
-
+		return handler->rowptr(*this);
 	}
 
 	std::string DataStore::Iterator::primary_key() const {
 
-		if(row > ixptr[0]) {
+		if(row > handler->size()) {
 			return "";
 		}
 
@@ -68,7 +59,7 @@
 
 	std::string DataStore::Iterator::operator[](const char *name) const {
 
-		if(row > ixptr[0]) {
+		if(row > handler->size()) {
 			return "";
 		}
 
@@ -87,7 +78,7 @@
 
 	std::string DataStore::Iterator::operator[](const size_t ix) const {
 
-		if(row > ixptr[0]) {
+		if(row > handler->size()) {
 			return "";
 		}
 
@@ -99,7 +90,7 @@
 
 	Udjat::Value & DataStore::Iterator::get(Udjat::Value &value) const {
 
-		if(row > ixptr[0]) {
+		if(row > handler->size()) {
 			return value;
 		}
 

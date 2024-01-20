@@ -18,42 +18,48 @@
  */
 
  /**
-  * @brief Implements container iterator.
+  * @brief Declares CSVLoader query.
   */
 
- #include <config.h>
+ #pragma once
+ #include <udjat/defs.h>
+ #include <udjat/tools/xml.h>
  #include <udjat/tools/datastore/iterator.h>
+ #include <udjat/tools/datastore/column.h>
  #include <udjat/tools/datastore/file.h>
- #include <udjat/tools/logger.h>
- #include <private/structs.h>
-
- using namespace std;
+ #include <udjat/tools/quark.h>
+ #include <memory>
+ #include <vector>
 
  namespace Udjat {
 
-	bool DataStore::Iterator::operator== (const DataStore::Iterator& b) const {
-		return row == b.row;
-	}
+ 	namespace DataStore {
 
-	bool DataStore::Iterator::operator!= (const DataStore::Iterator& b) const {
-		return row != b.row;
-	}
+		class UDJAT_API Query {
+		private:
+			const char *name;
 
-	bool DataStore::Iterator::operator< (const DataStore::Iterator& b) const {
-		return row < b.row;
-	}
+		protected:
 
-	bool DataStore::Iterator::operator<= (const DataStore::Iterator& b) const{
-		return row <= b.row;
-	}
+			Query(const XML::Node &node) : name{Quark{node,"name"}.c_str()} {
+			}
 
-	bool DataStore::Iterator::operator> (const DataStore::Iterator& b) const{
-		return row > b.row;
-	}
+		public:
 
-	bool DataStore::Iterator::operator>= (const DataStore::Iterator& b) const{
-		return row >= b.row;
-	}
+			virtual ~Query();
 
+			static std::shared_ptr<Query> Factory(const XML::Node &node, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> cols);
+
+			inline bool operator==(const char *n) const noexcept {
+				return strcasecmp(name,n) == 0;
+			}
+
+			inline const char * c_str() const noexcept {
+				return name;
+			}
+
+		};
+
+ 	}
 
  }

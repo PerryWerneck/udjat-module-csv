@@ -26,6 +26,7 @@
  #include <config.h>
  #include <udjat/tools/datastore/iterator.h>
  #include <udjat/tools/logger.h>
+ #include <private/iterator.h>
 
  using namespace std;
 
@@ -34,14 +35,14 @@
 	void DataStore::Iterator::search() {
 
 		size_t from = 0;
-		size_t to = ixptr[0];
+		size_t to = handler->size();
 
 		while( (to - from) > 1 ) {
 
 			row = from+((to-from)/2);
 			debug("Center row=",row," from=",from," to=",to, " to-from=",(to-from));
 
-			int comp{filter(*this)};
+			int comp{handler->filter(*this)};
 
 			debug("comp=",comp);
 
@@ -55,7 +56,7 @@
 				size_t first_row = row;
 				while(row > 1) {
 					row--;
-					if(filter(*this)) {
+					if(handler->filter(*this)) {
 						break;
 					} else {
 						first_row = row;
@@ -82,7 +83,7 @@
 		}
 
 		debug(__FUNCTION__," has failed");
-		row = ixptr[0];
+		row = handler->size();
 
 	}
 

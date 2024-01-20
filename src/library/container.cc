@@ -98,6 +98,10 @@
 
 		}
 
+		for(XML::Node child = definition.child("query"); child; child = child.next_sibling("query")) {
+			queries.push_back(Query::Factory(child,cols));
+		}
+
 		containers.getInstance().push_back(this);
 	}
 
