@@ -103,9 +103,54 @@
 			return it;
 		}
 
+		if(!strncasecmp(path,"contains/",9)) {
+
+			// Search for partial content.
+			it = 0;
+			path += 9;
+
+			auto records = make_shared<CustomKeyHandler>();
+
+			if(column_id != (uint16_t) -1) {
+
+				// Search for column contents
+				debug("Searching for substring '",path,"' on column '",cols[column_id]->name());
+
+				for(size_t row = 0; row < it.handler->size(); row++) {
+					it = row;
+					if(strcasestr(it[(size_t) column_id].c_str(),path)) {
+						debug("Selecting '",it[(size_t) column_id],"' rowptr=", ((size_t) it.rowptr())," size=");
+						records->push_back(it);
+					}
+				}
+
+			} else {
+
+				// Search on all columns
+				debug("Searching for substring '",path,"' on all columns");
+
+				for(size_t row = 0; row < it.handler->size(); row++) {
+					for(size_t ix = 0;ix < cols.size();ix++) {
+						if(strcasestr(it[(size_t) ix].c_str(),path)) {
+							debug("Selecting '",it[(size_t) ix],"' rowptr=", ((size_t) it.rowptr()));
+							records->push_back(it);
+							break;
+						}
+					}
+					it++;
+				}
+
+			}
+
+			debug("Got ",records->size()," records");
+			it.handler = records;
+			it = 0;
+
+			return it;
+		}
+
 		// Use remaining path as search key.
 		it.handler->key(path);
-
 		it.search();
 
 		return it;

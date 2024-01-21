@@ -42,7 +42,7 @@
 	}
 
 	DataStore::Iterator::operator bool() const {
-		if(row > handler->size()) {
+		if(row >= handler->size()) {	// Records are from 0 to size()-1
 			return false;
 		}
 		return handler->filter(*this) == 0;

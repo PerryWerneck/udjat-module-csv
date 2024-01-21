@@ -24,6 +24,7 @@
  #pragma once
  #include <udjat/defs.h>
  #include <udjat/tools/datastore/iterator.h>
+ #include <vector>
 
  namespace Udjat {
 
@@ -42,6 +43,10 @@
 
 			inline auto file(const Iterator &it) const noexcept {
 				return it.file;
+			}
+
+			inline auto handler(const Iterator &it) const noexcept {
+				return it.handler;
 			}
 
 		public:
@@ -101,6 +106,26 @@
 
 			const size_t * rowptr(const Iterator &it) const override;
 			int filter(const Iterator &it) const override;
+
+		};
+
+		/// @brief Handler for primary key index.
+		class UDJAT_API CustomKeyHandler : public Iterator::Handler {
+		protected:
+
+			/// @brief The selected records.
+			std::vector<const size_t *> records;
+
+		public:
+			CustomKeyHandler() = default;
+
+			void push_back(const Iterator &it);
+
+			const size_t * rowptr(const Iterator &it) const override;
+			int filter(const Iterator &it) const override;
+			size_t size() const override;
+			void key(const char *key) override;
+
 
 		};
 

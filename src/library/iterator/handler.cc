@@ -169,6 +169,36 @@
 		return cols(it)[colnumber]->comp(file(it),rowptr(it),search_key.c_str());
 	}
 
+	void DataStore::CustomKeyHandler::push_back(const Iterator &it) {
+		records.push_back(handler(it)->rowptr(it));
+	}
+
+	const size_t * DataStore::CustomKeyHandler::rowptr(const Iterator &it) const {
+
+		size_t row{this->row(it)};
+
+		if(row >= records.size()) {
+			throw runtime_error(Logger::String{"Invalid row ",row,", should be from 0 to ",(int) (records.size()-1)});
+		}
+
+		debug("row=",row," rowptr=",((size_t)records[row])," max=",records.size());
+
+		return records[row];
+
+	}
+
+	int DataStore::CustomKeyHandler::filter(const Iterator &) const {
+		return 0;
+	}
+
+	size_t DataStore::CustomKeyHandler::size() const {
+		return records.size();
+	}
+
+	void DataStore::CustomKeyHandler::key(const char *) {
+		throw logic_error("Cant set key on custom handler");
+	}
+
 	/*
 	void DataStore::Iterator::set_default_index(const std::string &search_key) {
 
