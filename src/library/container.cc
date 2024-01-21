@@ -169,6 +169,11 @@
 	}
 
 	time_t DataStore::Container::last_modified() const {
+
+		if(!active_file) {
+			throw runtime_error("Container is empty");
+		}
+
 		return active_file->get<Header>(0).last_modified;
 	}
 
