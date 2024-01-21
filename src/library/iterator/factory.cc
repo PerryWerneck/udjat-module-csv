@@ -31,6 +31,19 @@
 
  namespace Udjat {
 
+	static uint16_t get_column_id(const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &cols, const char *name) {
+
+		debug("Searching for column '",name,"'");
+
+		for(size_t col = 0; col < cols.size(); col++) {
+			if(!strcasecmp(cols[col]->name(),name)) {
+				return col;
+			}
+		}
+
+		return (uint16_t) -1;
+	}
+
 	DataStore::Iterator DataStore::Iterator::Factory(const std::shared_ptr<DataStore::File> file, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &cols, const char *path) {
 
 		debug(__FUNCTION__,"('",path,"')");
@@ -43,36 +56,25 @@
 		Iterator it{file,cols};
 
 		// Check for column filter.
+		uint16_t column_id = (uint16_t) -1;
 		{
-			size_t szpath = strlen(path);
+			const char *ptr = strchr(path,'/');
+			if(ptr) {
+				// Column as part of name.
+				column_id = get_column_id(cols,string{path,(size_t) (ptr-path)}.c_str());
 
-			for(size_t ix = 0; ix < cols.size(); ix++) {
-
-				if(!cols[ix]->indexed()) {
-					continue;
+				if(column_id != (uint16_t) -1) {
+					if(cols[column_id]->indexed()) {
+						it.handler = make_shared<ColumnKeyHandler>(it,column_id);
+					}
+					path = ptr+1;
 				}
-
-				const char *name = cols[ix]->name();
-				size_t szname = strlen(name);
-
-				debug(name," - ",path," ",szname);
-
-				if(szpath > szname && path[szname] == '/' && !strncasecmp(path,name,szname)) {
-
-					debug("Using column '",name,"' as index");
-					path += szname + 1;
-					debug("Path updated to '",path,"'");
-
-					// Set column index
-					it.handler = make_shared<ColumnKeyHandler>(it,ix);
-					it = 0; // First row.
-
-					break;
-				}
-
-
 			}
+		}
 
+		// It there's no handler, use the default one.
+		if(!it.handler) {
+			it.handler = make_shared<PrimaryKeyHandler>(it);
 		}
 
 		// Check for row filter.
@@ -99,11 +101,6 @@
 			it.handler = make_shared<Handler>(it,row);
 
 			return it;
-		}
-
-		// It there's no handler, use the default one.
-		if(!it.handler) {
-			it.handler = make_shared<PrimaryKeyHandler>(it);
 		}
 
 		// Use remaining path as search key.
