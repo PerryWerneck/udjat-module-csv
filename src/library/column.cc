@@ -73,15 +73,12 @@
 	}
 
 	std::string DataStore::Abstract::Column::to_string(std::shared_ptr<File> file, size_t offset) const {
-
 		if(!offset) {
 			return "";
 		}
-
 		if(length()) {
 			return to_string(file->get_void_ptr(offset));
 		}
-
 		return file->get_ptr<char>(offset);
 	}
 
@@ -106,17 +103,6 @@
 
 	}
 
-	/*
-	std::string DataStore::Abstract::Column::to_string(const void *datablock) const {
-		String str{to_string(datablock)};
-		if(format.length) {
-			apply_layout(str);
-		}
-		return str;
-	}
-	*/
-
-
 	std::string DataStore::Abstract::Column::to_string(std::shared_ptr<File> file, const size_t *row) const {
 		std::string str{to_string(file,row[index])};
 		if(format.length) {
@@ -133,6 +119,13 @@
 		throw logic_error(Logger::String{"Cant call ",__FUNCTION__," with datablock on column '",name(),"'"});
 	}
 
+	void DataStore::Abstract::Column::get(std::shared_ptr<File> file, const size_t *row, Udjat::Value &value, Udjat::Value::Type type) const {
+		value[name()].set(to_string(file,row),type);
+	}
+
+	void DataStore::Abstract::Column::get(std::shared_ptr<File> file, const size_t *row, Udjat::Value &value) const {
+		get(file,row,value,Udjat::Value::String);
+	}
 
  }
 

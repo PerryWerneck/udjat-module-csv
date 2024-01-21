@@ -25,6 +25,7 @@
  #include <udjat/defs.h>
  #include <udjat/tools/converters.h>
  #include <udjat/tools/datastore/deduplicator.h>
+ #include <udjat/tools/value.h>
 
  namespace Udjat {
 
@@ -120,6 +121,10 @@
 				const std::string & apply_layout(std::string &str) const;
 
 				virtual std::string to_string(std::shared_ptr<File> file, const size_t *row) const;
+
+				void get(std::shared_ptr<File> file, const size_t *row, Udjat::Value &value, Udjat::Value::Type type) const;
+
+				virtual void get(std::shared_ptr<File> file, const size_t *row, Udjat::Value &value) const;
 
 			};
 

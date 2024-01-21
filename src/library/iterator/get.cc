@@ -94,11 +94,9 @@
 			return value;
 		}
 
-		const size_t *rptr = rowptr();
+		const size_t *row = rowptr();
 		for(auto col : cols) {
-			std::string rc{col->to_string(file,rptr)};
-			col->apply_layout(rc);
-			value[col->name()] = rc;
+			col->get(file,row,value);
 		}
 
 		return value;
