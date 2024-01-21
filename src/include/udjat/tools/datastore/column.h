@@ -174,6 +174,7 @@
 			int comp(std::shared_ptr<File> file, const size_t *row, const char *key) const override;
 			bool less(std::shared_ptr<File> file, const size_t *lrow, const size_t *rrow) const override;
 			std::string to_string(std::shared_ptr<File> file, const size_t *row) const;
+			void get(std::shared_ptr<File> file, const size_t *row, Udjat::Value &value) const override;
 
 		};
 
@@ -191,8 +192,26 @@
 			int comp(std::shared_ptr<File> file, const size_t *row, const char *key) const override;
 			bool less(std::shared_ptr<File> file, const size_t *lrow, const size_t *rrow) const override;
 			std::string to_string(std::shared_ptr<File> file, const size_t *row) const;
+			void get(std::shared_ptr<File> file, const size_t *row, Udjat::Value &value) const override;
 
 		};
+
+		template <>
+		class UDJAT_API Column<bool> : public Column<uint32_t> {
+		public:
+			Column(const XML::Node &node,size_t index) : Column<uint32_t>{node,index} {
+			}
+
+			size_t length() const noexcept override {
+				return sizeof(uint32_t);
+			};
+
+			std::string to_string(std::shared_ptr<File> file, const size_t *row) const;
+			size_t save(Deduplicator &store, const char *text) const override;
+			void get(std::shared_ptr<File> file, const size_t *row, Udjat::Value &value) const override;
+
+		};
+
 
 		template <>
 		class UDJAT_API Column<std::string> : public Abstract::Column {

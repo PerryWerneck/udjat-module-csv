@@ -24,6 +24,7 @@
  #include <config.h>
  #include <udjat/defs.h>
  #include <udjat/tools/datastore/column.h>
+ #include <udjat/tools/string.h>
  #include <string>
 
  using namespace std;
@@ -45,7 +46,11 @@
 	}
 
 	std::string DataStore::Column<int32_t>::to_string(std::shared_ptr<File>, const size_t *row) const {
-		return std::to_string((uint32_t) row[index]);
+		return std::to_string((int32_t) row[index]);
+	}
+
+	void DataStore::Column<int32_t>::get(std::shared_ptr<File> file, const size_t *row, Udjat::Value &value) const {
+		value[name()] = (int32_t) row[index];
 	}
 
 	// uint32_t
@@ -64,6 +69,26 @@
 
 	std::string DataStore::Column<uint32_t>::to_string(std::shared_ptr<File>, const size_t *row) const {
 		return std::to_string((uint32_t) row[index]);
+	}
+
+	void DataStore::Column<uint32_t>::get(std::shared_ptr<File> file, const size_t *row, Udjat::Value &value) const {
+		value[name()] = (uint32_t) row[index];
+	}
+
+	// Boolean
+
+	std::string DataStore::Column<bool>::to_string(std::shared_ptr<File>, const size_t *row) const {
+		String s;
+		s.append((bool) (row[index] == 2));
+		return s;
+	}
+
+	size_t DataStore::Column<bool>::save(Deduplicator &store, const char *text) const {
+		return (size_t) (String{text}.as_bool() ? 2 : 1);
+	}
+
+	void DataStore::Column<bool>::get(std::shared_ptr<File>, const size_t *row, Udjat::Value &value) const {
+		value[name()] = (bool) (row[index] == 2);
 	}
 
  }
