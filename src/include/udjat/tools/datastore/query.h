@@ -48,7 +48,7 @@
 
 			virtual ~Query();
 
-			static std::shared_ptr<Query> Factory(const XML::Node &node, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> cols);
+			static std::shared_ptr<Query> Factory(const XML::Node &node, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &cols);
 
 			inline bool operator==(const char *n) const noexcept {
 				return strcasecmp(name,n) == 0;

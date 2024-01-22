@@ -49,7 +49,7 @@
 		return std::to_string((int32_t) row[index]);
 	}
 
-	void DataStore::Column<int32_t>::get(std::shared_ptr<File> file, const size_t *row, Udjat::Value &value) const {
+	void DataStore::Column<int32_t>::get(std::shared_ptr<File>, const size_t *row, Udjat::Value &value) const {
 		value[name()] = (int32_t) row[index];
 	}
 
@@ -71,7 +71,7 @@
 		return std::to_string((uint32_t) row[index]);
 	}
 
-	void DataStore::Column<uint32_t>::get(std::shared_ptr<File> file, const size_t *row, Udjat::Value &value) const {
+	void DataStore::Column<uint32_t>::get(std::shared_ptr<File>, const size_t *row, Udjat::Value &value) const {
 		value[name()] = (uint32_t) row[index];
 	}
 
@@ -83,7 +83,7 @@
 		return s;
 	}
 
-	size_t DataStore::Column<bool>::save(Deduplicator &store, const char *text) const {
+	size_t DataStore::Column<bool>::save(Deduplicator &, const char *text) const {
 		return (size_t) (String{text}.as_bool() ? 2 : 1);
 	}
 

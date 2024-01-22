@@ -24,13 +24,28 @@
  #include <config.h>
  #include <udjat/defs.h>
  #include <udjat/tools/datastore/query.h>
+ #include <udjat/tools/logger.h>
  #include <stdexcept>
 
  using namespace std;
 
  namespace Udjat {
 
-	std::shared_ptr<DataStore::Query> DataStore::Query::Factory(const XML::Node &node, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> cols) {
+	static uint16_t get_column_by_name(const std::vector<std::shared_ptr<DataStore::Abstract::Column>> cols, const char *name) {
+
+		for(size_t ix = 0; ix < cols.size(); ix++) {
+
+			if(!strcasecmp(cols[ix]->name(),name)) {
+				return (uint16_t) ix;
+			}
+
+		}
+
+		throw runtime_error(Logger::String{"Required column '",name,"' was not found"});
+
+	}
+
+	std::shared_ptr<DataStore::Query> DataStore::Query::Factory(const XML::Node &node, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &cols) {
 
 		/// @brief IPV4 Network query.
 		class QueryNetV4 : public DataStore::Query {
@@ -44,12 +59,23 @@
 		public:
 			QueryNetV4(const XML::Node &node, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> cols) : DataStore::Query{node} {
 
+				column.ip = get_column_by_name(cols,node.attribute("network-from").as_string("undefined"));
+				column.mask = get_column_by_name(cols,node.attribute("mask-from").as_string("undefined"));
+
 			}
 
 		};
 
+		const char *type = node.attribute("type").as_string("undefined");
+		if(!strcasecmp(type,"netv4")) {
+			return make_shared<QueryNetV4>(node,cols);
+		}
 
-		throw runtime_error("Unknown or invalid query");
+		throw runtime_error(Logger::String{"Unknown or invalid query '",type,"'"});
+	}
+
+
+	DataStore::Query::~Query() {
 	}
 
  }
