@@ -25,6 +25,7 @@
  #include <udjat/defs.h>
  #include <udjat/tools/logger.h>
  #include <udjat/tools/datastore/container.h>
+ #include <udjat/tools/datastore/query.h>
  #include <udjat/tools/datastore/loader.h>
  #include <udjat/tools/datastore/file.h>
  #include <udjat/tools/datastore/columns/ipv4.h>
@@ -142,8 +143,8 @@
 		state(size() ? Ready : Empty);
 	}
 
-	DataStore::Iterator DataStore::Container::find(const char *key) const {
-		return DataStore::Iterator{active_file,columns(),key};
+	DataStore::Iterator DataStore::Container::find(const char *path) const {
+		return DataStore::Iterator{active_file,columns(),path};
 	}
 
 	DataStore::Iterator DataStore::Container::find(const char *column, const char *key) const {
@@ -178,6 +179,27 @@
 	}
 
 	DataStore::Iterator DataStore::Container::find(Request &request) {
+
+		// Search for query.
+		{
+			const char *path = request.path();
+			size_t szpath = strlen(path);
+
+			for(const auto query : queries) {
+
+				const char *name = query->c_str();
+				size_t szname = strlen(name);
+
+				if(szpath > szname && path[szname] == '/' && !strncasecmp(path,name,szname)) {
+
+					request.pop();
+					return query->call(cols,active_file,request);
+				}
+
+			}
+
+		}
+
 		return DataStore::Iterator::Factory(active_file,cols,request);
 	}
 

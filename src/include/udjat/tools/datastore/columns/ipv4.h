@@ -47,6 +47,10 @@
 				return sizeof(in_addr);
 			};
 
+			inline size_t value(const size_t *row) const {
+				return row[index];
+			}
+
 			size_t save(Deduplicator &store, const char *text) const override;
 			int comp(std::shared_ptr<File> file, const size_t *row, const char *key) const override;
 			bool less(std::shared_ptr<File> file, const size_t *lrow, const size_t *rrow) const override;

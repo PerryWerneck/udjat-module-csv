@@ -72,7 +72,6 @@
 				time_t timestamp = db->last_modified();
 				response.last_modified(timestamp);
 				if(request.cached(timestamp)) {
-					debug("-----------------------------------------> NOT MODIFIED");
 					response.not_modified(true);
 					return true;
 				}

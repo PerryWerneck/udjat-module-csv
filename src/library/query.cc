@@ -24,6 +24,7 @@
  #include <config.h>
  #include <udjat/defs.h>
  #include <udjat/tools/datastore/query.h>
+ #include <udjat/tools/datastore/columns/ipv4.h>
  #include <udjat/tools/logger.h>
  #include <stdexcept>
 
@@ -52,6 +53,7 @@
 		private:
 
 			struct Column {
+				uint16_t index;		///< @brief Index column.
 				uint16_t ip;		///< @brief ID of the Reference IP column.
 				uint16_t mask;		///< @brief ID of the netmask column.
 			} column;
@@ -60,7 +62,57 @@
 			QueryNetV4(const XML::Node &node, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> cols) : DataStore::Query{node} {
 
 				column.ip = get_column_by_name(cols,node.attribute("network-from").as_string("undefined"));
+				if(!dynamic_cast<DataStore::Column<in_addr> *>(cols[column.ip].get())) {
+					throw runtime_error("Invalid column type");
+				}
+
 				column.mask = get_column_by_name(cols,node.attribute("mask-from").as_string("undefined"));
+				if(!dynamic_cast<DataStore::Column<in_addr> *>(cols[column.mask].get())) {
+					throw runtime_error("Invalid column type");
+				}
+
+				column.index = get_column_by_name(cols,node.attribute("index").as_string("undefined"));
+				if(!dynamic_cast<DataStore::Column<in_addr> *>(cols[column.mask].get())) {
+					throw runtime_error("Invalid column type");
+				}
+
+				if(!cols[column.index]->indexed()) {
+					throw runtime_error("Invalid index column");
+				}
+
+			}
+
+			DataStore::Iterator call(const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &cols,std::shared_ptr<File>,const Request &request) const override {
+
+				size_t key = 0;
+				const char *path = request.path();
+
+				if(path && *path) {
+
+					// Use IP from path
+					debug("Selecting network from '",path,"'");
+
+					struct in_addr addr;
+
+					if(!inet_pton(AF_INET, path, &addr)) {
+						throw std::system_error(errno,std::system_category(),path);
+					}
+
+					key = (size_t) htonl(addr.s_addr);
+
+				} else {
+
+					// Use request's ip address.
+
+					throw runtime_error("Incomplete - Cant search from request's origin address");
+
+				}
+
+				const auto *ip = dynamic_cast<DataStore::Column<in_addr> *>(cols[column.ip].get());
+				const auto *mask = dynamic_cast<DataStore::Column<in_addr> *>(cols[column.mask].get());
+
+
+				throw runtime_error("Pending implementation");
 
 			}
 

@@ -58,6 +58,8 @@
 				return name;
 			}
 
+			virtual DataStore::Iterator call(const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &cols,std::shared_ptr<File>, const Request &request) const = 0;
+
 		};
 
  	}
