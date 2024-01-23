@@ -2,13 +2,16 @@
 #---[ Library configuration ]------------------------------------------------------------
 
 PACKAGE_NAME=@PACKAGE_NAME@
+SONAME=@SONAME@
 
-MAIN_SOURCES= \
+LIBRARY_SOURCES= \
 	$(wildcard src/library/*.cc) \
 	$(wildcard src/library/loaders/*.cc) \
 	$(wildcard src/library/columns/*.cc) \
 	$(wildcard src/library/iterator/*.cc) \
-	$(wildcard src/library/os/@OSNAME@/*.cc) \
+	$(wildcard src/library/os/@OSNAME@/*.cc)
+
+MODULE_SOURCES= \
 	$(wildcard src/module/*.cc) \
 
 TEST_SOURCES= \
@@ -127,24 +130,68 @@ all: \
 
 Release: \
 	$(BINRLS)/$(PACKAGE_NAME)@LIBEXT@
-
-$(BINRLS)/$(PACKAGE_NAME)@LIBEXT@: \
-	$(foreach SRC, $(basename $(MAIN_SOURCES)), $(OBJRLS)/$(SRC).o)
+	
+$(BINRLS)/$(SONAME): \
+	$(foreach SRC, $(basename $(LIBRARY_SOURCES)), $(OBJRLS)/$(SRC).o)
 
 	@$(MKDIR) $(@D)
 	@echo $< ...
 	@$(LD) \
-		-shared \
+		@DLL_LDFLAGS@ \
 		-Wl,-soname,$(@F) \
 		-o $@ \
 		$(LDFLAGS) \
 		$^ \
 		$(LIBS)
 
+$(BINRLS)/$(PACKAGE_NAME)@LIBEXT@: \
+	$(foreach SRC, $(basename $(MODULE_SOURCES)), $(OBJRLS)/$(SRC).o) \
+	$(BINRLS)/$(SONAME)
+
+	@$(MKDIR) $(@D)
+	@echo $< ...
+	@$(LD) \
+		-shared \
+		-o $@ \
+		$(LDFLAGS) \
+		$^ \
+		$(LIBS)
+
+$(BINRLS)/libudjatcsv.a: \
+	$(foreach SRC, $(basename $(LIBRARY_SOURCES)), $(OBJRLS)/$(SRC).o)
+
+	@$(MKDIR) $(@D)
+	@echo $< ...
+	@$(AR) rcs $@ $^
 
 #---[ Install Targets ]------------------------------------------------------------------
 
 install: \
+	install-@OSNAME@ \
+	install-module \
+	install-dev
+
+install-linux: \
+	$(BINRLS)/$(SONAME)
+
+	# Install library
+	@$(MKDIR) $(DESTDIR)$(libdir)
+
+	@$(INSTALL_PROGRAM) \
+		$(BINRLS)/$(SONAME) \
+		$(DESTDIR)$(libdir)/$(SONAME)
+		
+install-windows: \
+	$(BINRLS)/@SONAME@
+
+	@$(MKDIR) \
+		$(DESTDIR)$(bindir)
+
+	@$(INSTALL_PROGRAM) \
+		$(BINRLS)/@SONAME@ \
+		$(DESTDIR)$(bindir)/@SONAME@
+		
+install-module: \
 	$(BINRLS)/$(PACKAGE_NAME)@LIBEXT@
 
 	@$(MKDIR) \
@@ -153,17 +200,86 @@ install: \
 	@$(INSTALL_PROGRAM) \
 		$(BINRLS)/$(PACKAGE_NAME)@LIBEXT@ \
 		$(DESTDIR)@MODULE_PATH@/$(PACKAGE_NAME)@LIBEXT@
+
+install-dev: \
+	install-@OSNAME@-dev \
+	install-@OSNAME@-static 
+	
+	@$(MKDIR) \
+		$(DESTDIR)$(includedir)/udjat/tools/datastore
+
+	@$(INSTALL_DATA) \
+		src/include/udjat/tools/datastore/*.h \
+		$(DESTDIR)$(includedir)/udjat/tools/datastore
+
+	@$(MKDIR) \
+		$(DESTDIR)$(includedir)/udjat/tools/datastore/columns
+
+	@$(INSTALL_DATA) \
+		src/include/udjat/tools/datastore/columns/*.h \
+		$(DESTDIR)$(includedir)/udjat/tools/datastore/columns
+
+	# Install PKG-CONFIG files
+	@$(MKDIR) \
+		$(DESTDIR)$(libdir)/pkgconfig
+
+	@$(INSTALL_DATA) \
+		sdk/@OSNAME@/dynamic.pc \
+		$(DESTDIR)$(libdir)/pkgconfig/udjat-csv.pc
+
+	@$(INSTALL_DATA) \
+		sdk/@OSNAME@/static.pc \
+		$(DESTDIR)$(libdir)/pkgconfig/udjat-csv-static.pc
+
+install-linux-static: \
+	$(BINRLS)/libudjatcsv.a
+
+	# Install static library
+	@$(MKDIR) $(DESTDIR)$(libdir)
+	@$(INSTALL_DATA) \
+		$(BINRLS)/libudjatcsv.a \
+		$(DESTDIR)$(libdir)/libudjatcsv.static.a
+
+install-windows-static: \
+	$(BINRLS)/libudjatcsv.a
+
+	@$(MKDIR) \
+		$(DESTDIR)$(libdir)
+
+	@$(INSTALL_PROGRAM) \
+		$(BINRLS)/libudjatcsv.a \
+		$(DESTDIR)$(libdir)/libudjatcsv.a
+
+install-linux-dev:
+
+	# Install linux SDK
+	@$(MKDIR) \
+		$(DESTDIR)$(libdir)
+
+	@$(LN_S) \
+		$(SONAME) \
+		$(DESTDIR)$(libdir)/libudjatcsv.so
+
+install-windows-dev:
+
+	@$(MKDIR) \
+		$(DESTDIR)$(libdir)
+
+	@$(DLLTOOL) \
+		--input-def $(BINRLS)/udjatcsv.def \
+		--dllname @SONAME@ \
+		--output-lib $(DESTDIR)$(libdir)/libudjatcsv.dll.a
 		
+	
 #---[ Uninstall Targets ]----------------------------------------------------------------
 
 uninstall: \
-	uninstall-@OSNAME@-lib
+	uninstall-@OSNAME@
 
-uninstall-linux-lib:
+uninstall-linux:
 
 	@rm -f \
 		$(DESTDIR)@MODULE_PATH@/$(PACKAGE_NAME)@LIBEXT@
-		
 
 #---[ Debug Targets ]--------------------------------------------------------------------
 
@@ -185,19 +301,32 @@ $(BINDBG)/udjat@EXEEXT@: \
 		$(LIBS)
 
 
-$(BINDBG)/$(PACKAGE_NAME)@LIBEXT@: \
-	$(foreach SRC, $(basename $(MAIN_SOURCES)), $(OBJDBG)/$(SRC).o)
+$(BINDBG)/$(SONAME): \
+	$(foreach SRC, $(basename $(LIBRARY_SOURCES)), $(OBJDBG)/$(SRC).o)
 
 	@$(MKDIR) $(@D)
 	@echo $< ...
 	@$(LD) \
-		-shared \
+		@DLL_LDFLAGS@ \
 		-Wl,-soname,$(@F) \
 		-o $@ \
 		$(LDFLAGS) \
 		$^ \
 		$(LIBS)
 
+$(BINDBG)/$(PACKAGE_NAME)@LIBEXT@: \
+	$(foreach SRC, $(basename $(MODULE_SOURCES)), $(OBJDBG)/$(SRC).o) \
+	$(BINDBG)/$(SONAME)
+
+	@$(MKDIR) $(@D)
+	@echo $< ...
+	@$(LD) \
+		-shared \
+		-Wl,-rpath,$(BINDBG) \
+		-o $@ \
+		$(LDFLAGS) \
+		$^ \
+		$(LIBS)
 
 run: \
 	$(BINDBG)/udjat@EXEEXT@
@@ -236,7 +365,7 @@ clean: \
 	cleanRelease
 
 
--include $(foreach SRC, $(basename $(MAIN_SOURCES) $(TEST_SOURCES)), $(OBJDBG)/$(SRC).d)
--include $(foreach SRC, $(basename $(MAIN_SOURCES) $(TEST_SOURCES)), $(OBJRLS)/$(SRC).d)
+-include $(foreach SRC, $(basename $(LIBRARY_SOURCES) $(MODULE_SOURCES)), $(OBJDBG)/$(SRC).d)
+-include $(foreach SRC, $(basename $(LIBRARY_SOURCES) $(MODULE_SOURCES)), $(OBJRLS)/$(SRC).d)
 
 
