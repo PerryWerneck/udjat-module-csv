@@ -48,9 +48,6 @@
 			/// @brief Selected row (from 0 to the end of file)
 			size_t row = 1;
 
-			/// @brief Search using handler.
-			void search();
-
 			const size_t * rowptr() const;
 
 		public:
@@ -75,8 +72,17 @@
 			/// @brief Build an iterator searching on primary key.
 			Iterator(const std::shared_ptr<DataStore::File> file, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &cols, const std::string &key);
 
-			/// @brief Build and iterator searching a named column.
+			/// @brief Build and iterator searching column id.
+			Iterator(const std::shared_ptr<DataStore::File> file, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &cols, const uint16_t column_id, const std::string &key);
+
+			/// @brief Build and iterator searching column name.
 			Iterator(const std::shared_ptr<DataStore::File> file, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &cols, const std::string &column_name, const std::string &key);
+
+			/// @brief Build and iterator searching column name.
+			Iterator(const std::shared_ptr<DataStore::File> file, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &cols, std::shared_ptr<Handler> handler);
+
+			/// @brief Search using handler.
+			void search();
 
 			/// @brief Is this iterator valid?
 			operator bool() const;

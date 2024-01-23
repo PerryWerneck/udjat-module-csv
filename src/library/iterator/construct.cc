@@ -33,61 +33,33 @@
 
  namespace Udjat {
 
-	DataStore::Iterator::Iterator(const std::shared_ptr<DataStore::File> f, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &c)
-		: file{f}, cols{c} {
-
+	DataStore::Iterator::Iterator(const std::shared_ptr<DataStore::File> f, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &c, std::shared_ptr<Handler> h)
+		: file{f}, cols{c}, handler{h} {
 		if(!file->mapped()) {
 			throw logic_error("Unable to iterate an unmapped datastore");
 		}
+	}
 
+	DataStore::Iterator::Iterator(const std::shared_ptr<DataStore::File> f, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &c)
+		: file{f}, cols{c} {
+		if(!file->mapped()) {
+			throw logic_error("Unable to iterate an unmapped datastore");
+		}
 	}
 
 	DataStore::Iterator::Iterator(const std::shared_ptr<DataStore::File> f, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &c, const std::string &search_key)
-		: file{f}, cols{c}, handler{make_shared<DataStore::PrimaryKeyHandler>(*this,search_key.c_str())} {
-
+		: Iterator{f,c,make_shared<DataStore::PrimaryKeyHandler>(*this,search_key.c_str())} {
 		search();
+	}
 
+	DataStore::Iterator::Iterator(const std::shared_ptr<DataStore::File> f, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &c, const uint16_t column_id, const std::string &search_key)
+		: file{f}, cols{c}, handler{make_shared<ColumnKeyHandler>(*this,column_id,search_key.c_str())} {
+		search();
 	}
 
 	DataStore::Iterator::Iterator(const std::shared_ptr<DataStore::File> f, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &c, const std::string &column_name, const std::string &search_key)
-		: file{f}, cols{c}, handler{make_shared<ColumnKeyHandler>(*this,column_name.c_str(),search_key.c_str())} {
-
+		: Iterator{f,c,make_shared<ColumnKeyHandler>(*this,column_name.c_str(),search_key.c_str())} {
 		search();
-
-		/*
-		// Get column index.
-		ixtype = (uint16_t) -1;
-		for(size_t c = 0; c < cols.size();c++) {
-			if(cols[c]->indexed() && !strcasecmp(cols[c]->name(),column_name.c_str())) {
-				ixtype = (uint16_t) c;
-				break;
-			}
-		}
-		if(ixtype == (uint16_t) -1) {
-			throw runtime_error(Logger::String{"Unable to search using '",column_name.c_str(),"'"});
-		}
-
-		// Get pointer to ixtype index.
-		const Header &header{file->get<Header>(0)};
-		const Index *index{file->get_ptr<Index>(header.indexes.offset)};
-
-		for(size_t ix = 0;ix < header.indexes.count;ix++) {
-
-			if(index->column == ixtype) {
-				ixptr = file->get_ptr<size_t>(index->offset);
-				break;
-			}
-
-			index++;
-		}
-
-		if(!ixptr) {
-			throw logic_error(Logger::String{"Cant find index for '",column_name,"'"});
-		}
-
-		set_default_filter(search_key);
-		*/
-
 	}
 
  }

@@ -51,11 +51,13 @@
 
 	}
 
-	DataStore::PrimaryKeyHandler::PrimaryKeyHandler(const Iterator &it, const char *s) : search_key{s} {
-
+	DataStore::PrimaryKeyHandler::PrimaryKeyHandler(const std::shared_ptr<DataStore::File> file, const char *s) : search_key{s} {
 		// Get pointer to primary index.
-		ixptr = file(it)->get_ptr<size_t>(file(it)->get<Header>(0).primary_offset);
+		ixptr = file->get_ptr<size_t>(file->get<Header>(0).primary_offset);
+	}
 
+	DataStore::PrimaryKeyHandler::PrimaryKeyHandler(const Iterator &it, const char *s)
+		: PrimaryKeyHandler{file(it),s} {
 	}
 
 	DataStore::PrimaryKeyHandler::~PrimaryKeyHandler() {
@@ -64,17 +66,18 @@
 	DataStore::ColumnKeyHandler::~ColumnKeyHandler() {
 	}
 
-	DataStore::ColumnKeyHandler::ColumnKeyHandler(const Iterator &it, uint16_t c, const char *search_key) : PrimaryKeyHandler{it,search_key}, colnumber{c} {
+	DataStore::ColumnKeyHandler::ColumnKeyHandler(const std::shared_ptr<DataStore::File> file, uint16_t c, const char *search_key)
+		: PrimaryKeyHandler{file,search_key}, colnumber{c} {
 
 		// Get pointer to column index.
-		const Header &header{file(it)->get<Header>(0)};
-		const Index *index{file(it)->get_ptr<Index>(header.indexes.offset)};
+		const Header &header{file->get<Header>(0)};
+		const Index *index{file->get_ptr<Index>(header.indexes.offset)};
 
 		ixptr = nullptr;
 		for(size_t ix = 0;ix < header.indexes.count;ix++) {
 
 			if(index->column == colnumber) {
-				ixptr = file(it)->get_ptr<size_t>(index->offset);
+				ixptr = file->get_ptr<size_t>(index->offset);
 				break;
 			}
 			index++;
@@ -83,6 +86,11 @@
 		if(!ixptr) {
 			throw logic_error(Logger::String{"Unable to find index for required column"});
 		}
+
+	}
+
+	DataStore::ColumnKeyHandler::ColumnKeyHandler(const Iterator &it, uint16_t c, const char *search_key)
+		: ColumnKeyHandler{file(it),c,search_key} {
 
 	}
 

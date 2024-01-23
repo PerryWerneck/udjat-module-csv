@@ -26,6 +26,8 @@
  #include <udjat/tools/datastore/query.h>
  #include <udjat/tools/datastore/columns/ipv4.h>
  #include <udjat/tools/logger.h>
+ #include <udjat/tools/datastore/iterator.h>
+ #include <private/iterator.h>
  #include <stdexcept>
 
  using namespace std;
@@ -82,7 +84,7 @@
 
 			}
 
-			DataStore::Iterator call(const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &cols,std::shared_ptr<File>,const Request &request) const override {
+			DataStore::Iterator call(const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &cols,std::shared_ptr<File> file,const Request &request) const override {
 
 				size_t key = 0;
 				const char *path = request.path();
@@ -108,11 +110,61 @@
 
 				}
 
-				const auto *ip = dynamic_cast<DataStore::Column<in_addr> *>(cols[column.ip].get());
-				const auto *mask = dynamic_cast<DataStore::Column<in_addr> *>(cols[column.mask].get());
+				class NetworkHandler : public ColumnKeyHandler {
+				private:
+					uint32_t key;		///< @brief Search key.
+					uint16_t ipcol;		///< @brief The IP address column.
+					uint16_t maskcol;	///< @brief The netmask column.
+
+				public:
+					NetworkHandler(const std::shared_ptr<DataStore::File> file, uint16_t colnumber, uint32_t k, uint16_t i, uint16_t m) : ColumnKeyHandler{file,colnumber}, key{k}, ipcol{i}, maskcol{m} {
+					}
+
+					int filter(const Iterator &it) const override {
+
+						const size_t *rptr = rowptr(it);
+
+						uint32_t mask = rptr[maskcol];
+						uint32_t brd = 0xffffffff&~mask;	// Set all non network part bits to 1 (broadcast address).
+
+						uint32_t rowaddr = (rptr[ipcol]|brd)&mask;
+						uint32_t keyaddr = (key|brd)&mask;
+
+#ifdef DEBUG
+						{
+							struct in_addr addr;
+							memset(&addr,0,sizeof(addr));
+							addr.s_addr = htonl(rowaddr);
+							cout << "search\trowaddr=" << std::to_string(addr);
+							addr.s_addr = htonl(keyaddr);
+							cout << " keyaddr=" << std::to_string(addr);
+
+							addr.s_addr = htonl(rptr[ipcol]|brd);
+							cout << " brd=" << std::to_string(addr);
+
+							cout << endl;
+						}
+#endif
 
 
-				throw runtime_error("Pending implementation");
+						if(rowaddr == keyaddr) {
+							return 0;
+						} else if(rowaddr > keyaddr) {
+							return 1;
+						}
+
+						return -1;
+
+					}
+
+
+				};
+
+
+				Iterator it{file,cols,make_shared<NetworkHandler>(file,column.index,key,column.ip,column.mask)};
+				it.search();
+
+				return it;
 
 			}
 

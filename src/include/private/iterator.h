@@ -81,6 +81,7 @@
 			const size_t *ixptr = nullptr;
 
 		public:
+			PrimaryKeyHandler(const std::shared_ptr<DataStore::File> file, const char *search_key = "");
 			PrimaryKeyHandler(const Iterator &it, const char *search_key = "");
 			virtual ~PrimaryKeyHandler();
 
@@ -99,6 +100,7 @@
 			uint16_t colnumber;
 
 		public:
+			ColumnKeyHandler(const std::shared_ptr<DataStore::File> file, uint16_t colnumber, const char *search_key = "");
 			ColumnKeyHandler(const Iterator &it, uint16_t colnumber, const char *search_key = "");
 			ColumnKeyHandler(const Iterator &it, const char *colname, const char *search_key = "");
 
