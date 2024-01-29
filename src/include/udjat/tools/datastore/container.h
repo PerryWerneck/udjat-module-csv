@@ -136,12 +136,6 @@
 			/// @return Iterator with the first record found.
 			Iterator find(const char *path) const;
 
-			/// @brief Get iterator using columns index.
-			/// @param column The column name.
-			/// @param key The key to search on the column index.
-			/// @return Iterator with the first record found.
-			Iterator find(const char *column, const char *key) const;
-
 			/// @brief Get iterator using request.
 			/// @param request the request.
 			Iterator find(Request &request);

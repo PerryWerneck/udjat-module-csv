@@ -145,13 +145,7 @@
 	}
 
 	DataStore::Iterator DataStore::Container::find(const char *path) const {
-
-		debug("--------------------------> active file is ",(active_file->mapped() ? "mapped" : "not mapped"));
-		return DataStore::Iterator{active_file,columns(),path};
-	}
-
-	DataStore::Iterator DataStore::Container::find(const char *column, const char *key) const {
-		return DataStore::Iterator{active_file,columns(),column,key};
+		return DataStore::Iterator::Factory(this->active_file, this->columns(), path);
 	}
 
 	std::shared_ptr<DataStore::Abstract::Column> DataStore::Container::column(const char *name) const {
