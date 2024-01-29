@@ -51,12 +51,31 @@
 
 			debug(__FUNCTION__,"----------------------------------(",request.path(),")");
 			if(DataStore::Container::get(request)) {
-				debug("Accepting request '",request.path(),"'");
+				debug("Accepting '",request.path(),"'");
 				return ResponseType::Table;
 			}
 
-			debug("Rejecting request '",request.path(),"'");
+			debug("Rejecting '",request.path(),"'");
 			return ResponseType::None;
+		}
+
+		bool CustomFactory(Abstract::Object &parent, const XML::Node &node) override {
+
+			if(strcasecmp(node.name(),"api-call")) {
+				return false;
+			}
+
+			debug("---------------------------------------------------------------------");
+
+			Udjat::DataStore::Container *container = dynamic_cast<Udjat::DataStore::Container *>(&parent);
+
+			if(container) {
+				debug("Creating api call for container");
+				return container->push_back(node);
+			}
+
+			debug("---> Invalid API-CALL '",parent.name(),"'");
+			return false;
 		}
 
 		bool work(Request &request, Response::Table &response) const override {
@@ -65,8 +84,11 @@
 
 			auto db = DataStore::Container::get(request);
 			if(!db) {
+				debug("No container for '",request.path(),"'");
 				return false;
 			}
+
+			debug("Found container for '",request.path(),"'");
 
 			{
 				time_t timestamp = db->last_modified();
@@ -78,6 +100,7 @@
 			}
 
 			request.pop();	// Remove db name.
+
 			DataStore::Iterator it = db->find(request);
 			if(!it) {
 				return false;
@@ -99,7 +122,7 @@
 
 			}
 
-			return true;
+			return false;
 
 		}
 

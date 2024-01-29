@@ -98,7 +98,8 @@
 			/// @brief Get timestamp from source files.
 			time_t last_modified() const;
 
-			//Udjat::Value & get(size_t id, Udjat::Value &value) const;
+			/// @brief Insert query from XML definition
+			bool push_back(const XML::Node &node);
 
 			/// @brief Is the container loaded?
 			bool loaded() const {
@@ -144,36 +145,6 @@
 			/// @brief Get iterator using request.
 			/// @param request the request.
 			Iterator find(Request &request);
-
-			/*
-			/// @brief Get value from search path.
-			/// @param path The path for the required resource.
-			/// @param value The value for resource data.
-			/// @return true if value was updated.
-			bool get(const char *path, Udjat::Value &value) const;
-
-			/// @brief Get response from search path.
-			/// @param path The path for the required resource.
-			/// @param value The value for resource data.
-			/// @return true if value was updated.
-			bool get(const char *path, Udjat::Response::Value &value) const;
-
-			/// @brief Get values from search path.
-			/// @param path The path for the required resource.
-			/// @param value The container to responses.
-			/// @return true if value was updated.
-			bool get(const char *path, Udjat::Response::Table &value) const;
-
-			/// @brief Count number of responses.
-			/// @param path The path for the required resource.
-			bool head(const char *path, Udjat::Abstract::Response &response) const;
-
-			/// @brief Count number of responses from iterator.
-			/// @param it the iterator to count.
-			/// @param path The path for the required resource.
-			/// @return true if the iterator is valid.
-			bool head(const DataStore::Iterator &it, Udjat::Abstract::Response &response) const;
-			*/
 
 		};
 

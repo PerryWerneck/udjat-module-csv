@@ -63,17 +63,19 @@
 		public:
 			QueryNetV4(const XML::Node &node, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> cols) : DataStore::Query{node} {
 
-				column.ip = get_column_by_name(cols,node.attribute("network-from").as_string("undefined"));
+				const char *netsource = node.attribute("network-from").as_string("undefined");
+
+				column.ip = get_column_by_name(cols,netsource);
 				if(!dynamic_cast<DataStore::Column<in_addr> *>(cols[column.ip].get())) {
 					throw runtime_error("Invalid column type");
 				}
 
-				column.mask = get_column_by_name(cols,node.attribute("mask-from").as_string("undefined"));
+				column.mask = get_column_by_name(cols,node.attribute("mask-from").as_string("netmask"));
 				if(!dynamic_cast<DataStore::Column<in_addr> *>(cols[column.mask].get())) {
 					throw runtime_error("Invalid column type");
 				}
 
-				column.index = get_column_by_name(cols,node.attribute("index").as_string("undefined"));
+				column.index = get_column_by_name(cols,node.attribute("index").as_string(netsource));
 				if(!dynamic_cast<DataStore::Column<in_addr> *>(cols[column.mask].get())) {
 					throw runtime_error("Invalid column type");
 				}
@@ -88,6 +90,9 @@
 
 				size_t key = 0;
 				const char *path = request.path();
+				if(*path == '/') {
+					path++;
+				}
 
 				if(path && *path) {
 
@@ -170,12 +175,12 @@
 
 		};
 
-		const char *type = node.attribute("type").as_string("undefined");
+		const char *type = node.attribute("search-engine").as_string("undefined");
 		if(!strcasecmp(type,"netv4")) {
 			return make_shared<QueryNetV4>(node,cols);
 		}
 
-		throw runtime_error(Logger::String{"Unknown or invalid query '",type,"'"});
+		throw runtime_error(Logger::String{"Unknown or invalid search-engine '",type,"'"});
 	}
 
 

@@ -99,15 +99,16 @@
 
 		}
 
-		for(XML::Node child = definition.child("query"); child; child = child.next_sibling("query")) {
-			queries.push_back(Query::Factory(child,cols));
-		}
-
 		containers.getInstance().push_back(this);
 	}
 
 	DataStore::Container::~Container() {
 		containers.getInstance().remove(this);
+	}
+
+	bool DataStore::Container::push_back(const XML::Node &node) {
+		queries.push_back(Query::Factory(node,cols));
+		return true;
 	}
 
 	void DataStore::Container::state(const State) {
@@ -144,6 +145,8 @@
 	}
 
 	DataStore::Iterator DataStore::Container::find(const char *path) const {
+
+		debug("--------------------------> active file is ",(active_file->mapped() ? "mapped" : "not mapped"));
 		return DataStore::Iterator{active_file,columns(),path};
 	}
 
@@ -181,26 +184,16 @@
 	DataStore::Iterator DataStore::Container::find(Request &request) {
 
 		// Search for query.
-		{
-			const char *path = request.path();
-			size_t szpath = strlen(path);
+		for(const auto &query : queries) {
 
-			for(const auto query : queries) {
-
-				const char *name = query->c_str();
-				size_t szname = strlen(name);
-
-				if(szpath > szname && path[szname] == '/' && !strncasecmp(path,name,szname)) {
-
-					request.pop();
-					return query->call(cols,active_file,request);
-				}
-
+			if( *query == request && request.pop(query->path())) {
+				return query->call(cols,active_file,request);
 			}
 
 		}
 
 		return DataStore::Iterator::Factory(active_file,cols,request);
+
 	}
 
 	size_t DataStore::Container::column_index(const char *name) const {
