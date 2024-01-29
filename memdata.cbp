@@ -65,7 +65,6 @@
 		<Unit filename="src/library/iterator/get.cc" />
 		<Unit filename="src/library/iterator/handler.cc" />
 		<Unit filename="src/library/iterator/search.cc" />
-		<Unit filename="src/library/iterator_deprecated.cc" />
 		<Unit filename="src/library/load.cc" />
 		<Unit filename="src/library/loaders/csv.cc" />
 		<Unit filename="src/library/query.cc" />
