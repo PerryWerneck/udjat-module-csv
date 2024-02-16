@@ -35,6 +35,11 @@
 
 	DataStore::Iterator::Iterator(const std::shared_ptr<DataStore::File> f, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &c, std::shared_ptr<Handler> h)
 		: file{f}, cols{c}, handler{h} {
+
+		if(!file) {
+			throw std::system_error(ENODATA,std::system_category());
+		}
+
 		if(!file->mapped()) {
 			throw logic_error("Unable to iterate an unmapped datastore");
 		}
@@ -42,6 +47,11 @@
 
 	DataStore::Iterator::Iterator(const std::shared_ptr<DataStore::File> f, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &c)
 		: file{f}, cols{c} {
+
+		if(!file) {
+			throw std::system_error(ENODATA,std::system_category());
+		}
+
 		if(!file->mapped()) {
 			throw logic_error("Unable to iterate an unmapped datastore");
 		}
