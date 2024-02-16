@@ -6,7 +6,7 @@ AC_PREREQ(2.59)
 
 dnl Initialise automake with the package name, version and
 dnl bug-reporting address.
-AC_INIT([udjat-module-memdata], [1.0], [perry.werneck@gmail.com], [udjat-module-csv], [https://github.com/PerryWerneck/udjat-module-csv])
+AC_INIT([udjat-module-csv], [1.0], [perry.werneck@gmail.com], [udjat-module-csv], [https://github.com/PerryWerneck/udjat-module-csv])
 
 dnl Place auxilliary scripts here.
 AC_CONFIG_AUX_DIR([scripts])
@@ -59,22 +59,33 @@ case "$host" in
 		AC_SUBST(LIBEXT,.dll)
 		AC_SUBST(EXEEXT,.exe)
 		AC_SUBST(OSNAME,windows)
+		AC_SUBST(SONAME,udjatcsv.dll)
+		DLL_LDFLAGS="-shared -Wl,--output-def,\$(@D)/udjatcsv.def"
+        AC_CONFIG_FILES(sdk/windows/dynamic.pc)
+        AC_CONFIG_FILES(sdk/windows/static.pc)          
 		;;
 
  	*)
 		CFLAGS="$CFLAGS -pthread"
 		LDFLAGS="$LDFLAGS -pthread"
+		DLL_LDFLAGS="-shared"
 		AC_SUBST(LIBEXT,.so)
 		AC_SUBST(EXEEXT)
 		AC_SUBST(OSNAME,linux)
+		AC_SUBST(SONAME,libudjatcsv.so.$app_vrs_major.$app_vrs_minor)
+		AC_CONFIG_FILES(sdk/linux/dynamic.pc)
+		AC_CONFIG_FILES(sdk/linux/static.pc)
 
 esac
+
+AC_SUBST(DLL_LDFLAGS)
 
 dnl ---------------------------------------------------------------------------
 dnl Check for tools
 dnl ---------------------------------------------------------------------------
 
 AC_PATH_TOOL([VALGRIND], [valgrind], [no])
+AC_PATH_TOOL([AR], [ar], [no])
 
 dnl ---------------------------------------------------------------------------
 dnl Check for C++ 2017 support

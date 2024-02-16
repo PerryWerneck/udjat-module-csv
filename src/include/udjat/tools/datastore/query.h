@@ -28,6 +28,7 @@
  #include <udjat/tools/datastore/column.h>
  #include <udjat/tools/datastore/file.h>
  #include <udjat/tools/quark.h>
+ #include <udjat/tools/abstract/request-path.h>
  #include <memory>
  #include <vector>
 
@@ -35,13 +36,10 @@
 
  	namespace DataStore {
 
-		class UDJAT_API Query {
-		private:
-			const char *name;
-
+		class UDJAT_API Query  : public Udjat::RequestPath {
 		protected:
 
-			Query(const XML::Node &node) : name{Quark{node,"name"}.c_str()} {
+			Query(const XML::Node &node) : Udjat::RequestPath{node} {
 			}
 
 		public:
@@ -49,14 +47,6 @@
 			virtual ~Query();
 
 			static std::shared_ptr<Query> Factory(const XML::Node &node, const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &cols);
-
-			inline bool operator==(const char *n) const noexcept {
-				return strcasecmp(name,n) == 0;
-			}
-
-			inline const char * c_str() const noexcept {
-				return name;
-			}
 
 			virtual DataStore::Iterator call(const std::vector<std::shared_ptr<DataStore::Abstract::Column>> &cols,std::shared_ptr<File>, const Request &request) const = 0;
 

@@ -45,7 +45,7 @@
 	namespace DataStore {
 
 		/// @brief Data store default agent.
-		class UDJAT_API Agent : public Udjat::Agent<DataStore::State>, private Udjat::DataStore::Container, private Udjat::File::Watcher {
+		class UDJAT_API Agent : public Udjat::Agent<DataStore::State>, public Udjat::DataStore::Container, private Udjat::File::Watcher {
 		private:
 
 			bool reload_required = false;	///< @brief True if there is a pending file watch event.
