@@ -1,0 +1,19 @@
+Source: udjat-module-csv
+Section: unknown
+Priority: optional
+Maintainer: Perry Werneck <perry.werneck@gmail.com>
+Build-Depends: debhelper (>= 7), autotools-dev, autoconf, automake, pkg-config, gettext, libudjat-dev
+
+Package: udjat-module-csv
+Architecture: any
+Section: libs
+Depends: ${misc:Depends}
+Description: SQLite module for udjat.
+ Load and indexes a list of CSV files.
+
+Package: udjat-module-csv-dbg
+Architecture: any
+Depends: libudjat (= ${binary:Version})
+Description: Debugging symbols for udjat-module-csv
+ This package contains the debugging symbols for udjat-module-csv.
+
