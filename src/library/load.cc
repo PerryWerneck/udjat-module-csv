@@ -247,7 +247,7 @@
 		{
 			std::vector<struct Index> indexes;
 
-			for(uint16_t ix = 0; ix < container.columns().size(); ix++) {
+			for(size_t ix = 0; ix < container.columns().size(); ix++) {
 
 				if(container.columns()[ix]->indexed()) {
 
@@ -255,7 +255,7 @@
 
 					struct Index idx;
 					memset(&idx,0,sizeof(idx));
-					idx.column = ix;
+					idx.column = (uint16_t) ix;
 
 					// Sort entries
 					{
