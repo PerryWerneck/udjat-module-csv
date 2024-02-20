@@ -30,6 +30,10 @@
  #include <private/iterator.h>
  #include <stdexcept>
 
+ #ifdef _WIN32
+	#include <ws2tcpip.h>
+ #endif // _WIN32
+
  using namespace std;
 
  namespace Udjat {
@@ -99,6 +103,13 @@
 					// Use IP from path
 					debug("Selecting network from '",path,"'");
 
+#ifdef _WIN32
+					struct sockaddr_in addr;
+					if(InetPton(AF_INET,path,&((sockaddr_in *) &addr)->sin_addr) == 0) {
+						throw runtime_error(Logger::String{"Cant convert address ",path});
+					}
+					key = (size_t) htonl(addr.sin_addr.s_addr);
+#else
 					struct in_addr addr;
 
 					if(!inet_pton(AF_INET, path, &addr)) {
@@ -106,6 +117,8 @@
 					}
 
 					key = (size_t) htonl(addr.s_addr);
+#endif // _WIN32
+
 
 				} else {
 

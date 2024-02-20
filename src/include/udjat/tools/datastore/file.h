@@ -24,6 +24,7 @@
  #pragma once
  #include <udjat/defs.h>
  #include <mutex>
+ #include <string>
 
  namespace Udjat {
 

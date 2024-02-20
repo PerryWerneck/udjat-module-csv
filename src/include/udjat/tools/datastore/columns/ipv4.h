@@ -29,9 +29,11 @@
 
  #include <stdexcept>
 
- #include <netinet/in.h>
- #include <sys/socket.h>
- #include <arpa/inet.h>
+ #ifndef _WIN32
+	#include <netinet/in.h>
+	#include <sys/socket.h>
+	#include <arpa/inet.h>
+ #endif // _WIN32
 
  namespace Udjat {
 
