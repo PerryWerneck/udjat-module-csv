@@ -39,6 +39,7 @@
 		<Unit filename="src/include/private/column.h" />
 		<Unit filename="src/include/private/controller.h" />
 		<Unit filename="src/include/private/iterator.h" />
+		<Unit filename="src/include/private/mman.h" />
 		<Unit filename="src/include/private/structs.h" />
 		<Unit filename="src/include/private/value.h" />
 		<Unit filename="src/include/udjat/agent/datastore.h" />
@@ -67,6 +68,9 @@
 		<Unit filename="src/library/iterator/search.cc" />
 		<Unit filename="src/library/load.cc" />
 		<Unit filename="src/library/loaders/csv.cc" />
+		<Unit filename="src/library/os/windows/mman.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="src/library/query.cc" />
 		<Unit filename="src/library/resource.cc" />
 		<Unit filename="src/library/search.cc" />
