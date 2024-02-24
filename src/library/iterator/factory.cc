@@ -26,6 +26,7 @@
  #include <udjat/tools/logger.h>
  #include <private/structs.h>
  #include <private/iterator.h>
+ #include <udjat/tools/string.h>
 
  using namespace std;
 
@@ -118,7 +119,7 @@
 
 				for(size_t row = 0; row < it.handler->size(); row++) {
 					it = row;
-					if(strcasestr(it[(size_t) column_id].c_str(),path)) {
+					if(String::strcasestr(it[(size_t) column_id].c_str(),path)) {
 						debug("Selecting '",it[(size_t) column_id],"' rowptr=", ((size_t) it.rowptr())," size=");
 						records->push_back(it);
 					}
@@ -131,7 +132,7 @@
 
 				for(size_t row = 0; row < it.handler->size(); row++) {
 					for(size_t ix = 0;ix < cols.size();ix++) {
-						if(strcasestr(it[(size_t) ix].c_str(),path)) {
+						if(String::strcasestr(it[(size_t) ix].c_str(),path)) {
 							debug("Selecting '",it[(size_t) ix],"' rowptr=", ((size_t) it.rowptr()));
 							records->push_back(it);
 							break;

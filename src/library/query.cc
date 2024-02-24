@@ -27,6 +27,7 @@
  #include <udjat/tools/datastore/columns/ipv4.h>
  #include <udjat/tools/logger.h>
  #include <udjat/tools/datastore/iterator.h>
+ #include <udjat/net/ip/address.h>
  #include <private/iterator.h>
  #include <stdexcept>
 
@@ -104,11 +105,11 @@
 					debug("Selecting network from '",path,"'");
 
 #ifdef _WIN32
-					struct sockaddr_in addr;
-					if(InetPton(AF_INET,path,&((sockaddr_in *) &addr)->sin_addr) == 0) {
-						throw runtime_error(Logger::String{"Cant convert address ",path});
+					sockaddr_storage addr = Udjat::IP::Factory(path);
+					if(addr.ss_family != AF_INET) {
+						throw runtime_error(Logger::String{"Cant convert address ",path," to an IPV4 value"});
 					}
-					key = (size_t) htonl(addr.sin_addr.s_addr);
+					key = (size_t) &((sockaddr_in *) &addr)->sin_addr.s_addr;
 #else
 					struct in_addr addr;
 
@@ -148,7 +149,7 @@
 						uint32_t rowaddr = (rptr[ipcol]|brd)&mask;
 						uint32_t keyaddr = (key|brd)&mask;
 
-#ifdef DEBUG
+#if defined(DEBUG) && !defined(_WIN32)
 						{
 							struct in_addr addr;
 							memset(&addr,0,sizeof(addr));
