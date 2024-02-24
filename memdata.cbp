@@ -68,6 +68,10 @@
 		<Unit filename="src/library/iterator/search.cc" />
 		<Unit filename="src/library/load.cc" />
 		<Unit filename="src/library/loaders/csv.cc" />
+		<Unit filename="src/library/os/linux/file.cc" />
+		<Unit filename="src/library/os/linux/ipv4column.cc" />
+		<Unit filename="src/library/os/windows/file.cc" />
+		<Unit filename="src/library/os/windows/ipv4column.cc" />
 		<Unit filename="src/library/os/windows/mman.c">
 			<Option compilerVar="CC" />
 		</Unit>

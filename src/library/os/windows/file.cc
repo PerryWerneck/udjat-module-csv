@@ -25,11 +25,11 @@
  #include <udjat/defs.h>
  #include <udjat/tools/datastore/file.h>
  #include <udjat/tools/logger.h>
+ #include <udjat/tools/file/temporary.h>
  #include <sys/types.h>
  #include <sys/stat.h>
  #include <fcntl.h>
  #include <stdexcept>
- #include <sys/mman.h>
  #include <private/mman.h>
  #include <cstdint>
 
@@ -37,7 +37,7 @@
 
  namespace Udjat {
 
-	DataStore::File::File() : fd{open("/tmp",O_RDWR|O_TMPFILE,0600)} {
+	DataStore::File::File() : tempfilename{Udjat::File::Temporary::create()}, fd{open(tempfilename.c_str(),O_RDWR|O_CREAT|O_TRUNC)} {
 
 		if(Logger::enabled(Logger::Trace)) {
 			cout << "datastore\tStorage " << hex << this << dec << " constructed using temporary file" << endl;
@@ -67,6 +67,10 @@
 		if(fd >= 0) {
 			::close(fd);
 			fd = -1;
+		}
+
+		if(!tempfilename.empty()) {
+			DeleteFile(tempfilename.c_str());
 		}
 
 		if(Logger::enabled(Logger::Trace)) {
@@ -164,7 +168,14 @@
 
 		size_t bytes = length;
 		while(bytes > 0) {
+#ifdef _WIN32
+			if(lseek(fd,offset,SEEK_SET) == offset) {
+				throw std::system_error(errno,std::system_category(),"Cant setup DB file position");
+			}
+			ssize_t w = ::write(fd,data,bytes);
+#else
 			ssize_t w = ::pwrite(fd, data, bytes, offset);
+#endif // _WIN32
 			if(w < 0) {
 				throw std::system_error(errno,std::system_category(),"Error writing to DB file");
 			}
@@ -206,7 +217,7 @@
 			if(lseek(fd,offset,SEEK_SET) == offset) {
 				throw std::system_error(errno,std::system_category(),"Cant setup DB file position");
 			}
-			ssize_t r = read(fd,buffer,128);
+			ssize_t r = ::read(fd,buffer,128);
 #else
 			ssize_t r = pread(fd,buffer,128,offset);
 #endif // _WIN32
@@ -255,7 +266,7 @@
 			if(lseek(fd,offset,SEEK_SET) == offset) {
 				throw std::system_error(errno,std::system_category(),"Cant setup DB file position");
 			}
-			ssize_t r = read(fd,data,length);
+			ssize_t r = ::read(fd,data,length);
 #else
 			ssize_t r = pread(fd,data,length,offset);
 #endif // _WIN32

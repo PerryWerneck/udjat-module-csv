@@ -25,27 +25,31 @@
  #include <udjat/defs.h>
  #include <udjat/tools/datastore/column.h>
  #include <udjat/tools/datastore/columns/ipv4.h>
+ #include <udjat/net/ip/address.h>
+ #include <stdexcept>
+
+ using namespace std;
 
  namespace Udjat {
 
 	size_t DataStore::Column<in_addr>::save(Deduplicator &, const char *text) const {
 
-		in_addr addr;
-		if(!inet_aton(text, &addr)) {
-			throw std::runtime_error(Logger::String{"Invalid IPV4 '",text,"'"});
+		sockaddr_storage addr = IP::Factory(text);
+		if(addr.ss_family != AF_INET) {
+			throw runtime_error(Logger::String{"Cant convert address ",text," to an IPV4 value"});
 		}
+		return  (size_t) htonl(((sockaddr_in *) &addr)->sin_addr.s_addr);
 
-		return (size_t) htonl(addr.s_addr);
 	}
 
 	int DataStore::Column<in_addr>::comp(std::shared_ptr<File>, const size_t *row, const char *key) const {
 
-		in_addr addr;
-		if(!inet_aton(key, &addr)) {
-			throw std::runtime_error(Logger::String{"Invalid IPV4 '",key,"'"});
+		sockaddr_storage addr = IP::Factory(key);
+		if(addr.ss_family != AF_INET) {
+				throw runtime_error(Logger::String{"Cant convert address ",text," to an IPV4 value"});
 		}
 
-		return row[index] - htonl(addr.s_addr);
+		return row[index] - htonl(((sockaddr_in *) &addr)->sin_addr.s_addr);
 	}
 
 	bool DataStore::Column<in_addr>::less(std::shared_ptr<File>, const size_t *lrow, const size_t *rrow) const {
