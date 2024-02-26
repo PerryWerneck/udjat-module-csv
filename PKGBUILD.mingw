@@ -11,8 +11,8 @@ pkgdesc="SQLite module for udjat"
 url="https://github.com/PerryWerneck/${_realname}"
 arch=(i686 x86_64)
 license=(GPL)
-depends=(${MINGW_PACKAGE_PREFIX}-libudjat
-makedepends=(autoconf automake make libtool gzip ${MINGW_PACKAGE_PREFIX}-libudjat
+depends=(${MINGW_PACKAGE_PREFIX}-libudjat)
+makedepends=(autoconf automake make libtool gzip ${MINGW_PACKAGE_PREFIX}-libudjat)
 checkdepends=()
 
 provides=($pkgname) 
