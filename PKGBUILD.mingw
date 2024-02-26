@@ -5,19 +5,14 @@ _realname=udjat-module-csv
 pkgname=${MINGW_PACKAGE_PREFIX}-${_realname}
 source=()
 
-#pkgver() {
-#  cd ${srcdir}/${_realname}
-#  git describe --long --tags --abbrev=7 | sed 's/\([^-]*-g\)/r\1/;s/-/./g'
-#}
-
 pkgver=1.1
 pkgrel=1
-pkgdesc="CSV Parser for udjat"
+pkgdesc="SQLite module for udjat"
 url="https://github.com/PerryWerneck/${_realname}"
 arch=(i686 x86_64)
 license=(GPL)
-depends=(${MINGW_PACKAGE_PREFIX}-libudjat)
-makedepends=(autoconf automake make libtool gzip ${MINGW_PACKAGE_PREFIX}-libudjat)
+depends=(${MINGW_PACKAGE_PREFIX}-libudjat
+makedepends=(autoconf automake make libtool gzip ${MINGW_PACKAGE_PREFIX}-libudjat
 checkdepends=()
 
 provides=($pkgname) 
@@ -25,7 +20,7 @@ conflicts=($pkgname)
 
 prepare() {
   rm -fr "$srcdir/$pkgname"
-  mkdir -p "$srcdir/$pkgname"
+  ln -snf "$startdir" "$srcdir/$pkgname"
 }
 
 build() {
@@ -34,7 +29,8 @@ build() {
     --prefix=${MINGW_PREFIX} \
     --build=${MINGW_CHOST} \
     --host=${MINGW_CHOST} \
-    --target=${MINGW_CHOST}
+    --target=${MINGW_CHOST} \
+    --with-engine=sqlite
  
   make all
 }
