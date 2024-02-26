@@ -87,6 +87,8 @@ dnl ---------------------------------------------------------------------------
 
 AC_PATH_TOOL([VALGRIND], [valgrind], [no])
 AC_PATH_TOOL([AR], [ar], [no])
+AC_PATH_TOOL([DLLTOOL], [dlltool], [true])
+AC_PATH_TOOL([WINDRES], [windres], [true])
 
 dnl ---------------------------------------------------------------------------
 dnl Check for C++ 2017 support

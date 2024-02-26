@@ -61,6 +61,7 @@ CFLAGS= \
 	@CXXFLAGS@ \
 	-DBUILD_DATE=`date +%Y%m%d` \
 	-I$(srcdir)/src/include \
+	-Isrc/include \
 	@UDJAT_CFLAGS@
 
 LDFLAGS=\
@@ -209,14 +210,14 @@ install-dev: \
 		$(DESTDIR)$(includedir)/udjat/tools/datastore
 
 	@$(INSTALL_DATA) \
-		src/include/udjat/tools/datastore/*.h \
+		$(srcdir)/src/include/udjat/tools/datastore/*.h \
 		$(DESTDIR)$(includedir)/udjat/tools/datastore
 
 	@$(MKDIR) \
 		$(DESTDIR)$(includedir)/udjat/tools/datastore/columns
 
 	@$(INSTALL_DATA) \
-		src/include/udjat/tools/datastore/columns/*.h \
+		$(srcdir)/src/include/udjat/tools/datastore/columns/*.h \
 		$(DESTDIR)$(includedir)/udjat/tools/datastore/columns
 
 	# Install PKG-CONFIG files

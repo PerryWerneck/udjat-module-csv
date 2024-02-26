@@ -11,8 +11,8 @@ pkgdesc="SQLite module for udjat"
 url="https://github.com/PerryWerneck/${_realname}"
 arch=(i686 x86_64)
 license=(GPL)
-depends=(${MINGW_PACKAGE_PREFIX}-libudjat
-makedepends=(autoconf automake make libtool gzip ${MINGW_PACKAGE_PREFIX}-libudjat
+depends=(${MINGW_PACKAGE_PREFIX}-libudjat)
+makedepends=(autoconf automake make libtool gzip ${MINGW_PACKAGE_PREFIX}-libudjat)
 checkdepends=()
 
 provides=($pkgname) 
@@ -20,7 +20,7 @@ conflicts=($pkgname)
 
 prepare() {
   rm -fr "$srcdir/$pkgname"
-  ln -snf "$startdir" "$srcdir/$pkgname"
+  mkdir -p "$srcdir/$pkgname"
 }
 
 build() {
@@ -29,8 +29,7 @@ build() {
     --prefix=${MINGW_PREFIX} \
     --build=${MINGW_CHOST} \
     --host=${MINGW_CHOST} \
-    --target=${MINGW_CHOST} \
-    --with-engine=sqlite
+    --target=${MINGW_CHOST}
  
   make all
 }
@@ -40,6 +39,6 @@ package() {
   make DESTDIR="${pkgdir}" install
   install \
     -Dm644 \
-    "LICENSE" \
+    "${startdir}/LICENSE" \
     "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE"
 }
