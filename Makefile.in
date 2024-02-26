@@ -61,6 +61,7 @@ CFLAGS= \
 	@CXXFLAGS@ \
 	-DBUILD_DATE=`date +%Y%m%d` \
 	-I$(srcdir)/src/include \
+	-Isrc/include \
 	@UDJAT_CFLAGS@
 
 LDFLAGS=\
