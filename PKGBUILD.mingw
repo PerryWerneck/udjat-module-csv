@@ -39,6 +39,6 @@ package() {
   make DESTDIR="${pkgdir}" install
   install \
     -Dm644 \
-    "LICENSE" \
+    "${startdir}/LICENSE" \
     "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE"
 }
