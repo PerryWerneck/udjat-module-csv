@@ -58,7 +58,6 @@
 		<Unit filename="src/library/columns/ipv4.cc" />
 		<Unit filename="src/library/container.cc" />
 		<Unit filename="src/library/deduplicator.cc" />
-		<Unit filename="src/library/file.cc" />
 		<Unit filename="src/library/iterator/arithmetic.cc" />
 		<Unit filename="src/library/iterator/comparison.cc" />
 		<Unit filename="src/library/iterator/construct.cc" />

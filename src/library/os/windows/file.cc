@@ -169,7 +169,7 @@
 		size_t bytes = length;
 		while(bytes > 0) {
 #ifdef _WIN32
-			if(lseek(fd,offset,SEEK_SET) == offset) {
+			if(lseek(fd,offset,SEEK_SET) == (ssize_t) offset) {
 				throw std::system_error(errno,std::system_category(),"Cant setup DB file position");
 			}
 			ssize_t w = ::write(fd,data,bytes);
@@ -214,7 +214,7 @@
 			char buffer[128];
 
 #ifdef _WIN32
-			if(lseek(fd,offset,SEEK_SET) == offset) {
+			if(lseek(fd,offset,SEEK_SET) == (ssize_t) offset) {
 				throw std::system_error(errno,std::system_category(),"Cant setup DB file position");
 			}
 			ssize_t r = ::read(fd,buffer,128);
@@ -263,7 +263,7 @@
 		while(bytes > 0) {
 
 #ifdef _WIN32
-			if(lseek(fd,offset,SEEK_SET) == offset) {
+			if(lseek(fd,offset,SEEK_SET) == (ssize_t) offset) {
 				throw std::system_error(errno,std::system_category(),"Cant setup DB file position");
 			}
 			ssize_t r = ::read(fd,data,length);

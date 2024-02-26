@@ -61,6 +61,7 @@ case "$host" in
 		AC_SUBST(OSNAME,windows)
 		AC_SUBST(SONAME,udjatcsv.dll)
 		DLL_LDFLAGS="-shared -Wl,--output-def,\$(@D)/udjatcsv.def"
+		LIBS="$LIBS -lintl -lws2_32"		
         AC_CONFIG_FILES(sdk/windows/dynamic.pc)
         AC_CONFIG_FILES(sdk/windows/static.pc)          
 		;;
