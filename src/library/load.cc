@@ -88,11 +88,19 @@
 		// Write file sources.
 		for(auto &f : files) {
 
-			time_t timestamp = (time_t) (f.st.st_mtim.tv_sec); // Just in case
+#ifdef _WIN32
 
+			// TODO: Get last modification time
+			time_t timestamp = 0;
+
+#else
+
+			time_t timestamp = (time_t) (f.st.st_mtim.tv_sec); // Just in case
 			if(!header.last_modified || header.last_modified < timestamp) {
 				header.last_modified = timestamp;
 			}
+
+#endif // _WIN32
 
 			file->write(f.name.c_str(),f.name.size()+1);
 			file->write(&timestamp,sizeof(timestamp));

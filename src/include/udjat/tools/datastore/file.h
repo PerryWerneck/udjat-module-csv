@@ -24,6 +24,7 @@
  #pragma once
  #include <udjat/defs.h>
  #include <mutex>
+ #include <string>
 
  namespace Udjat {
 
@@ -32,9 +33,15 @@
 		/// @brief Handle a datastore file.
 		class UDJAT_API File {
 		private:
+
+#ifdef _WIN32
+			std::string tempfilename;
+#endif // _WIN32
+
 			int fd = -1;				///< @brief Handle of the real data file.
 			uint8_t * ptr = nullptr;	///< @brief Pointer to memory mapped block.
 			std::mutex guard;
+
 
 		public:
 			File();

@@ -27,8 +27,13 @@
  #include <udjat/tools/datastore/columns/ipv4.h>
  #include <udjat/tools/logger.h>
  #include <udjat/tools/datastore/iterator.h>
+ #include <udjat/net/ip/address.h>
  #include <private/iterator.h>
  #include <stdexcept>
+
+ #ifdef _WIN32
+	#include <ws2tcpip.h>
+ #endif // _WIN32
 
  using namespace std;
 
@@ -99,6 +104,13 @@
 					// Use IP from path
 					debug("Selecting network from '",path,"'");
 
+#ifdef _WIN32
+					sockaddr_storage addr = Udjat::IP::Factory(path);
+					if(addr.ss_family != AF_INET) {
+						throw runtime_error(Logger::String{"Cant convert address ",path," to an IPV4 value"});
+					}
+					key = (size_t) &((sockaddr_in *) &addr)->sin_addr.s_addr;
+#else
 					struct in_addr addr;
 
 					if(!inet_pton(AF_INET, path, &addr)) {
@@ -106,6 +118,8 @@
 					}
 
 					key = (size_t) htonl(addr.s_addr);
+#endif // _WIN32
+
 
 				} else {
 
@@ -135,7 +149,7 @@
 						uint32_t rowaddr = (rptr[ipcol]|brd)&mask;
 						uint32_t keyaddr = (key|brd)&mask;
 
-#ifdef DEBUG
+#if defined(DEBUG) && !defined(_WIN32)
 						{
 							struct in_addr addr;
 							memset(&addr,0,sizeof(addr));

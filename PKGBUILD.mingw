@@ -1,0 +1,44 @@
+# Maintainer: Perry Werneck <perry.werneck@gmail.com>
+# References: https://www.msys2.org/wiki/Creating-Packages/
+
+_realname=udjat-module-csv
+pkgname=${MINGW_PACKAGE_PREFIX}-${_realname}
+source=()
+
+pkgver=1.1
+pkgrel=1
+pkgdesc="SQLite module for udjat"
+url="https://github.com/PerryWerneck/${_realname}"
+arch=(i686 x86_64)
+license=(GPL)
+depends=(${MINGW_PACKAGE_PREFIX}-libudjat)
+makedepends=(autoconf automake make libtool gzip ${MINGW_PACKAGE_PREFIX}-libudjat)
+checkdepends=()
+
+provides=($pkgname) 
+conflicts=($pkgname)
+
+prepare() {
+  rm -fr "$srcdir/$pkgname"
+  mkdir -p "$srcdir/$pkgname"
+}
+
+build() {
+  cd $pkgname
+  ${startdir}/autogen.sh \
+    --prefix=${MINGW_PREFIX} \
+    --build=${MINGW_CHOST} \
+    --host=${MINGW_CHOST} \
+    --target=${MINGW_CHOST}
+ 
+  make all
+}
+
+package() {
+  cd $pkgname
+  make DESTDIR="${pkgdir}" install
+  install \
+    -Dm644 \
+    "${startdir}/LICENSE" \
+    "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE"
+}
